@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=mywords
+Name[zh_CN]=我的单词
+Comment=mywords
+Comment[zh_CN]=我的单词
+Version=v0.0.1
+GenericName=My Words
+Exec=/opt/mywords/mywords %f
+Icon=/opt/mywords/logo.png
+Terminal=false
+Type=Application
+Categories=Network
+StartupNotify=true
