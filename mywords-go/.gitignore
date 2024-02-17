@@ -1,0 +1,27 @@
+logs/
+.vscode
+# vs code debugging
+__*
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+cscope.*
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories
+.idea/
+
+vendor/
+*.log
+
+*.profile
+_*.*
