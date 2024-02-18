@@ -1,33 +1,35 @@
 # mywords
-1. 输入一个英语或双语文章的网址，本工具将自动提取文章中所有单词及其所在句子，并计算词汇总数。它还能去除重复的单词，并允许你排除那些你已经认识的单词。
-2. 为单词打上标签，分为“0:陌生”，“1:了解”，“2:认识”，“3:熟悉”，以帮助跟踪学习进度。一旦标记完成，单词将自动被加入你的词库中。
-3. 对已解析的文章单词进行筛选，根据标记等级进行。例如，选择“0”将显示所有“陌生”的单词。
-4. 本工具支持安卓(Android)、Linux和Windows平台上的使用。不同设备之间的数据可以进行相互同步。
-5. 推荐使用以下英语学习资源：[The New York Times 中英文版](https://cn.nytimes.com/zh-hant/)，以获取优质的英文阅读材料。
+1. 本项目是一个英语单词学习工具，旨在帮助英语学习者通过阅读英文文章来增加词汇量。
+2. 你可以输入一个英语或双语文章的网址，本工具将自动提取文章中所有单词及其所在句子，并计算词汇总数，并帮助你记录每个单词的认知程度。它还能去除重复的单词，并允许你排除那些你已经知道的单词。
+3. 为单词打上标签，分为“0:陌生”，“1:了解”，“2:认识”，“3:熟悉”，以帮助跟踪学习进度。一旦标记完成，单词将自动被加入你的词库中。
+4. 对已解析的文章单词进行筛选，根据标记等级进行。例如，选择“0”将显示所有“陌生”的单词。
+5. 该工具支持安卓(Android)、Linux和Windows平台上的使用。不同设备之间的数据可以进行相互同步。
+## 学习建议
+- 阅读英文文章是提高词汇量的有效方法之一。数据显示，通常每篇英文文章的有效词汇率在50%~70%之间(其中的标点符号、冠词、介词等较为简单的词汇已自动去除，如a,in,on,the,I,than,you,he等)，建议坚持每天阅读英文文章，并记录新学到的单词。
+- 随着阅读量增加，你的词汇量会逐渐提高，你会发现你每阅读一篇新文章时的“0级陌生单词”会越来越少。
+- 推荐使用以下英语学习资源：[The New York Times 中英文版](https://cn.nytimes.com/zh-hant/)，以获取优质的英文阅读材料。 <img src="images/dual.png">
+
+
+
 ## Getting Started
-- 请选择对应的目标平台，进行编译，
+- 请根据你要使用的平台选择对应的编译指令进行编译：
   - 安卓: `make build-android`
-  - linux: `make build-linux`
-  - windows: `make build-windows`
-- 编译的文件安装包将出现在`bin`文件夹中。
+  - Linux: `make build-linux`
+  - Windows: `make build-windows`
+- 编译完成后，安装包将出现在"bin"文件夹中。
 
-
-## Project Tree
+## 项目结构
 ```
-├── bin
-├── mywords-go
-├── mywords-flutter
-├── makefile
-└── readme.md
-```
-- bin: the compiled result of the project. .apk for android,.deb for linux, and -windows.zip for windows.
-- mywords-flutter: the `flutter` source code of the file share server.
-- mywords-go: the `go` source code of the file share server.
-- makefile: the makefile of the project.
-- readme.md: the readme file of the project.
+├── bin                   # 编译后的项目文件目录，安卓为.apk，Linux为.deb，Windows为.zip
+├── mywords-go            # 用于编译SO库的go核心逻辑源代码目录
+├── mywords-flutter       # Flutter源代码目录，用于编译安装包
+├── makefile              # 项目的Makefile文件
+├── readme.md             # 项目的说明文档
 
-## Dependencies
-- windows环境下，需要对CGO进行支持
+```
+
+## 依赖
+- Windows 环境下，需要对CGO进行支持
 - 如果没有安装对应的 CGO 运行时环境、则在运行的时候会引发如下错误。
   > exec: “gcc”: executable file not found in %PATH%
   - Windows GO 语言 CGO 运行时环境配置
@@ -36,7 +38,7 @@
   - Make for Windows
       - https://gnuwin32.sourceforge.net/packages/make.htm
       - Complete package, except sources
-## Preview
+## 预览
 
 <img src="images/home-article-page.png" style="width: 256px"> <img src="images/home-dict-page.png" style="width: 256px">
 <img src="images/home-dict-page-apple.png" style="width: 256px"> <img src="images/word-page.png" style="width: 256px">
