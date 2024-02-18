@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/dict.dart';
 
+import '../common/global_event.dart';
 import '../libso/funcs.dart';
 import '../libso/resp_data.dart';
 import '../pages/lookup_word.dart';
@@ -55,9 +56,7 @@ class _State extends State<WordList> {
         Text("[${i + 1}]"),
         TextButton(
             onPressed: () {
-              showWord(context, word, whenUpdateKnownWords: () {
-                setState(() {});
-              });
+              showWord(context, word );
             },
             child: Text(
               word,
@@ -122,8 +121,7 @@ class _State extends State<WordList> {
 }
 
 Widget contextMenuBuilder(
-    BuildContext context, EditableTextState editableTextState,
-    {void Function()? whenUpdateKnownWords}) {
+    BuildContext context, EditableTextState editableTextState) {
   final textEditingValue = editableTextState.textEditingValue;
   final TextSelection selection = textEditingValue.selection;
   final buttonItems = editableTextState.contextMenuButtonItems;
@@ -132,8 +130,7 @@ Widget contextMenuBuilder(
     if (!selectText.contains(" ")) {
       buttonItems.add(ContextMenuButtonItem(
           onPressed: () {
-            showWord(context, selectText,
-                whenUpdateKnownWords: whenUpdateKnownWords);
+            showWord(context, selectText);
           },
           label: "Lookup"));
     }
@@ -150,6 +147,7 @@ void _updateKnownWords(BuildContext context, int level, String word) {
     myToast(context, respData.message);
     return;
   }
+  addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
 }
 
 InkWell buildInkWell(String word, int showLevel, int realLevel,
@@ -178,8 +176,7 @@ InkWell buildInkWell(String word, int showLevel, int realLevel,
       });
 }
 
-void showWordWithDefault(BuildContext context, String word,
-    {void Function()? whenUpdateKnownWords}) {
+void showWordWithDefault(BuildContext context, String word) {
   final wordC = word.toNativeUtf8();
   final resultC = dictWordQuery(wordC);
   final respData = RespData.fromJson(
@@ -190,7 +187,8 @@ void showWordWithDefault(BuildContext context, String word,
   String define = respData.data ?? '';
   if (define == '') {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),duration: const Duration(milliseconds: 2000),
+      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
+      duration: const Duration(milliseconds: 2000),
     ));
     return;
   }
@@ -228,16 +226,13 @@ void showWordWithDefault(BuildContext context, String word,
             children: [
               buildInkWell(word, 0, l, (int level, String world) {
                 _updateKnownWords(context, level, word);
-                if (whenUpdateKnownWords != null) whenUpdateKnownWords();
-                stateSetter(() {
+                 stateSetter(() {
                   l = 0;
                 });
               }),
               const SizedBox(width: 5),
               buildInkWell(word, 1, l, (int level, String world) {
                 _updateKnownWords(context, level, word);
-                if (whenUpdateKnownWords != null) whenUpdateKnownWords();
-
                 stateSetter(() {
                   l = 1;
                 });
@@ -245,8 +240,6 @@ void showWordWithDefault(BuildContext context, String word,
               const SizedBox(width: 5),
               buildInkWell(word, 2, l, (int level, String world) {
                 _updateKnownWords(context, level, word);
-                if (whenUpdateKnownWords != null) whenUpdateKnownWords();
-
                 stateSetter(() {
                   l = 2;
                 });
@@ -254,8 +247,6 @@ void showWordWithDefault(BuildContext context, String word,
               const SizedBox(width: 5),
               buildInkWell(word, 3, l, (int level, String world) {
                 _updateKnownWords(context, level, word);
-                if (whenUpdateKnownWords != null) whenUpdateKnownWords();
-
                 stateSetter(() {
                   l = 3;
                 });
@@ -274,8 +265,7 @@ void showWordWithDefault(BuildContext context, String word,
           define,
           contextMenuBuilder:
               (BuildContext context, EditableTextState editableTextState) {
-            return contextMenuBuilder(context, editableTextState,
-                whenUpdateKnownWords: whenUpdateKnownWords);
+            return contextMenuBuilder(context, editableTextState);
           },
         )))
       ],
@@ -285,21 +275,19 @@ void showWordWithDefault(BuildContext context, String word,
   final padding = Padding(padding: const EdgeInsets.all(10), child: state);
   showModalBottomSheet(
       context: context,
-      backgroundColor: prefs.isDark?Colors.black87:null,
+      backgroundColor: prefs.isDark ? Colors.black87 : null,
       builder: (BuildContext context) {
         return Scaffold(backgroundColor: Colors.transparent, body: padding);
       });
 }
 
 // whenUpdateKnownWords 在模态页面用
-void showWord(BuildContext context, String word,
-    {void Function()? whenUpdateKnownWords}) {
+void showWord(BuildContext context, String word,) {
   final defaultDict = getDefaultDict().data ?? '';
   if (defaultDict == '') {
-    return showWordWithDefault(context, word,
-        whenUpdateKnownWords: whenUpdateKnownWords);
+    return showWordWithDefault(context, word);
   }
-  queryWordInDict(context, word, whenUpdateKnownWords: whenUpdateKnownWords);
+  queryWordInDict(context, word);
 }
 
 Widget buildShowLevel(int level,
