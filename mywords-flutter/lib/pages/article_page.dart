@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
 import 'package:mywords/pages/word_common.dart';
@@ -65,7 +67,10 @@ class ArticlePageState extends State<ArticlePage> {
         }).then((respData) {
       if (respData.code != 0) {
         myToast(context, respData.message);
+        return;
       }
+      addToGlobalEvent(
+          GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
       article = respData.data!;
       levelCountMap = _levelDistribute();
       myToast(context, "重新从本地文件解析成功！");
@@ -73,10 +78,19 @@ class ArticlePageState extends State<ArticlePage> {
     });
   }
 
+  void globalEventHandler(GlobalEvent event) {
+    if (event.eventType == GlobalEventType.updateKnownWord) {
+      setState(() {});
+    }
+  }
+
+  StreamSubscription<GlobalEvent>? globalEventSubscription;
+
   @override
   void initState() {
     super.initState();
     initArticle();
+    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   Map<String, dynamic> levelCountMap = {}; //level: count
@@ -119,6 +133,7 @@ class ArticlePageState extends State<ArticlePage> {
       myToast(context, respData.message);
       return;
     }
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
     levelCountMap = _levelDistribute();
     setState(() {});
   }
@@ -150,9 +165,7 @@ class ArticlePageState extends State<ArticlePage> {
         Text("[${i + 1}]{${info.count}}"),
         TextButton(
             onPressed: () {
-              showWord(context, wordLink, whenUpdateKnownWords: () {
-                setState(() {});
-              });
+              showWord(context, wordLink);
             },
             child: Text(
               wordLink,
@@ -177,10 +190,7 @@ class ArticlePageState extends State<ArticlePage> {
       items.add(highlightText(info.sentence.join('\n\n'), [info.text],
           contextMenuBuilder:
               (BuildContext context, EditableTextState editableTextState) {
-        return contextMenuBuilder(context, editableTextState,
-            whenUpdateKnownWords: () {
-          setState(() {});
-        });
+        return contextMenuBuilder(context, editableTextState);
       }));
     }
     if (!showSentence) {
@@ -206,6 +216,12 @@ class ArticlePageState extends State<ArticlePage> {
             child: preview ? const Text("Words") : const Text("Preview")),
       ),
     ];
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    globalEventSubscription?.cancel();
   }
 
   @override

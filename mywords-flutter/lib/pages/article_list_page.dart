@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
+import '../common/global_event.dart';
 import '../widgets/article_list.dart';
 
 class ArticleListPage extends StatefulWidget {
@@ -27,12 +29,20 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     super.dispose();
     controller.dispose();
     focus.dispose();
+    globalEventSubscription?.cancel();
     valueNotifierChart.dispose();
+  }
+
+  void globalEventHandler(GlobalEvent event) {
+    if (event.eventType == GlobalEventType.syncData) {
+      valueNotifierChart.value = UniqueKey();
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   List<FileInfo> get fileInfos => showFileInfoList().data ?? [];
@@ -97,14 +107,16 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void computeParse(String www) async {
     valueNotifier.value = true;
-    final result = await compute(parseAndSaveArticleFromSourceUrl, www);
+    final respData = await compute(parseAndSaveArticleFromSourceUrl, www);
     valueNotifier.value = false;
-    if (result != "") {
+    if (respData.code != 0) {
       if (!context.mounted) return;
-      myToast(context, result);
+      myToast(context, respData.message);
       return;
     }
     controller.text = "";
+    addToGlobalEvent(
+        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
   }
 
   FocusNode focus = FocusNode();
@@ -137,7 +149,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   }
 
   Widget get todaySubtitle {
-    final style =prefs.isDark?TextStyle(color:Colors.orange.shade300): TextStyle(color: Theme.of(context).primaryColor);
+    final style = prefs.isDark
+        ? TextStyle(color: Colors.orange.shade300)
+        : TextStyle(color: Theme.of(context).primaryColor);
     return RichText(
         text: TextSpan(
             text: "1级:",
@@ -150,6 +164,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           TextSpan(text: '${todayCountMap['3'] ?? 0}', style: style),
         ]));
   }
+
+  StreamSubscription<GlobalEvent>? globalEventSubscription;
 
   Widget buildBody() {
     List<Widget> colChildren = [
@@ -197,8 +213,6 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
         padding: const EdgeInsets.only(left: 10, right: 10),
         child: Column(children: colChildren));
   }
-
-
 
   ValueNotifier<Key> valueNotifierChart = ValueNotifier(UniqueKey());
 

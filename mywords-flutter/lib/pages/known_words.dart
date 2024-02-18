@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/dict.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_list.dart';
+import '../common/global_event.dart';
 import '../libso/funcs.dart';
 
 class KnownWords extends StatefulWidget {
@@ -18,11 +21,13 @@ class _State extends State<KnownWords> {
   int showLevel = prefs.showWordLevel;
 
   Map<int, List<String>> levelWordsMap = {};
+  StreamSubscription<GlobalEvent>? globalEventSubscription;
 
   @override
   void initState() {
     super.initState();
-    levelWordsMap = allKnownWordMap().data??{};
+    levelWordsMap = allKnownWordMap().data ?? {};
+    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   int get totalCount {
@@ -39,21 +44,32 @@ class _State extends State<KnownWords> {
     };
   } //level: count
 
+  void globalEventHandler(GlobalEvent event) {
+    if (event.eventType == GlobalEventType.updateKnownWord) {
+      setState(() {});
+    }
+  }
+
   List<Widget> actions() {
     return [
-        IconButton(onPressed: (){
-        final respData=fixMyKnownWords();
-        if (respData.code!=0){
-          myToast(context, respData.message);
-          return;
-        }
-        myToast(context, "Successfully");
-        setState(() {
-
-        });
-
-      }, icon: const Icon(Icons.refresh))
+      IconButton(
+          onPressed: () {
+            final respData = fixMyKnownWords();
+            if (respData.code != 0) {
+              myToast(context, respData.message);
+              return;
+            }
+            myToast(context, "Successfully");
+            setState(() {});
+          },
+          icon: const Icon(Icons.refresh))
     ];
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    globalEventSubscription?.cancel();
   }
 
   @override

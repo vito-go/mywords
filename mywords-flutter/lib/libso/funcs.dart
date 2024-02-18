@@ -278,17 +278,14 @@ RespData<ChartLineData> getChartData() {
 }
 
 // compute must be top level function
-String parseAndSaveArticleFromSourceUrl(String www) {
+RespData<void> parseAndSaveArticleFromSourceUrl(String www) {
   final sourceUrl = www.toNativeUtf8();
   final resultC = _parseAndSaveArticleFromSourceUrl(sourceUrl);
   final RespData respData =
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(resultC);
   malloc.free(sourceUrl);
-  if (respData.code != 0) {
-    return respData.message;
-  }
-  return "";
+  return respData;
 }
 
 // compute must be top level function

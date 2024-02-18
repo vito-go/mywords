@@ -5,12 +5,11 @@ import 'package:mywords/libso/funcs.dart';
 import 'package:mywords/util/util.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../common/global_event.dart';
 import '../widgets/word_list.dart';
 
 class WordHtml extends StatefulWidget {
-  const WordHtml({super.key, required this.word, this.whenUpdateKnownWords});
-
-  final void Function()? whenUpdateKnownWords;
+  const WordHtml({super.key, required this.word});
 
   final String word;
 
@@ -107,7 +106,7 @@ class _State extends State<WordHtml> {
       myToast(context, respData.message);
       return;
     }
-    if (widget.whenUpdateKnownWords != null) widget.whenUpdateKnownWords!();
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
     setState(() {});
   }
 

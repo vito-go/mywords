@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mywords/common/global_event.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:path_provider/path_provider.dart';
 import '../libso/funcs.dart';
@@ -72,7 +73,6 @@ class _RestoreDataState extends State<RestoreData> {
     controllerBackUpZipName.dispose();
   }
 
-
   Future<int> syncShareData() async {
     if (controllerIP.text == "") {
       myToast(context, "IP/域名不能为空");
@@ -115,6 +115,7 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.syncData));
     return 0;
   }
 

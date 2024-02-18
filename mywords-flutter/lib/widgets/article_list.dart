@@ -9,6 +9,8 @@ import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
+import '../common/global_event.dart';
+
 enum ToEndSlide { archive, unarchive }
 
 class ArticleListView extends StatefulWidget {
@@ -38,7 +40,10 @@ class _State extends State<ArticleListView> {
   @override
   void dispose() {
     super.dispose();
+    globalEventSubscription?.cancel();
   }
+
+  StreamSubscription<GlobalEvent>? globalEventSubscription;
 
   void slideToUnArchive(FileInfo item) {
     final fileName = item.fileName;
@@ -208,11 +213,19 @@ class _State extends State<ArticleListView> {
         });
   }
 
+  void globalEventHandler(GlobalEvent event) {
+    if (event.eventType == GlobalEventType.parseAndSaveArticle ||
+        event.eventType == GlobalEventType.syncData) {
+      initFileInfos();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     initFileInfos().then((value) {
       ifShowDialogGuide();
+      globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
     });
   }
 
