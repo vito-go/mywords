@@ -174,9 +174,21 @@ final setProxyUrl = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>)>('SetProxyUrl');
 
 // func DictWordQuery(wordC *C.char) *C.char //查不到就是空
-final dictWordQuery = nativeAddLib.lookupFunction<
+final _dictWordQuery = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>),
     Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
+
+String dictWordQuery(String word) {
+  final wordC = word.toNativeUtf8();
+  final resultC = _dictWordQuery(wordC);
+  final respData = RespData.fromJson(
+      jsonDecode(resultC.toDartString()), (json) => json.toString());
+  myPrint(resultC.toDartString());
+  malloc.free(wordC);
+  malloc.free(resultC);
+  String define = respData.data ?? '';
+  return define;
+}
 
 // func DictWordQuery(wordC *C.char) *C.char //查不到就是空
 final _dictWordQueryLink = nativeAddLib.lookupFunction<

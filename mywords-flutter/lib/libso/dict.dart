@@ -12,7 +12,7 @@ final _getUrlByWord = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>)>('GetUrlByWord');
 
 // getUrlByWord 返回防止携带word参数
-RespData<String> getUrlByWord(String word) {
+String getUrlByWord(String word) {
   final wordC = word.toNativeUtf8();
   final resultC = _getUrlByWord(wordC);
   malloc.free(wordC);
@@ -20,7 +20,7 @@ RespData<String> getUrlByWord(String word) {
   malloc.free(resultC);
   final RespData<String> respData =
       RespData.fromJson(jsonDecode(result), (json) => json as String);
-  return respData;
+  return respData.data??'';
 }
 
 // func   UpdateDictName(dataDirC, nameC *C.char) *C.char {
@@ -175,7 +175,7 @@ final _finalHtmlBasePathWithOutHtml = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>),
     Pointer<Utf8> Function(Pointer<Utf8>)>('FinalHtmlBasePathWithOutHtml');
 
-RespData<String> finalHtmlBasePathWithOutHtml(String word) {
+String finalHtmlBasePathWithOutHtml(String word) {
   final wordC = word.toNativeUtf8();
   final resultC = _finalHtmlBasePathWithOutHtml(wordC);
   malloc.free(wordC);
@@ -183,5 +183,5 @@ RespData<String> finalHtmlBasePathWithOutHtml(String word) {
   malloc.free(resultC);
   final RespData<String> respData =
       RespData.fromJson(jsonDecode(result), (json) => json as String);
-  return respData;
+  return respData.data??"";
 }
