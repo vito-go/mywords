@@ -18,7 +18,7 @@ func SearchByKeyWord(keyWord string, dictMap map[string]string) []string {
 		if lowerWord == lowerKeyWord {
 			continue
 		}
-		if strings.Contains(lowerWord, lowerKeyWord) {
+		if strings.HasPrefix(lowerWord, lowerKeyWord) {
 			result = append(result, word)
 		}
 	}

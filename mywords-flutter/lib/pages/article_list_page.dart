@@ -148,6 +148,12 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  int get count1 => todayCountMap['1'] ?? 0;
+
+  int get count2 => todayCountMap['2'] ?? 0;
+
+  int get count3 => todayCountMap['3'] ?? 0;
+
   Widget get todaySubtitle {
     final style = prefs.isDark
         ? TextStyle(color: Colors.orange.shade300)
@@ -157,11 +163,11 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
             text: "1级:",
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             children: [
-          TextSpan(text: '${todayCountMap['1'] ?? 0}', style: style),
+          TextSpan(text: '$count1', style: style),
           const TextSpan(text: "  2级:"),
-          TextSpan(text: '${todayCountMap['2'] ?? 0}', style: style),
+          TextSpan(text: '$count2', style: style),
           const TextSpan(text: "  3级:"),
-          TextSpan(text: '${todayCountMap['3'] ?? 0}', style: style),
+          TextSpan(text: '$count3', style: style),
         ]));
   }
 
@@ -174,7 +180,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           builder: (BuildContext context, Key value, Widget? child) {
             return ListTile(
               // leading: toolTipToday,
-              title: const Text("今日学习单词数量"),
+              title: Text("今日学习单词总数: ${count1 + count2 + count3}"),
               subtitle: todaySubtitle,
               // subtitle: Text(
               //     "1级:${todayCountMap['1'] ?? 0} 2级:${todayCountMap['2'] ?? 0} 3级:${todayCountMap['3'] ?? 0}"),
