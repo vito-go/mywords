@@ -56,7 +56,7 @@ class _State extends State<WordList> {
         Text("[${i + 1}]"),
         TextButton(
             onPressed: () {
-              showWord(context, word );
+              showWord(context, word);
             },
             child: Text(
               word,
@@ -177,14 +177,11 @@ InkWell buildInkWell(String word, int showLevel, int realLevel,
 }
 
 void showWordWithDefault(BuildContext context, String word) {
-  final wordC = word.toNativeUtf8();
-  final resultC = dictWordQuery(wordC);
-  final respData = RespData.fromJson(
-      jsonDecode(resultC.toDartString()), (json) => json.toString());
-  myPrint(resultC.toDartString());
-  malloc.free(wordC);
-  malloc.free(resultC);
-  String define = respData.data ?? '';
+  String define = dictWordQuery(word);
+  if (define == "") {
+    word = dictWordQueryLink(word);
+    define = dictWordQuery(word);
+  }
   if (define == '') {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -226,7 +223,7 @@ void showWordWithDefault(BuildContext context, String word) {
             children: [
               buildInkWell(word, 0, l, (int level, String world) {
                 _updateKnownWords(context, level, word);
-                 stateSetter(() {
+                stateSetter(() {
                   l = 0;
                 });
               }),
@@ -282,7 +279,10 @@ void showWordWithDefault(BuildContext context, String word) {
 }
 
 // whenUpdateKnownWords 在模态页面用
-void showWord(BuildContext context, String word,) {
+void showWord(
+  BuildContext context,
+  String word,
+) {
   final defaultDict = getDefaultDict().data ?? '';
   if (defaultDict == '') {
     return showWordWithDefault(context, word);

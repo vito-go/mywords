@@ -127,8 +127,12 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
 void queryWordInDict(BuildContext context, String word,
     {void Function()? whenUpdateKnownWords}) {
   if (Platform.isAndroid || Platform.isIOS) {
-    final respData = finalHtmlBasePathWithOutHtml(word);
-    if ((respData.data ?? '') == '') {
+    String htmlBasePath = finalHtmlBasePathWithOutHtml(word);
+    if (htmlBasePath == '') {
+      word = dictWordQueryLink(word);
+      htmlBasePath = finalHtmlBasePathWithOutHtml(word);
+    }
+    if (htmlBasePath == '') {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content:
             Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -139,7 +143,11 @@ void queryWordInDict(BuildContext context, String word,
     pushTo(context, WordHtml(word: word));
     return;
   }
-  final url = getUrlByWord(word).data ?? '';
+  String url = getUrlByWord(word);
+  if (url.isEmpty) {
+    word = dictWordQueryLink(word);
+    url = finalHtmlBasePathWithOutHtml(word);
+  }
   if (url.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -147,6 +155,5 @@ void queryWordInDict(BuildContext context, String word,
     ));
     return;
   }
-
   launchUrlString(url);
 }
