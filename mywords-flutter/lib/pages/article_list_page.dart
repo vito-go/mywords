@@ -7,6 +7,7 @@ import 'package:mywords/libso/funcs.dart';
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/pages/stastics_chart.dart';
 import 'package:mywords/libso/types.dart';
+import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
@@ -180,16 +181,18 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           builder: (BuildContext context, Key value, Widget? child) {
             return ListTile(
               // leading: toolTipToday,
+              leading: IconButton(
+                  onPressed: () {
+                    pushTo(context, const ToadyKnownWords());
+                  },
+                  icon: const Icon(Icons.wordpress)),
               title: Text("今日学习单词总数: ${count1 + count2 + count3}"),
               subtitle: todaySubtitle,
-              // subtitle: Text(
-              //     "1级:${todayCountMap['1'] ?? 0} 2级:${todayCountMap['2'] ?? 0} 3级:${todayCountMap['3'] ?? 0}"),
-              onTap: () {
-                pushTo(context, const WordChart()).then((value) {
-                  valueNotifierChart.value = UniqueKey();
-                });
-              },
-              trailing: const Icon(Icons.area_chart),
+              trailing: IconButton(
+                  onPressed: () {
+                    pushTo(context, const WordChart());
+                  },
+                  icon: const Icon(Icons.area_chart)),
             );
           }),
       textField(),

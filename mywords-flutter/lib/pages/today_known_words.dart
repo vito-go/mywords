@@ -3,13 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/dict.dart';
+import 'package:mywords/pages/stastics_chart.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_list.dart';
 import '../common/global_event.dart';
 import '../libso/funcs.dart';
+import '../util/navigator.dart';
 
-class KnownWords extends StatefulWidget {
-  const KnownWords({super.key});
+class ToadyKnownWords extends StatefulWidget {
+  const ToadyKnownWords({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -17,7 +19,7 @@ class KnownWords extends StatefulWidget {
   }
 }
 
-class _State extends State<KnownWords> {
+class _State extends State<ToadyKnownWords> {
   int showLevel = prefs.showWordLevel;
 
   Map<int, List<String>> levelWordsMap = {};
@@ -26,19 +28,13 @@ class _State extends State<KnownWords> {
   @override
   void initState() {
     super.initState();
-    levelWordsMap = allKnownWordMap().data ?? {};
+    levelWordsMap = todayKnownWordMap().data ?? {};
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   int get totalCount {
     return count1 + count2 + count3;
   }
-
-  int get count1 => levelWordsLengthMap['1'] ?? 0;
-
-  int get count2 => levelWordsLengthMap['2'] ?? 0;
-
-  int get count3 => levelWordsLengthMap['3'] ?? 0;
 
   Map<String, int> get levelWordsLengthMap {
     return {
@@ -58,15 +54,9 @@ class _State extends State<KnownWords> {
     return [
       IconButton(
           onPressed: () {
-            final respData = fixMyKnownWords();
-            if (respData.code != 0) {
-              myToast(context, respData.message);
-              return;
-            }
-            myToast(context, "Successfully");
-            setState(() {});
+            pushTo(context, const WordChart()).then((value) {});
           },
-          icon: const Icon(Icons.refresh))
+          icon: const Icon(Icons.area_chart))
     ];
   }
 
@@ -76,19 +66,25 @@ class _State extends State<KnownWords> {
     globalEventSubscription?.cancel();
   }
 
+  int get count1 => levelWordsLengthMap['1'] ?? 0;
+
+  int get count2 => levelWordsLengthMap['2'] ?? 0;
+
+  int get count3 => levelWordsLengthMap['3'] ?? 0;
+
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       actions: actions(),
-      title: const Text("我的单词库"),
+      title: const Text("今日学习单词"),
     );
 
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
+          "文章词汇量分级 (0:陌生, 1级:认识, 2级: 了解, 3级: 熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
         ),
         const Divider(),
         Expanded(

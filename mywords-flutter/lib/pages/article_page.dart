@@ -242,67 +242,72 @@ class ArticlePageState extends State<ArticlePage> {
         actions: actions(),
         title:
             Text(art.title, maxLines: 3, style: const TextStyle(fontSize: 14)));
+    final children = [
+      ListTile(
+        title: Text(
+          art.sourceUrl,
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: Colors.blue),
+        ),
+        onTap: () {
+          launchUrlString(art.sourceUrl);
+        },
+        minVerticalPadding: 0,
+        minLeadingWidth: 0,
+        trailing: IconButton(
+            onPressed: () {
+              copyToClipBoard(context, art.sourceUrl);
+            },
+            icon: const Icon(Icons.copy)),
+      ),
+      Text(
+          "文章词汇量统计\n单词总数: ${art.totalCount}, 去重后: ${art.netCount}, 比率: ${(art.netCount / art.totalCount).toStringAsFixed(2)}"),
+      const SizedBox(height: 8),
+      Text(
+        "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: ${levelCountMap['0'] ?? 0}  1级: ${levelCountMap['1'] ?? 0}  2级: ${levelCountMap['2'] ?? 0}  3级: ${levelCountMap['3'] ?? 0}",
+      ),
+      const Divider(),
+    ];
+    if (preview) {
+      children.add(buildHtml);
+    } else {
+      children.add(ListTile(
+        trailing: Switch(
+            value: showSentence,
+            onChanged: (v) {
+              setState(() {
+                showSentence = v;
+              });
+            }),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            const Text("分级筛选"),
+            buildShowLevel(0, label: "0", onTap: () {
+              showLevel = 0;
+              setState(() {});
+            }, showLevel: showLevel),
+            buildShowLevel(1, label: "1", showLevel: showLevel, onTap: () {
+              showLevel = 1;
+              setState(() {});
+            }),
+            buildShowLevel(2, label: "2", showLevel: showLevel, onTap: () {
+              showLevel = 2;
+              setState(() {});
+            }),
+            buildShowLevel(3, label: "3", showLevel: showLevel, onTap: () {
+              showLevel = 3;
+              setState(() {});
+            }),
+          ],
+        ),
+      ));
+      children.add(Expanded(child: buildWords(wordInfos)));
+    }
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          title: Text(
-            art.sourceUrl,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.blue),
-          ),
-          onTap: () {
-            launchUrlString(art.sourceUrl);
-          },
-          minVerticalPadding: 0,
-          minLeadingWidth: 0,
-          trailing: IconButton(
-              onPressed: () {
-                copyToClipBoard(context, art.sourceUrl);
-              },
-              icon: const Icon(Icons.copy)),
-        ),
-        Text(
-            "文章词汇量统计\n单词总数: ${art.totalCount}, 去重后: ${art.netCount}, 比率: ${(art.netCount / art.totalCount).toStringAsFixed(2)}"),
-        const SizedBox(height: 8),
-        Text(
-          "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: ${levelCountMap['0'] ?? 0}  1级: ${levelCountMap['1'] ?? 0}  2级: ${levelCountMap['2'] ?? 0}  3级: ${levelCountMap['3'] ?? 0}",
-        ),
-        const Divider(),
-        ListTile(
-          trailing: Switch(
-              value: showSentence,
-              onChanged: (v) {
-                setState(() {
-                  showSentence = v;
-                });
-              }),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              const Text("分级筛选"),
-              buildShowLevel(0, label: "0", onTap: () {
-                showLevel = 0;
-                setState(() {});
-              }, showLevel: showLevel),
-              buildShowLevel(1, label: "1", showLevel: showLevel, onTap: () {
-                showLevel = 1;
-                setState(() {});
-              }),
-              buildShowLevel(2, label: "2", showLevel: showLevel, onTap: () {
-                showLevel = 2;
-                setState(() {});
-              }),
-              buildShowLevel(3, label: "3", showLevel: showLevel, onTap: () {
-                showLevel = 3;
-                setState(() {});
-              }),
-            ],
-          ),
-        ),
-        Expanded(child: preview ? buildHtml : buildWords(wordInfos))
-      ],
+      children: children,
     );
 
     return Scaffold(

@@ -68,6 +68,12 @@ func AllKnownWordMap() *C.char {
 	return CharOk(data)
 }
 
+//export TodayKnownWordMap
+func TodayKnownWordMap() *C.char {
+	data := serverGlobal.TodayKnownWordMap()
+	return CharOk(data)
+}
+
 //export GetToadyChartDateLevelCountMap
 func GetToadyChartDateLevelCountMap() *C.char {
 	data := serverGlobal.GetToadyChartDateLevelCountMap()
