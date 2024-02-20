@@ -55,6 +55,7 @@ class _State extends State<KnownWords> {
   }
 
   List<Widget> actions() {
+    return [];
     return [
       IconButton(
           onPressed: () {
