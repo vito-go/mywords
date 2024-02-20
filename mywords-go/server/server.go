@@ -582,6 +582,25 @@ func (s *Server) AllKnownWordMap() map[WordKnownLevel][]string {
 
 	return m
 }
+func (s *Server) TodayKnownWordMap() map[WordKnownLevel][]string {
+	var m = make(map[WordKnownLevel][]string, 3)
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	today := time.Now().Format("2006-01-02")
+	knownWordsMap := s.chartDateLevelCountMap[today]
+	for level, wordLevelMap := range knownWordsMap {
+		for word := range wordLevelMap {
+			m[level] = append(m[level], word)
+		}
+	}
+	for _, words := range m {
+		sort.Slice(words, func(i, j int) bool {
+			return words[i] < words[j]
+		})
+	}
+	return m
+}
+
 func (s *Server) ArticleFromGobFile(fileName string) (*artical.Article, error) {
 	return s.articleFromGobFile(fileName)
 }

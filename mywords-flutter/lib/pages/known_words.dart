@@ -31,10 +31,14 @@ class _State extends State<KnownWords> {
   }
 
   int get totalCount {
-    return (levelWordsMap[1] ?? []).length +
-        (levelWordsMap[2] ?? []).length +
-        (levelWordsMap[3] ?? []).length;
+    return count1 + count2 + count3;
   }
+
+  int get count1 => levelWordsLengthMap['1'] ?? 0;
+
+  int get count2 => levelWordsLengthMap['2'] ?? 0;
+
+  int get count3 => levelWordsLengthMap['3'] ?? 0;
 
   Map<String, int> get levelWordsLengthMap {
     return {
@@ -84,7 +88,7 @@ class _State extends State<KnownWords> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: ${levelWordsLengthMap['1'] ?? 0}  2级: ${levelWordsLengthMap['2'] ?? 0}  3级: ${levelWordsLengthMap['3'] ?? 0}",
+          "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
         ),
         const Divider(),
         Expanded(
