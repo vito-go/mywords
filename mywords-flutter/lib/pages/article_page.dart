@@ -270,7 +270,7 @@ class ArticlePageState extends State<ArticlePage> {
       const Divider(),
     ];
     if (preview) {
-      children.add(buildHtml);
+      children.add(Expanded(child: buildHtml));
     } else {
       children.add(ListTile(
         trailing: Switch(
