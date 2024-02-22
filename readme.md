@@ -29,12 +29,13 @@
 坚持在阅读中实践并使用工具来辅助你记录和回顾这些新词汇，是促进你英语能力提高的关键。随着你词汇量的增加，不仅能更流畅地阅读，更能提升写作和对话能力。
 
 ## 学习资源推荐
-为了有效使用本工具并提升你的英语水平，我们向你推荐了一些精选的学习资源：
+为了有效使用本工具并提升你的英语水平，本项目推荐以下英文阅读资源，它们不仅提供了丰富的双语内容，还覆盖了广泛的主题，适合各水平的学习者:
 
 - **The New York Times 中英文版**：访问[The New York Times 中英文版](https://cn.nytimes.com/zh-hant/)来获取优质的双语阅读材料，这将有助于提升你的英语理解能力和词汇量。
   ![双语英文学习资源图标](images/dual.png)
-
-利用这些资源，您不仅能够有针对性地扩充您的词汇，也可以深入了解不同的话题和背景知识，从而全面提升语言学习效果。
+- **The Economist China 经济学人-中国**: [The Economist China](https://www.economist.com/topics/china): 贴近中国读者的英语内容，覆盖政治、经济、科技等领域，对于希望深入了解全球话题的学习者来说非常有益。
+  ![img.png](images/the-economist-china.png)
+利用这些资源，您不仅能够有针对性地扩充您的词汇，也可以深入了解不同的话题和背景知识，全方位提升英语能力。
 
 
 ## 项目依赖
@@ -191,6 +192,7 @@
 我们衷心感谢以下个人和组织对本项目的支持和贡献：
 
 - 感谢 [The New York Times 中英文版](https://cn.nytimes.com/zh-hant/)为我们提供了优质的双语阅读材料，这对于英语学习者们非常有帮助。
+- 感谢 [The Economist China](https://www.economist.com/topics/china) 为我们提供的高质量英文阅读材料，为我们的学习提供了丰富的内容。
 - 我们对 [Bitbucket](https://bitbucket.org/) 提供的 Python 词典解析工具表示特别鸣谢，这对我们构建词汇数据库至关重要。
 - 特别感谢[louischeung.top](http://louischeung.top) 提供的牛津高阶英汉双解词典，这资源对于英语学习者们非常有价值。
 - 我们对所有通过 WeChat或Email主动提供反馈和建议的用户表示深深的谢意。
