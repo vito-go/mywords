@@ -118,7 +118,10 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 			if len(word) < minLen {
 				continue
 			}
-
+			if !unicode.IsLetter(rune(word[0])) {
+				// filter out the word start with non-letter
+				continue
+			}
 			totalCount++
 			//if n == 0 && word[0] >= 'A' && word[0] <= 'Z' {
 			//	continue
