@@ -48,7 +48,8 @@ type Server struct {
 	chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
 }
 
-const defaultXpathExpr = `//div/p//text()|//div/span/text()|//div[contains(@class,"article-paragraph")]//text()|//div/text()|//h1/text()|//h2/text()|//h3/text()`
+// //div/p//text()[not(ancestor::style or ancestor::a)]
+const defaultXpathExpr = `//div/p//text()[not(ancestor::style)]|//div/span/text()|//div[contains(@class,"article-paragraph")]//text()|//div/text()|//h1/text()|//h2/text()|//h3/text()`
 
 const (
 	dataDir           = `data`                     // 存放背单词的目录
