@@ -2,7 +2,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/dict.dart';
 import 'package:mywords/libso/funcs.dart';
-import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
