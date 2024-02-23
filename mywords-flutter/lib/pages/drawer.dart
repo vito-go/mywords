@@ -14,9 +14,9 @@ import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/restart_app.dart';
 
 import '../libso/funcs.dart';
-import '../pages/dict_databse.dart';
-import '../pages/restore_data.dart';
-import '../pages/share_data.dart';
+import 'dict_database.dart';
+import 'restore_data.dart';
+import 'share_data.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});

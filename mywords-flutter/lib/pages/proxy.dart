@@ -162,8 +162,8 @@ class _State extends State<NetProxy> {
       ListTile(
           title: Row(
         children: [
-          Text("请选择协议"),
-          SizedBox(
+          const Text("请选择协议"),
+          const SizedBox(
             width: 20,
           ),
           dropButton(),
@@ -175,14 +175,14 @@ class _State extends State<NetProxy> {
       ListTile(
         title: textFieldPort(),
       ),
-      SizedBox(
+      const SizedBox(
         height: 20,
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           syncShareDataBuild(),
-          SizedBox(
+          const SizedBox(
             width: 20,
           ),
           clearProxyButton(),

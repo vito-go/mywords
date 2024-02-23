@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import '../widgets/drawer.dart';
+import 'drawer.dart';
 import '../widgets/restart_app.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
