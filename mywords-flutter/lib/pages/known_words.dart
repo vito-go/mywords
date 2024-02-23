@@ -89,7 +89,7 @@ class _State extends State<KnownWords> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
+          "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
         ),
         const Divider(),
         Expanded(

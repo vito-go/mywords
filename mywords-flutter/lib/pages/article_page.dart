@@ -4,11 +4,12 @@ import 'dart:convert';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
-import 'package:mywords/pages/word_common.dart';
+import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -117,13 +118,33 @@ class ArticlePageState extends State<ArticlePage> {
   }
 
   Widget get buildHtml {
-    return SingleChildScrollView(
-      child: SelectionArea(
-          child: HtmlWidget(
-        article!.htmlContent,
-        renderMode: RenderMode.column,
-      )),
-    );
+    SelectedContent? selectedContent;
+    return SelectionArea(
+        contextMenuBuilder: (BuildContext context,
+            SelectableRegionState selectableRegionState) {
+          final buttonItems = selectableRegionState.contextMenuButtonItems;
+          final content = selectedContent?.plainText;
+          if (content != null) {
+            final word = content.trim();
+            if (!word.contains(" ")) {
+              buttonItems.add((ContextMenuButtonItem(
+                  onPressed: () {
+                    showWord(context, word);
+                  },
+                  label: "Lookup")));
+            }
+          }
+          return AdaptiveTextSelectionToolbar.buttonItems(
+              buttonItems: buttonItems,
+              anchors: selectableRegionState.contextMenuAnchors);
+        },
+        onSelectionChanged: (content) {
+          selectedContent = content;
+        },
+        child: HtmlWidget(
+          article!.htmlContent,
+          renderMode: RenderMode.listView,
+        ));
   }
 
   void _updateKnownWords(int level, String word) {
@@ -263,14 +284,16 @@ class ArticlePageState extends State<ArticlePage> {
       ),
       Text(
           "文章词汇量统计\n单词总数: ${art.totalCount}, 去重后: ${art.netCount}, 比率: ${(art.netCount / art.totalCount).toStringAsFixed(2)}"),
-      const SizedBox(height: 8),
+      const SizedBox(height: 5),
       Text(
-        "文章词汇量分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: ${levelCountMap['0'] ?? 0}  1级: ${levelCountMap['1'] ?? 0}  2级: ${levelCountMap['2'] ?? 0}  3级: ${levelCountMap['3'] ?? 0}",
+        "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: ${levelCountMap['0'] ?? 0}  1级: ${levelCountMap['1'] ?? 0}  2级: ${levelCountMap['2'] ?? 0}  3级: ${levelCountMap['3'] ?? 0}",
       ),
       const Divider(),
     ];
     if (preview) {
-      children.add(Expanded(child: buildHtml));
+      children.add(Expanded(
+          child: buildSelectionWordArea(
+              HtmlWidget(art.htmlContent, renderMode: RenderMode.listView))));
     } else {
       children.add(ListTile(
         trailing: Switch(
@@ -319,3 +342,4 @@ class ArticlePageState extends State<ArticlePage> {
     );
   }
 }
+

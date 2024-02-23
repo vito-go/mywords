@@ -225,9 +225,9 @@ class _State extends State<DictDatabase> {
   Widget build(BuildContext context) {
     List<Widget> children = [
       ListTile(
-        title: const Text("加载本地词典数据库文件"),
+        title: const Text("加载本地词典数据库zip文件"),
         leading: const Tooltip(
-          message: "从本地选择文件，解析完成后可以清除app缓存和删除原文件",
+          message: "从本地选择zip文件，解析完成后可以清除app缓存和删除原文件",
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info),
         ),

@@ -2,6 +2,7 @@ package main
 
 import "C"
 import (
+	"fmt"
 	"mywords/dict"
 	"mywords/server"
 	"sync"
@@ -10,6 +11,7 @@ import (
 
 func main() {
 	// must Init when using the exported method in this package
+	fmt.Println("Hello World from Flutter")
 }
 
 func init() {
@@ -22,12 +24,15 @@ var once sync.Once
 //export Init
 func Init(rootDataDir *C.char, proxyUrl *C.char) {
 	once.Do(func() {
-		srv, err := server.NewServer(C.GoString(rootDataDir), C.GoString(proxyUrl))
-		if err != nil {
-			panic(err)
-		}
-		serverGlobal = srv
-		multiDictGlobal = dict.NewMultiDictZip(C.GoString(rootDataDir))
-		go multiDictGlobal.Init()
+		initGlobal(C.GoString(rootDataDir), C.GoString(proxyUrl))
 	})
+}
+func initGlobal(rootDataDir string, proxyUrl string) {
+	srv, err := server.NewServer(rootDataDir, proxyUrl)
+	if err != nil {
+		panic(err)
+	}
+	serverGlobal = srv
+	multiDictGlobal = dict.NewMultiDictZip(rootDataDir)
+	go multiDictGlobal.Init()
 }

@@ -2,6 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/dict.dart';
 import 'package:mywords/libso/funcs.dart';
+import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -93,12 +94,6 @@ class _State extends State<WordHtml> {
 
   final controller = WebViewController();
 
-  Widget get buildHtml {
-    return WebViewWidget(
-      controller: controller,
-    );
-  }
-
   void _updateKnownWords(int level, String word) {
     updateKnownWordsCountLineChart(level, word);
     final respData = updateKnownWords(level, word);
@@ -112,7 +107,6 @@ class _State extends State<WordHtml> {
 
   Widget get buildHeaderRow {
     final l = queryWordLevel(word);
-
     List<Widget> children = [
       Expanded(
           child: Text(
@@ -146,7 +140,10 @@ class _State extends State<WordHtml> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Column(
-        children: [ListTile(title: buildHeaderRow), Expanded(child: buildHtml)],
+        children: [
+          ListTile(title: buildHeaderRow),
+          Expanded(child: WebViewWidget(controller: controller))
+        ],
       ),
     );
   }

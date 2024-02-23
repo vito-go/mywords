@@ -203,7 +203,7 @@ class _SyncDataState extends State<SyncData> {
       ListTile(
         leading: Tooltip(
           message:
-              "开启后将允许其他设备进行访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${prefs.shareOpenPortCode == '' ? '$defaultPort/$defaultCode' : prefs.shareOpenPortCode}",
+              "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${prefs.shareOpenPortCode == '' ? '$defaultPort/$defaultCode' : prefs.shareOpenPortCode}",
           triggerMode: TooltipTriggerMode.tap,
           child: const Icon(Icons.info_outline),
         ),

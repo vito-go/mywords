@@ -218,7 +218,7 @@ class _RestoreDataState extends State<RestoreData> {
       ListTile(
         title: const Text("从本地同步"),
         leading: const Tooltip(
-          message: "从本地选择文件进行数据同步",
+          message: "从本地选择zip文件进行数据同步",
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info_outline),
         ),
