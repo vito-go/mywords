@@ -41,11 +41,14 @@ class MyDrawerState extends State<MyDrawer> {
     return result;
   }
 
-  String get levelText {
-    String result =
-        "分级  1级: ${levelCountMap['1'] ?? 0}  2级: ${levelCountMap['2'] ?? 0}  3级: ${levelCountMap['3'] ?? 0}";
+  int get count1 => levelCountMap['1'] ?? 0;
 
-    return result;
+  int get count2 => levelCountMap['2'] ?? 0;
+
+  int get count3 => levelCountMap['3'] ?? 0;
+
+  String get levelText {
+    return "1级: $count1  2级: $count2  3级: $count3";
   }
 
   void initLevelMap() {
@@ -114,75 +117,73 @@ class MyDrawerState extends State<MyDrawer> {
         child: Drawer(
             // backgroundColor: Colors.orange.shade50,
             child: ListView(
-              children: [
-                DrawerHeader(
-                  child: ListTile(
-                    title: Text("已知单词总数量: $totalCount"),
-                    subtitle: Text(levelText),
-                   ),
-                ),
+      children: [
+        DrawerHeader(
+          child: ListTile(
+            title: Text("已知单词总数量: $totalCount"),
+            subtitle: Text(levelText),
+          ),
+        ),
+        ListTile(
+          title: const Text("我的单词库"),
+          leading: const Icon(Icons.wordpress),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            pushTo(context, const KnownWords());
+          },
+        ),
+        ListTile(
+          title: const Text("已归档文章"),
+          leading: const Icon(Icons.archive),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            pushTo(context, const ArticleArchivedPage());
+          },
+        ),
+        ListTile(
+          title: const Text("设置网络代理"),
+          leading: const Icon(Icons.network_ping),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            pushTo(context, const NetProxy());
+          },
+        ),
+        ListTile(
+          title: const Text("分享/备份数据"),
+          leading: const Icon(Icons.share),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.of(context).pop();
+            pushTo(context, const SyncData());
+          },
+        ),
+        ListTile(
+          title: const Text("同步数据"),
+          leading: const Icon(Icons.sync),
 
-                ListTile(
-                  title: const Text("我的单词库"),
-                  leading: const Icon(Icons.wordpress),
-                  trailing: const Icon(Icons.navigate_next),
-                  onTap: () {
-                    Navigator.pop(context);
-                    pushTo(context, const KnownWords());
-                  },
-                ),
-                ListTile(
-                  title: const Text("已归档文章"),
-                  leading: const Icon(Icons.archive),
-                  trailing: const Icon(Icons.navigate_next),
-                  onTap: () {
-                    Navigator.pop(context);
-                    pushTo(context, const ArticleArchivedPage());
-                  },
-                ),
+          trailing: const Icon(Icons.navigate_next),
+          // onTap: restoreFromFile,
+          onTap: () {
+            Navigator.of(context).pop();
+            pushTo(context, const RestoreData());
+          },
+        ),
+        ListTile(
+          title: const Text("设置词典数据库"),
+          leading: const Icon(Icons.settings_suggest_outlined),
 
-                ListTile(
-                  title: const Text("设置网络代理"),
-                  leading: const Icon(Icons.network_ping),
-                  trailing: const Icon(Icons.navigate_next),
-                  onTap: () {
-                    Navigator.pop(context);
-                    pushTo(context, const NetProxy());
-                  },
-                ),
-                ListTile(
-                  title: const Text("分享/备份数据"),
-                  leading: const Icon(Icons.share),
-                  trailing: const Icon(Icons.navigate_next),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    pushTo(context, const SyncData());
-                  },
-                ),
-                ListTile(
-                  title: const Text("同步数据"),
-                  leading: const Icon(Icons.sync),
-
-                  trailing: const Icon(Icons.navigate_next),
-                  // onTap: restoreFromFile,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    pushTo(context, const RestoreData());
-                  },
-                ),
-                ListTile(
-                  title: const Text("设置词典数据库"),
-                  leading: const Icon(Icons.settings_suggest_outlined),
-
-                  trailing: const Icon(Icons.navigate_next),
-                  // onTap: restoreFromFile,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    pushTo(context, const DictDatabase());
-                  },
-                ),
-              ],
-            )));
+          trailing: const Icon(Icons.navigate_next),
+          // onTap: restoreFromFile,
+          onTap: () {
+            Navigator.of(context).pop();
+            pushTo(context, const DictDatabase());
+          },
+        ),
+      ],
+    )));
   }
 }
 

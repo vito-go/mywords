@@ -1,14 +1,10 @@
-import 'dart:convert';
 
-import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/dict.dart';
+import 'package:mywords/widgets/word_common.dart';
 
 import '../common/global_event.dart';
 import '../libso/funcs.dart';
-import '../libso/resp_data.dart';
-import '../pages/lookup_word.dart';
 import '../util/util.dart';
 
 class WordList extends StatefulWidget {
@@ -276,18 +272,6 @@ void showWordWithDefault(BuildContext context, String word) {
       builder: (BuildContext context) {
         return Scaffold(backgroundColor: Colors.transparent, body: padding);
       });
-}
-
-// whenUpdateKnownWords 在模态页面用
-void showWord(
-  BuildContext context,
-  String word,
-) {
-  final defaultDict = getDefaultDict().data ?? '';
-  if (defaultDict == '') {
-    return showWordWithDefault(context, word);
-  }
-  queryWordInDict(context, word);
 }
 
 Widget buildShowLevel(int level,

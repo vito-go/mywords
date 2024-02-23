@@ -5,12 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/dict.dart';
 import 'package:mywords/libso/resp_data.dart';
-import 'package:mywords/pages/word_html.dart';
-import 'package:mywords/util/navigator.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:mywords/widgets/word_common.dart';
 
 import '../libso/funcs.dart';
-import '../widgets/word_list.dart';
 
 class LoopUpWord extends StatefulWidget {
   const LoopUpWord({super.key});
@@ -124,36 +121,3 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 }
 
-void queryWordInDict(BuildContext context, String word,
-    {void Function()? whenUpdateKnownWords}) {
-  if (Platform.isAndroid || Platform.isIOS) {
-    String htmlBasePath = finalHtmlBasePathWithOutHtml(word);
-    if (htmlBasePath == '') {
-      word = dictWordQueryLink(word);
-      htmlBasePath = finalHtmlBasePathWithOutHtml(word);
-    }
-    if (htmlBasePath == '') {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
-        duration: const Duration(milliseconds: 2000),
-      ));
-      return;
-    }
-    pushTo(context, WordHtml(word: word));
-    return;
-  }
-  String url = getUrlByWord(word);
-  if (url.isEmpty) {
-    word = dictWordQueryLink(word);
-    url = finalHtmlBasePathWithOutHtml(word);
-  }
-  if (url.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
-      duration: const Duration(milliseconds: 2000),
-    ));
-    return;
-  }
-  launchUrlString(url);
-}
