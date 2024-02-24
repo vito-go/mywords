@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/funcs.dart';
 import 'package:mywords/pages/article_page.dart';
-import 'package:mywords/pages/stastics_chart.dart';
+import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/libso/types.dart';
 import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
@@ -185,14 +185,14 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   onPressed: () {
                     pushTo(context, const ToadyKnownWords());
                   },
-                  icon: const Icon(Icons.wordpress)),
+                  icon:   Icon(Icons.wordpress,color: Theme.of(context).primaryColor,)),
               title: Text("今日学习单词总数: ${count1 + count2 + count3}"),
               subtitle: todaySubtitle,
               trailing: IconButton(
                   onPressed: () {
                     pushTo(context, const WordChart());
                   },
-                  icon: const Icon(Icons.area_chart)),
+                  icon:   Icon(Icons.area_chart,color: Theme.of(context).primaryColor,)),
             );
           }),
       textField(),

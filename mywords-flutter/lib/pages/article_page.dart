@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/resp_data.dart';
@@ -117,36 +116,6 @@ class ArticlePageState extends State<ArticlePage> {
     return respData.data ?? {};
   }
 
-  Widget get buildHtml {
-    SelectedContent? selectedContent;
-    return SelectionArea(
-        contextMenuBuilder: (BuildContext context,
-            SelectableRegionState selectableRegionState) {
-          final buttonItems = selectableRegionState.contextMenuButtonItems;
-          final content = selectedContent?.plainText;
-          if (content != null) {
-            final word = content.trim();
-            if (!word.contains(" ")) {
-              buttonItems.add((ContextMenuButtonItem(
-                  onPressed: () {
-                    showWord(context, word);
-                  },
-                  label: "Lookup")));
-            }
-          }
-          return AdaptiveTextSelectionToolbar.buttonItems(
-              buttonItems: buttonItems,
-              anchors: selectableRegionState.contextMenuAnchors);
-        },
-        onSelectionChanged: (content) {
-          selectedContent = content;
-        },
-        child: HtmlWidget(
-          article!.htmlContent,
-          renderMode: RenderMode.listView,
-        ));
-  }
-
   void _updateKnownWords(int level, String word) {
     _updateKnownWordsCountLineChart(level, word);
     final respData = updateKnownWords(level, word);
@@ -184,16 +153,20 @@ class ArticlePageState extends State<ArticlePage> {
       }
       List<Widget> children = [
         Text("[${i + 1}]{${info.count}}"),
-        TextButton(
-            onPressed: () {
-              showWord(context, wordLink);
-            },
-            child: Text(
-              wordLink,
-              maxLines: 2,
-              style: const TextStyle(fontSize: 16),
-            )),
-        const Expanded(child: Text('')),
+        const SizedBox(width: 5),
+        Expanded(
+          child: InkWell(
+              onTap: () {
+                showWord(context, wordLink);
+              },
+              child: Text(
+                wordLink,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 20, color: Theme.of(context).primaryColor),
+              )),
+        ),
         buildInkWell(wordLink, 0, l, _updateKnownWords),
         const SizedBox(width: 6),
         buildInkWell(wordLink, 1, l, _updateKnownWords),
@@ -342,4 +315,3 @@ class ArticlePageState extends State<ArticlePage> {
     );
   }
 }
-

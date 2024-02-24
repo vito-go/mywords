@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/widgets/word_common.dart';
+import 'package:mywords/widgets/word_default_meaning.dart';
 
 import '../common/global_event.dart';
 import '../libso/funcs.dart';
@@ -172,22 +172,10 @@ InkWell buildInkWell(String word, int showLevel, int realLevel,
       });
 }
 
-void showWordWithDefault(BuildContext context, String word) {
-  String define = dictWordQuery(word);
-  if (define == "") {
-    word = dictWordQueryLink(word);
-    define = dictWordQuery(word);
-  }
-  if (define == '') {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
-      duration: const Duration(milliseconds: 2000),
-    ));
-    return;
-  }
-  define = define.replaceAll("*", "\n*");
+String fixDefaultMeaning(String meaning) {
+  meaning = meaning.replaceAll("*", "\n*");
   List<String> result = [];
-  final ss = define.split(". ");
+  final ss = meaning.split(". ");
   for (int i = 0; i < ss.length; i++) {
     final s = ss[i];
     if (s == "") continue;
@@ -205,72 +193,33 @@ void showWordWithDefault(BuildContext context, String word) {
       result.add("$s. ");
     }
   }
-  define = result.join('');
-  int l = queryWordLevel(word);
-  final state =
-      StatefulBuilder(builder: (BuildContext context, StateSetter stateSetter) {
-    final col = Column(
-      children: [
-        ListTile(
-          title: Row(
-            children: [Text(word)],
-          ),
-          subtitle: Row(
-            children: [
-              buildInkWell(word, 0, l, (int level, String world) {
-                _updateKnownWords(context, level, word);
-                stateSetter(() {
-                  l = 0;
-                });
-              }),
-              const SizedBox(width: 5),
-              buildInkWell(word, 1, l, (int level, String world) {
-                _updateKnownWords(context, level, word);
-                stateSetter(() {
-                  l = 1;
-                });
-              }),
-              const SizedBox(width: 5),
-              buildInkWell(word, 2, l, (int level, String world) {
-                _updateKnownWords(context, level, word);
-                stateSetter(() {
-                  l = 2;
-                });
-              }),
-              const SizedBox(width: 5),
-              buildInkWell(word, 3, l, (int level, String world) {
-                _updateKnownWords(context, level, word);
-                stateSetter(() {
-                  l = 3;
-                });
-              }),
-            ],
-          ),
-          trailing: IconButton(
-              onPressed: () {
-                copyToClipBoard(context, word);
-              },
-              icon: const Icon(Icons.copy)),
-        ),
-        Flexible(
-            child: SingleChildScrollView(
-                child: SelectableText(
-          define,
-          contextMenuBuilder:
-              (BuildContext context, EditableTextState editableTextState) {
-            return contextMenuBuilder(context, editableTextState);
-          },
-        )))
-      ],
-    );
-    return col;
-  });
-  final padding = Padding(padding: const EdgeInsets.all(10), child: state);
+  meaning = result.join('');
+  return meaning;
+}
+
+void showWordWithDefault(BuildContext context, String word) {
+  String meaning = dictWordQuery(word);
+  if (meaning == "") {
+    word = dictWordQueryLink(word);
+    meaning = dictWordQuery(word);
+  }
+  if (meaning == '') {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
+      duration: const Duration(milliseconds: 2000),
+    ));
+    return;
+  }
+  meaning = fixDefaultMeaning(meaning);
   showModalBottomSheet(
       context: context,
-      backgroundColor: prefs.isDark ? Colors.black87 : null,
+      isScrollControlled: true,
       builder: (BuildContext context) {
-        return Scaffold(backgroundColor: Colors.transparent, body: padding);
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75),
+          child: WordDefaultMeaning(word: word, meaning: meaning),
+        );
       });
 }
 
