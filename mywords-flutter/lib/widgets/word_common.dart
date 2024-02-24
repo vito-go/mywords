@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/pages/word_html.dart';
+import 'package:mywords/widgets/word_html.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../libso/dict.dart';
 import '../libso/funcs.dart';
-import '../util/navigator.dart';
 import 'word_list.dart';
 import 'dart:io';
 
-void queryWordInDict(BuildContext context, String word,
-    {void Function()? whenUpdateKnownWords}) {
+void queryWordInDict(BuildContext context, String word) async {
   if (Platform.isAndroid || Platform.isIOS) {
     String htmlBasePath = finalHtmlBasePathWithOutHtml(word);
     if (htmlBasePath == '') {
@@ -26,7 +24,17 @@ void queryWordInDict(BuildContext context, String word,
       ));
       return;
     }
-    pushTo(context, WordHtml(word: word));
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        enableDrag: false,
+        builder: (BuildContext context) {
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.75),
+            child: WordWebView(word: word),
+          );
+        });
     return;
   }
   String url = getUrlByWord(word);

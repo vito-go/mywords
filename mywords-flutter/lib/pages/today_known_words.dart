@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/pages/stastics_chart.dart';
+import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/widgets/word_list.dart';
 import '../common/global_event.dart';
 import '../libso/funcs.dart';

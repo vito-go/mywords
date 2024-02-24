@@ -1,15 +1,12 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/dict.dart';
-import 'package:mywords/libso/funcs.dart';
 import 'package:mywords/util/util.dart';
+import 'package:mywords/widgets/word_header_row.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../common/global_event.dart';
-import '../widgets/word_list.dart';
-
-class WordHtml extends StatefulWidget {
-  const WordHtml({super.key, required this.word});
+class WordWebView extends StatefulWidget {
+  const WordWebView({super.key, required this.word});
 
   final String word;
 
@@ -19,7 +16,7 @@ class WordHtml extends StatefulWidget {
   }
 }
 
-class _State extends State<WordHtml> {
+class _State extends State<WordWebView> {
   String word = '';
 
   @override
@@ -42,6 +39,8 @@ class _State extends State<WordHtml> {
     return;
   }
 
+  bool loading = false;
+
   void initControllerSet() {
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     controller.setBackgroundColor(const Color(0x00000000));
@@ -51,12 +50,17 @@ class _State extends State<WordHtml> {
           myPrint("progress ---->  $progress");
         },
         onPageStarted: (String url) {
-          myPrint("================start $url");
+          setState(() {
+            loading = false;
+          });
         },
         onPageFinished: (String url) {},
         onUrlChange: (v) {},
         onWebResourceError: (WebResourceError error) {},
         onNavigationRequest: (NavigationRequest request) {
+          setState(() {
+            loading = true;
+          });
           final uri = Uri.parse(request.url);
           myPrint(uri.scheme);
           myPrint(request.url);
@@ -74,7 +78,6 @@ class _State extends State<WordHtml> {
 
   void _loadHtmlStringByWord(String word) {
     final htmlContent = getHTMLRenderContentByWord(word).data ?? '';
-    myPrint(htmlContent);
     if (htmlContent == "") return;
     controller.loadHtmlString(htmlContent, baseUrl: word);
   }
@@ -93,57 +96,18 @@ class _State extends State<WordHtml> {
 
   final controller = WebViewController();
 
-  void _updateKnownWords(int level, String word) {
-    updateKnownWordsCountLineChart(level, word);
-    final respData = updateKnownWords(level, word);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
-    setState(() {});
-  }
-
-  Widget get buildHeaderRow {
-    final l = queryWordLevel(word);
-    List<Widget> children = [
-      Expanded(
-          child: Text(
-        word,
-        maxLines: 2,
-        style: const TextStyle(fontSize: 16),
-      )),
-    ];
-    myPrint(word);
-    if (!word.contains("_") && !word.contains(" ") && !word.contains(",")) {
-      children.addAll([
-        const Expanded(child: Text('')),
-        buildInkWell(word, 0, l, _updateKnownWords),
-        const SizedBox(width: 5),
-        buildInkWell(word, 1, l, _updateKnownWords),
-        const SizedBox(width: 5),
-        buildInkWell(word, 2, l, _updateKnownWords),
-        const SizedBox(width: 5),
-        buildInkWell(word, 3, l, _updateKnownWords),
-      ]);
-    }
-
-    return Row(children: children);
-  }
+  Widget get content => loading
+      ? const Center(child: CircularProgressIndicator())
+      : WebViewWidget(controller: controller);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("字典"),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: Column(
-        children: [
-          ListTile(title: buildHeaderRow),
-          Expanded(child: WebViewWidget(controller: controller))
-        ],
-      ),
+    final col = Column(
+      children: [
+        ListTile(title: WordHeaderRow(word: word, key: UniqueKey())),
+        Expanded(child: content),
+      ],
     );
+    return col;
   }
 }
