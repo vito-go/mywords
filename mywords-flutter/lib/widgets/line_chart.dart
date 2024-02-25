@@ -52,9 +52,11 @@ class ChartLineData {
 }
 
 class LineChartSample extends StatefulWidget {
-  const LineChartSample({super.key, required this.chartLineData});
+  const LineChartSample(
+      {super.key, required this.chartLineData, required this.isCurved});
 
   final ChartLineData chartLineData;
+  final bool isCurved;
 
   @override
   State<StatefulWidget> createState() => LineChartSampleState();
@@ -131,7 +133,7 @@ class LineChartSampleState extends State<LineChartSample> {
     children.add(Expanded(
       child: Padding(
         padding: const EdgeInsets.only(right: 48, left: 6, bottom: 10, top: 26),
-        child: _LineChart(data: chartLineData),
+        child: _LineChart(data: chartLineData, isCurved: widget.isCurved),
       ),
     ));
     return DecoratedBox(
@@ -215,8 +217,9 @@ class Indicator extends StatelessWidget {
 
 class _LineChart extends StatelessWidget {
   final ChartLineData data;
+  final bool isCurved;
 
-  const _LineChart({required this.data});
+  const _LineChart({required this.data, required this.isCurved});
 
   final double barWidth = 2; // 根据lines 动态调整
 
@@ -277,7 +280,7 @@ class _LineChart extends StatelessWidget {
         reservedSize: 42,
         showTitles: true,
         getTitlesWidget: (double value, TitleMeta meta) {
-          final valueDouble = double.parse(meta.formattedValue);
+          final valueDouble = value;
           const style = TextStyle(color: Colors.white);
           if (valueDouble.toInt() != valueDouble) {
             return SideTitleWidget(
@@ -323,6 +326,7 @@ class _LineChart extends StatelessWidget {
       result.add(lineChartBarData1(
         color: lineColors[i],
         spots: data.lineValues[i].flSpots,
+        isCurved: isCurved,
       ));
     }
     return result;
@@ -385,9 +389,11 @@ class _LineChart extends StatelessWidget {
       );
 
   LineChartBarData lineChartBarData1(
-      {required Color color, required List<FlSpot> spots}) {
+      {required Color color,
+      required List<FlSpot> spots,
+      bool isCurved = true}) {
     return LineChartBarData(
-      isCurved: true,
+      isCurved: isCurved,
       color: color,
       barWidth: barWidth,
       show: true,

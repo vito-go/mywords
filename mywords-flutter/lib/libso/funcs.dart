@@ -23,12 +23,6 @@ final _updateKnownWords = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Int64, Pointer<Utf8>),
     Pointer<Utf8> Function(int, Pointer<Utf8>)>('UpdateKnownWords');
 
-//func UpdateKnownWordsCountLineChart(level int, c *C.char) *C.char
-final _updateKnownWordsCountLineChart = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Int64, Pointer<Utf8>),
-    Pointer<Utf8> Function(
-        int, Pointer<Utf8>)>('UpdateKnownWordsCountLineChart');
-
 // func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
 final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>),
@@ -231,6 +225,12 @@ final _shareOpen = nativeAddLib.lookupFunction<
 // func GetChartData() *C.char {
 final _getChartData = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
     Pointer<Utf8> Function()>('GetChartData');
+
+final _getChartDataAccumulate = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+    Pointer<Utf8> Function()>('GetChartDataAccumulate');
+
+
+
 // func AllKnownWordMap() *C.char
 final _allKnownWordMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
     Pointer<Utf8> Function()>('AllKnownWordMap');
@@ -285,6 +285,15 @@ Future<RespData<void>> restoreFromShareServer(String ip, int port, int code,
 
 RespData<ChartLineData> getChartData() {
   final resultC = _getChartData();
+  final RespData<ChartLineData> respData = RespData.fromJson(
+      jsonDecode(resultC.toDartString()),
+      (json) => ChartLineData.fromJson(json));
+  malloc.free(resultC);
+  return respData;
+}
+
+RespData<ChartLineData> getChartDataAccumulate() {
+  final resultC = _getChartDataAccumulate();
   final RespData<ChartLineData> respData = RespData.fromJson(
       jsonDecode(resultC.toDartString()),
       (json) => ChartLineData.fromJson(json));
@@ -359,15 +368,6 @@ RespData<void> updateKnownWords(int level, String word) {
   return respData;
 }
 
-RespData<void> updateKnownWordsCountLineChart(int level, String word) {
-  final wordC = jsonEncode([word]).toNativeUtf8();
-  final resultC = _updateKnownWordsCountLineChart(level, wordC);
-  final respData =
-      RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-  malloc.free(wordC);
-  malloc.free(resultC);
-  return respData;
-}
 
 int queryWordLevel(String word) {
   final wordC = word.toNativeUtf8();

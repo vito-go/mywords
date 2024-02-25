@@ -43,11 +43,6 @@ class ArticlePageState extends State<ArticlePage> {
         return;
       }
       article = respData.data!;
-      // 兼容旧版本
-      if (article!.title == "") {
-        reParseArticle();
-      }
-      //
       levelCountMap = _levelDistribute();
       setState(() {});
     });
@@ -94,6 +89,13 @@ class ArticlePageState extends State<ArticlePage> {
   }
 
   Map<String, dynamic> levelCountMap = {}; //level: count
+  int get count0 => levelCountMap['0'] ?? 0;
+
+  int get count1 => levelCountMap['1'] ?? 0;
+
+  int get count2 => levelCountMap['2'] ?? 0;
+
+  int get count3 => levelCountMap['3'] ?? 0;
 
   Map<String, dynamic> _levelDistribute() {
     final art = article;
@@ -117,7 +119,6 @@ class ArticlePageState extends State<ArticlePage> {
   }
 
   void _updateKnownWords(int level, String word) {
-    _updateKnownWordsCountLineChart(level, word);
     final respData = updateKnownWords(level, word);
     if (respData.code != 0) {
       myToast(context, respData.message);
@@ -126,14 +127,6 @@ class ArticlePageState extends State<ArticlePage> {
     addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
     levelCountMap = _levelDistribute();
     setState(() {});
-  }
-
-  void _updateKnownWordsCountLineChart(int level, String word) {
-    final respData = updateKnownWordsCountLineChart(level, word);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
   }
 
   List<WordInfo> get wordInfos {
@@ -148,7 +141,7 @@ class ArticlePageState extends State<ArticlePage> {
       final info = infos[i];
       final wordLink = dictWordQueryLink(info.wordLink);
       final int l = queryWordLevel(wordLink);
-      if (l > showLevel) {
+      if (l != showLevel) {
         continue;
       }
       List<Widget> children = [
@@ -259,7 +252,7 @@ class ArticlePageState extends State<ArticlePage> {
           "文章词汇量统计\n单词总数: ${art.totalCount}, 去重后: ${art.netCount}, 比率: ${(art.netCount / art.totalCount).toStringAsFixed(2)}"),
       const SizedBox(height: 5),
       Text(
-        "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: ${levelCountMap['0'] ?? 0}  1级: ${levelCountMap['1'] ?? 0}  2级: ${levelCountMap['2'] ?? 0}  3级: ${levelCountMap['3'] ?? 0}",
+        "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: $count0 (${(count0 / art.netCount * 100).toInt()}%)  1级: $count1  2级: $count2  3级: $count3",
       ),
       const Divider(),
     ];
@@ -268,37 +261,43 @@ class ArticlePageState extends State<ArticlePage> {
           child: buildSelectionWordArea(
               HtmlWidget(art.htmlContent, renderMode: RenderMode.listView))));
     } else {
-      children.add(ListTile(
-        trailing: Switch(
-            value: showSentence,
-            onChanged: (v) {
-              setState(() {
-                showSentence = v;
-              });
-            }),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            const Text("分级筛选"),
-            buildShowLevel(0, label: "0", onTap: () {
-              showLevel = 0;
-              setState(() {});
-            }, showLevel: showLevel),
-            buildShowLevel(1, label: "1", showLevel: showLevel, onTap: () {
-              showLevel = 1;
-              setState(() {});
-            }),
-            buildShowLevel(2, label: "2", showLevel: showLevel, onTap: () {
-              showLevel = 2;
-              setState(() {});
-            }),
-            buildShowLevel(3, label: "3", showLevel: showLevel, onTap: () {
-              showLevel = 3;
-              setState(() {});
-            }),
-          ],
-        ),
+      children.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          const Tooltip(
+            showDuration: Duration(seconds: 15),
+            message:
+                "说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤单词。",
+            triggerMode: TooltipTriggerMode.tap,
+            child: Icon(Icons.info),
+          ),
+          const Text("分级筛选"),
+          buildShowLevel(0, label: "0", onTap: () {
+            showLevel = 0;
+            setState(() {});
+          }, showLevel: showLevel),
+          buildShowLevel(1, label: "1", showLevel: showLevel, onTap: () {
+            showLevel = 1;
+            setState(() {});
+          }),
+          buildShowLevel(2, label: "2", showLevel: showLevel, onTap: () {
+            showLevel = 2;
+            setState(() {});
+          }),
+          buildShowLevel(3, label: "3", showLevel: showLevel, onTap: () {
+            showLevel = 3;
+            setState(() {});
+          }),
+          Switch(
+              value: showSentence,
+              onChanged: (v) {
+                setState(() {
+                  showSentence = v;
+                });
+              })
+        ],
       ));
+      children.add(const SizedBox(height: 10));
       children.add(Expanded(child: buildWords(wordInfos)));
     }
     final body = Column(

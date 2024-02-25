@@ -8,6 +8,7 @@ import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_archived_list.dart';
 import 'package:mywords/pages/known_words.dart';
 import 'package:mywords/pages/proxy.dart';
+import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
@@ -131,6 +132,14 @@ class MyDrawerState extends State<MyDrawer> {
           onTap: () {
             Navigator.pop(context);
             pushTo(context, const KnownWords());
+          },
+        ),        ListTile(
+          title: const Text("学习统计"),
+          leading: const Icon(Icons.stacked_line_chart),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            pushTo(context, const StatisticChart());
           },
         ),
         ListTile(

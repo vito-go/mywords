@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/funcs.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/line_chart.dart';
 
 class StatisticChart extends StatefulWidget {
@@ -11,8 +12,22 @@ class StatisticChart extends StatefulWidget {
   }
 }
 
-class WordChart extends StatelessWidget {
-  const WordChart({super.key});
+class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
+  List<Widget> get myTabs => [
+        const Text("每日统计"),
+        const Tooltip(
+          message: "请注意：每日学习的单词可能存在重复，因此您累计学习的数量可能与已知单词总数不一致。",
+          child: Text("累计统计"),
+        )
+      ];
+
+  List<Widget> get tableWidgets {
+    return [
+      LineChartSample(chartLineData: getChartData().data!, isCurved: true),
+      LineChartSample(
+          chartLineData: getChartDataAccumulate().data!, isCurved: false),
+    ];
+  }
 
   Map<String, dynamic> get todayCountMap {
     final respData = getToadyChartDateLevelCountMap();
@@ -29,38 +44,11 @@ class WordChart extends StatelessWidget {
     final count3 = todayCountMap['3'] ?? 0;
     final total = count1 + count2 + count3;
     return Tooltip(
-      message:
-      "今日学习单词数量: $total\n1级:$count1 2级:$count2 3级:$count3",
+      message: "今日学习单词数量: $total\n1级:$count1 2级:$count2 3级:$count3",
       triggerMode: TooltipTriggerMode.tap,
       child: const Icon(Icons.info),
     );
   }
-
-
-  @override
-  Widget build(BuildContext context) {
-    final body = LineChartSample(chartLineData: getChartData().data!);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("每日统计"),
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: toolTipToday,
-          )
-        ],
-      ),
-      body: body,
-    );
-  }
-}
-
-class _State extends State<StatisticChart> {
-  ChartLineData? data;
 
   @override
   void initState() {
@@ -69,22 +57,24 @@ class _State extends State<StatisticChart> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body;
-    if (data == null) {
-      body = const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-    body = LineChartSample(chartLineData: getChartData().data!);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("每日统计"),
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+    final appBar = AppBar(
+      title: const Text("学习统计"),
+      bottom: TabBar(
+        tabs: myTabs,
+        labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        unselectedLabelStyle: const TextStyle(),
       ),
-      body: body,
+      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      actions: [
+        Padding(padding: const EdgeInsets.only(right: 16), child: toolTipToday)
+      ],
+    );
+    return DefaultTabController(
+      length: myTabs.length,
+      child: Scaffold(
+        appBar: appBar,
+        body: TabBarView(children: tableWidgets),
+      ),
     );
   }
 }

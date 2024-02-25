@@ -117,7 +117,7 @@ class _State extends State<ArticleListView> {
   }
 
   Widget buildFileInfo() {
-    final listView = ListView.builder(
+    final listView = ListView.separated(
       itemBuilder: (BuildContext context, int index) {
         final item = fileInfos[index];
         final listTile = ListTile(
@@ -165,6 +165,9 @@ class _State extends State<ArticleListView> {
         );
       },
       itemCount: fileInfos.length,
+        separatorBuilder: (BuildContext context, int index) {
+        return const Divider();
+        }
     );
     return RefreshIndicator(
         child: listView,
