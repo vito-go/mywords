@@ -59,7 +59,9 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 }
 
 // ParseVersion 如果article的文件的version不同，应该重新进行解析。
-const ParseVersion = "0.0.1"
+const ParseVersion = "0.0.2"
+
+var regSentenceSplit = regexp.MustCompile(`\. [A-Z“]`)
 
 func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	const (
@@ -99,11 +101,11 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	//sentences := strings.SplitAfter(content, ". ")
 	// The U.S.
 	sentences := make([]string, 0, 512)
-	ss := regexp.MustCompile(`\. [A-Z]`).FindAllStringIndex(content, -1)
+	ss := regSentenceSplit.FindAllStringIndex(content, -1)
 	var start = 0
 	for _, s := range ss {
-		sentences = append(sentences, content[start:s[1]-1])
-		start = s[1] - 1
+		sentences = append(sentences, content[start:s[0]+1])
+		start = s[0] + 2
 	}
 	sentences = append(sentences, content[start:])
 
