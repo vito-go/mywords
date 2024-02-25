@@ -38,6 +38,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     if (event.eventType == GlobalEventType.syncData) {
       valueNotifierChart.value = UniqueKey();
     }
+    if (event.eventType == GlobalEventType.updateKnownWord) {
+      valueNotifierChart.value = UniqueKey();
+    }
   }
 
   @override
@@ -77,10 +80,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                     ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          pushTo(context, ArticlePage(fileName: fileName))
-                              .then((value) {
-                            valueNotifierChart.value = UniqueKey();
-                          });
+                          pushTo(context, ArticlePage(fileName: fileName));
                         },
                         child: const Text("查看")),
                     ElevatedButton(
@@ -185,14 +185,20 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   onPressed: () {
                     pushTo(context, const ToadyKnownWords());
                   },
-                  icon:   Icon(Icons.wordpress,color: Theme.of(context).primaryColor,)),
+                  icon: Icon(
+                    Icons.wordpress,
+                    color: Theme.of(context).primaryColor,
+                  )),
               title: Text("今日学习单词总数: ${count1 + count2 + count3}"),
               subtitle: todaySubtitle,
               trailing: IconButton(
                   onPressed: () {
                     pushTo(context, const StatisticChart());
                   },
-                  icon:   Icon(Icons.stacked_line_chart,color: Theme.of(context).primaryColor,)),
+                  icon: Icon(
+                    Icons.stacked_line_chart,
+                    color: Theme.of(context).primaryColor,
+                  )),
             );
           }),
       textField(),
