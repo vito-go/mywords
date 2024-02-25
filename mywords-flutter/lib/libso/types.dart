@@ -51,6 +51,7 @@ class FileInfo {
 
 class Article {
   String title;
+  String version;
   String sourceUrl;
   String htmlContent;
   int minLen;
@@ -60,6 +61,7 @@ class Article {
   List<WordInfo> wordInfos;
 
   Article({
+    required this.version,
     required this.title,
     required this.sourceUrl,
     required this.htmlContent,
@@ -78,6 +80,7 @@ class Article {
     final List<dynamic> ws = json["wordInfos"] ?? [];
     return Article(
       title: json["title"].toString(),
+      version: json["version"].toString(),
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
       minLen: json["minLen"],
@@ -93,6 +96,7 @@ class Article {
 
   Map<String, dynamic> toJson() => {
         "title": title,
+        "version": version,
         "sourceUrl": sourceUrl,
         "htmlContent": htmlContent,
         "minLen": minLen,
@@ -122,8 +126,8 @@ class WordInfo {
   String toRawJson() => json.encode(toJson());
 
   factory WordInfo.fromJson(Map<String, dynamic> json) => WordInfo(
-        text: json["text"]??"",
-        wordLink: json["wordLink"]??"",
+        text: json["text"] ?? "",
+        wordLink: json["wordLink"] ?? "",
         count: json["count"] ?? 0,
         sentence: List<String>.from((json["sentence"] ?? []).map((x) => x)),
       );

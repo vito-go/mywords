@@ -218,6 +218,17 @@ final setXpathExpr = nativeAddLib.lookupFunction<
 final knownWordsCountMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
     Pointer<Utf8> Function()>('KnownWordsCountMap');
 
+final _parseVersion = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+    Pointer<Utf8> Function()>('ParseVersion');
+
+String parseVersion() {
+  final resultC = _parseVersion();
+  final RespData<String> respData = RespData.fromJson(
+      jsonDecode(resultC.toDartString()), (json) => json as String);
+  malloc.free(resultC);
+  return respData.data!;
+}
+
 // func ShareOpen(port int, code int64) *C.char  port tokenCode
 final _shareOpen = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Int64, Int64),
@@ -226,10 +237,9 @@ final _shareOpen = nativeAddLib.lookupFunction<
 final _getChartData = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
     Pointer<Utf8> Function()>('GetChartData');
 
-final _getChartDataAccumulate = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+final _getChartDataAccumulate = nativeAddLib.lookupFunction<
+    Pointer<Utf8> Function(),
     Pointer<Utf8> Function()>('GetChartDataAccumulate');
-
-
 
 // func AllKnownWordMap() *C.char
 final _allKnownWordMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
@@ -367,7 +377,6 @@ RespData<void> updateKnownWords(int level, String word) {
   malloc.free(resultC);
   return respData;
 }
-
 
 int queryWordLevel(String word) {
   final wordC = word.toNativeUtf8();
