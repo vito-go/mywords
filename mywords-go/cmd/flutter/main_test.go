@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestMain Debug here
 func TestMain(m *testing.M) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

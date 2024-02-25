@@ -213,7 +213,7 @@ class _RestoreDataState extends State<RestoreData> {
           prefs.syncToadyWordCount = v;
           setState(() {});
         },
-        title: const Text("同步单词每日统计"),
+        title: const Text("同步每日/累计单词学习统计"),
       ),
       ListTile(
         title: const Text("从本地同步"),
@@ -243,7 +243,7 @@ class _RestoreDataState extends State<RestoreData> {
         trailing: syncShareDataBuild(),
         title: isSyncing ? const LinearProgressIndicator() : null,
         leading: const Tooltip(
-          message: "本地数据不会丢失，同步数据将与本地数据进行合并",
+          message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info),
         ),
