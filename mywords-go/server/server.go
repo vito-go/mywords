@@ -411,6 +411,12 @@ func (s *Server) UpdateKnownWords(level WordKnownLevel, words ...string) error {
 	if err != nil {
 		return err
 	}
+	for _, word := range words {
+		s.updateKnownWordCountLineChart(level, word)
+	}
+	if err = s.saveChartDataFile(); err != nil {
+		return err
+	}
 	return nil
 
 }

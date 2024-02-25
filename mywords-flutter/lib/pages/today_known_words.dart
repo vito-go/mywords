@@ -52,9 +52,9 @@ class _State extends State<ToadyKnownWords> {
     return [
       IconButton(
           onPressed: () {
-            pushTo(context, const WordChart()).then((value) {});
+            pushTo(context, const StatisticChart());
           },
-          icon: const Icon(Icons.area_chart))
+          icon: const Icon(Icons.stacked_line_chart))
     ];
   }
 

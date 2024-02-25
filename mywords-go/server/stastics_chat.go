@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"sort"
 	"time"
 )
@@ -20,6 +21,8 @@ type ChartData struct {
 	BaselineY   int            `json:"baselineY"`
 	MinY        int            `json:"minY"`
 }
+
+const lastDays = 20
 
 func (s *Server) GetToadyChartDateLevelCountMap() map[WordKnownLevel]int {
 	today := time.Now().Format("2006-01-02")
@@ -41,7 +44,6 @@ func (s *Server) GetToadyChartDateLevelCountMap() map[WordKnownLevel]int {
 	return todayLevelCountMap
 }
 func (s *Server) GetChartData() (*ChartData, error) {
-	const lastDays = 14
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	var chartData = &ChartData{
@@ -99,12 +101,55 @@ func (s *Server) GetChartData() (*ChartData, error) {
 	}
 	return chartData, nil
 }
-func (s *Server) UpdateKnownWordsCountLineChart(level WordKnownLevel, words ...string) error {
-	for _, word := range words {
-		s.updateKnownWordCountLineChart(level, word)
+func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	var chartData = &ChartData{
+		Title:       "累计单词掌握情况统计",
+		SubTitle:    "",
+		XName:       "日期",
+		YName:       "累计数量",
+		DotDataShow: true,
+		XTitleMap:   make(map[int]string),
+		LineValues:  make([]lineValue, 0),
+		BaselineY:   0,
+		MinY:        0,
 	}
-	return s.saveChartDataFile()
+	const allTitle = "累计"
+	chartData.LineValues = []lineValue{
+		{Tip: allTitle},
+	}
+	allDates := make([]string, 0, len(s.chartDateLevelCountMap))
+	for date := range s.chartDateLevelCountMap {
+		allDates = append(allDates, date)
+	}
+	sort.Strings(allDates)
+	var accumulation = 0
+	for dateIdx, date := range allDates {
+		chartData.XTitleMap[dateIdx] = date
+		levelCountMap := s.chartDateLevelCountMap[date]
+		for i := 0; i < len(chartData.LineValues); i++ {
+			if chartData.LineValues[i].Tip == allTitle {
+				var allCount int
+				for _, m := range levelCountMap {
+					allCount += len(m)
+				}
+				accumulation += allCount
+				chartData.LineValues[i].FlSpots = append(chartData.LineValues[i].FlSpots, []int{dateIdx, accumulation})
+				break
+			}
+		}
+	}
+	// at most chartData.LineValues[i].FlSpots has 14 elements, last 14 days
+	for i := 0; i < len(chartData.LineValues); i++ {
+		fmt.Println(len(chartData.LineValues[i].FlSpots))
+		if len(chartData.LineValues[i].FlSpots) > lastDays {
+			chartData.LineValues[i].FlSpots = chartData.LineValues[i].FlSpots[len(chartData.LineValues[i].FlSpots)-lastDays:]
+		}
+	}
+	return chartData, nil
 }
+
 func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string) {
 	l, ok := s.QueryWordLevel(word)
 	if ok && level <= l {
@@ -122,6 +167,12 @@ func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string
 	_, ok = s.chartDateLevelCountMap[today][level]
 	if !ok {
 		s.chartDateLevelCountMap[today][level] = make(map[string]struct{})
+	}
+	for knownLevel, wordMap := range s.chartDateLevelCountMap[today] {
+		if _, ok = wordMap[word]; ok {
+			delete(s.chartDateLevelCountMap[today][knownLevel], word)
+			break
+		}
 	}
 	s.chartDateLevelCountMap[today][level][word] = struct{}{}
 	return

@@ -190,9 +190,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
               subtitle: todaySubtitle,
               trailing: IconButton(
                   onPressed: () {
-                    pushTo(context, const WordChart());
+                    pushTo(context, const StatisticChart());
                   },
-                  icon:   Icon(Icons.area_chart,color: Theme.of(context).primaryColor,)),
+                  icon:   Icon(Icons.stacked_line_chart,color: Theme.of(context).primaryColor,)),
             );
           }),
       textField(),

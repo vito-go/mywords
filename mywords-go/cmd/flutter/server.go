@@ -27,23 +27,6 @@ func UpdateKnownWords(level int, c *C.char) *C.char {
 	return CharSuccess()
 }
 
-//export UpdateKnownWordsCountLineChart
-func UpdateKnownWordsCountLineChart(level int, c *C.char) *C.char {
-	if level <= 0 {
-		return CharSuccess()
-	}
-	var words []string
-	err := json.Unmarshal([]byte(C.GoString(c)), &words)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	err = serverGlobal.UpdateKnownWordsCountLineChart(server.WordKnownLevel(level), words...)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharSuccess()
-}
-
 //export ShareOpen
 func ShareOpen(port int, code int64) *C.char {
 	err := serverGlobal.ShareOpen(port, code)
@@ -56,6 +39,15 @@ func ShareOpen(port int, code int64) *C.char {
 //export GetChartData
 func GetChartData() *C.char {
 	data, err := serverGlobal.GetChartData()
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharOk(data)
+}
+
+//export GetChartDataAccumulate
+func GetChartDataAccumulate() *C.char {
+	data, err := serverGlobal.GetChartDataAccumulate()
 	if err != nil {
 		return CharErr(err.Error())
 	}

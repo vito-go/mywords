@@ -89,6 +89,9 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	if titleNode != nil {
 		title = htmlquery.InnerText(titleNode)
 	}
+	if title == "" {
+		title = sourceUrl
+	}
 	sentences := strings.SplitAfter(content, ". ")
 	var totalCount int
 	var wordsMap = make(map[string]int64, 1000)

@@ -12,6 +12,6 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	initGlobal(filepath.Join(homeDir, ".local/share/com.example.mywords"), "")
-	ShareOpen(18964, 890604)
+	GetChartDataAccumulate()
 	select {}
 }
