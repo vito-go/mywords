@@ -407,13 +407,15 @@ func (s *Server) SetXpathExpr(expr string) (err error) {
 func (s *Server) UpdateKnownWords(level WordKnownLevel, words ...string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	for _, word := range words {
+		s.updateKnownWordCountLineChart(level, word)
+		//updateKnownWordCountLineChart must be ahead of updateKnownWords
+	}
 	err := s.updateKnownWords(level, words...)
 	if err != nil {
 		return err
 	}
-	for _, word := range words {
-		s.updateKnownWordCountLineChart(level, word)
-	}
+
 	if err = s.saveChartDataFile(); err != nil {
 		return err
 	}
