@@ -171,7 +171,6 @@ func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string
 	for knownLevel, wordMap := range s.chartDateLevelCountMap[today] {
 		if _, ok = wordMap[word]; ok {
 			delete(s.chartDateLevelCountMap[today][knownLevel], word)
-			break
 		}
 	}
 	s.chartDateLevelCountMap[today][level][word] = struct{}{}
