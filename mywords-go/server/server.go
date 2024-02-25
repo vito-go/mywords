@@ -308,7 +308,12 @@ func (s *Server) restoreFromBackUpData(backUpDataZipPath string, syncToadyWordCo
 	for _, name := range fileNames {
 		delete(s.fileInfoMap, name)
 	}
-
+	for name, info := range fileInfoArchivedMap {
+		if _, ok := s.fileInfoMap[name]; ok {
+			delete(s.fileInfoMap, name)
+			s.fileInfoArchivedMap[name] = info
+		}
+	}
 	if err = s.saveFileInfoMap(); err != nil {
 		return err
 	}

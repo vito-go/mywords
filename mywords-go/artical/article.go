@@ -18,6 +18,7 @@ import (
 )
 
 type Article struct {
+	Version     string     `json:"version"`
 	Title       string     `json:"title"`
 	SourceUrl   string     `json:"sourceUrl"`
 	HTMLContent string     `json:"htmlContent"`
@@ -57,6 +58,9 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 	return art, nil
 }
 
+// ParseVersion 如果article的文件的version不同，应该重新进行解析。
+const ParseVersion = "0.0.1"
+
 func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	const (
 		minLen = 4
@@ -92,10 +96,20 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	if title == "" {
 		title = sourceUrl
 	}
-	sentences := strings.SplitAfter(content, ". ")
+	//sentences := strings.SplitAfter(content, ". ")
+	// The U.S.
+	sentences := make([]string, 0, 512)
+	ss := regexp.MustCompile(`\. [A-Z]`).FindAllStringIndex(content, -1)
+	var start = 0
+	for _, s := range ss {
+		sentences = append(sentences, content[start:s[1]-1])
+		start = s[1] - 1
+	}
+	sentences = append(sentences, content[start:])
+
 	var totalCount int
-	var wordsMap = make(map[string]int64, 1000)
-	var wordsSentences = make(map[string][]*string, 1000)
+	var wordsMap = make(map[string]int64, 1024)
+	var wordsSentences = make(map[string][]*string, 1024)
 	for _, sentence := range sentences {
 		if strings.HasPrefix(sentence, "<div ") {
 			continue
@@ -190,6 +204,7 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 		NetCount:    len(wordsMap),
 		WordInfos:   WordInfos,
 		TopN:        topNWords,
+		Version:     ParseVersion,
 	}
 	return &c, nil
 }

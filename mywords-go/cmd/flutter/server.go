@@ -3,6 +3,7 @@ package main
 import "C"
 import (
 	"encoding/json"
+	"mywords/artical"
 	"mywords/dict"
 	"mywords/mylog"
 	"mywords/server"
@@ -149,6 +150,11 @@ func KnownWordsCountMap() *C.char {
 		}
 	}
 	return CharOk(m)
+}
+
+//export ParseVersion
+func ParseVersion() *C.char {
+	return CharOk(artical.ParseVersion)
 }
 
 //export ShowFileInfoList

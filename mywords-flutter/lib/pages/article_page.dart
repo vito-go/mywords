@@ -43,6 +43,10 @@ class ArticlePageState extends State<ArticlePage> {
         return;
       }
       article = respData.data!;
+      if (article!.version != parseVersion()) {
+        reParseArticle();
+        return;
+      }
       levelCountMap = _levelDistribute();
       setState(() {});
     });
@@ -51,6 +55,7 @@ class ArticlePageState extends State<ArticlePage> {
   void reParseArticle() {
     final art = article;
     if (art == null) {
+      if (!context.mounted) return;
       myToast(context, "初始化中...");
       return;
     }
@@ -61,6 +66,7 @@ class ArticlePageState extends State<ArticlePage> {
           "htmlContent": art.htmlContent,
         }).then((respData) {
       if (respData.code != 0) {
+        if (!context.mounted) return;
         myToast(context, respData.message);
         return;
       }
@@ -68,7 +74,8 @@ class ArticlePageState extends State<ArticlePage> {
           GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
       article = respData.data!;
       levelCountMap = _levelDistribute();
-      myToast(context, "重新从本地文件解析成功！");
+      if (!context.mounted) return;
+      myToast(context,"重新从本地文件解析成功！");
       setState(() {});
     });
   }
