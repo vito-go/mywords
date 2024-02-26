@@ -59,9 +59,9 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 }
 
 // ParseVersion 如果article的文件的version不同，应该重新进行解析。
-const ParseVersion = "0.0.2"
+const ParseVersion = "0.0.4"
 
-var regSentenceSplit = regexp.MustCompile(`\. [A-Z“]`)
+var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
 func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	const (
@@ -104,8 +104,11 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	ss := regSentenceSplit.FindAllStringIndex(content, -1)
 	var start = 0
 	for _, s := range ss {
-		sentences = append(sentences, content[start:s[0]+1])
-		start = s[0] + 2
+		// \. [A-Z“]
+		//sentences = append(sentences, content[start:s[0]+1])
+		//start = s[0] + 2
+		sentences = append(sentences, content[start:s[0]+5])
+		start = s[0] + 6
 	}
 	sentences = append(sentences, content[start:])
 
@@ -116,10 +119,16 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 		if strings.HasPrefix(sentence, "<div ") {
 			continue
 		}
-		//sentence = regexp.MustCompile(`\s+`).ReplaceAllString(sentence, " ")
-		if len(sentence) < minLen {
-			continue
+		for {
+			if len(sentence) < minLen {
+				continue
+			}
+			if unicode.IsLetter(rune(sentence[0])) {
+				break
+			}
+			sentence = sentence[1:]
 		}
+		//sentence = regexp.MustCompile(`\s+`).ReplaceAllString(sentence, " ")
 		s := sentence
 		sentenceWords := regexp.MustCompile(fmt.Sprintf("[’A-Za-z-]{%d,}", minLen)).FindAllString(sentence, -1)
 		if len(sentenceWords) == 0 {
