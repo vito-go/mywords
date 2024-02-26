@@ -179,9 +179,6 @@
 
 请按照上述步骤确保词典数据正确添加至您的学习工具中，以便在学习过程中查阅单词和词组的详细释义，从而更有效地提升您的语言能力。
 
-在撰写鸣谢部分时，您可以采用简洁而专业的文风，对那些在项目开发、支持或提供资源与帮助过程中对您有重要贡献的个人、团队或组织表达您的感激之情。以下是一个标准的鸣谢文本示例：
-
-
 ## TODO
 - 暗黑主题色
 - IOS、MacOS平台支持
@@ -194,8 +191,8 @@
 
 - 感谢 [The New York Times 中英文版](https://cn.nytimes.com/zh-hant/)为我们提供了优质的双语阅读材料，这对于英语学习者们非常有帮助。
 - 感谢 [The Economist China](https://www.economist.com/topics/china) 为我们提供的高质量英文阅读材料，为我们的学习提供了丰富的内容。
-- 我们对 [Bitbucket](https://bitbucket.org/) 提供的 Python 词典解析工具表示特别鸣谢，这对我们构建词汇数据库至关重要。
-- 特别感谢[louischeung.top](http://louischeung.top) 提供的牛津高阶英汉双解词典，这资源对于英语学习者们非常有价值。
+- 我们对 [Bitbucket.org/xwang](https://bitbucket.org/xwang/mdict-analysis/src/master/)提供的 Python 词典解析工具表示特别鸣谢，这对我们构建词汇数据库至关重要。
+- 特别感谢[louischeung.top](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/) 提供的牛津高阶英汉双解词典，这资源对于英语学习者们非常有价值。
 - 我们对所有通过 WeChat或Email主动提供反馈和建议的用户表示深深的谢意。
 - 感谢所有贡献者、测试者和使用我们工具的用户，是你们的支持让这个项目不断进步。
 
