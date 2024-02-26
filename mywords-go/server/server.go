@@ -298,20 +298,42 @@ func (s *Server) restoreFromBackUpData(backUpDataZipPath string, syncToadyWordCo
 			}
 		}
 	}
-	// 同步后如果归档文章中有，那么就删除
-	var fileNames []string
-	for fileName := range s.fileInfoMap {
-		if _, ok := s.fileInfoArchivedMap[fileName]; ok {
-			fileNames = append(fileNames, fileName)
+
+	for name, info := range fileInfoMap {
+		// update fileInfoMap mainly for LastModified
+		if _, ok := s.fileInfoMap[name]; ok {
+			// ok means the file exists in s.fileInfoMap
+			s.fileInfoMap[name] = info
 		}
 	}
-	for _, name := range fileNames {
-		delete(s.fileInfoMap, name)
+	for name, info := range fileInfoArchivedMap {
+		// update fileInfoArchivedMap mainly for LastModified
+		if _, ok := s.fileInfoArchivedMap[name]; ok {
+			// ok means the file exists in s.fileInfoMap
+			s.fileInfoArchivedMap[name] = info
+		}
 	}
 	for name, info := range fileInfoArchivedMap {
 		if _, ok := s.fileInfoMap[name]; ok {
 			delete(s.fileInfoMap, name)
 			s.fileInfoArchivedMap[name] = info
+		}
+	}
+
+	//var fileNames []string
+	//for fileName := range s.fileInfoMap {
+	//	if _, ok := s.fileInfoArchivedMap[fileName]; ok {
+	//		fileNames = append(fileNames, fileName)
+	//	}
+	//}
+	//for _, name := range fileNames {
+	//	delete(s.fileInfoMap, name)
+	//}
+	// 同步后如果归档文章中有，那么就删除
+	for name := range s.fileInfoArchivedMap {
+		//TODO  is it necessary to do this?
+		if _, ok := s.fileInfoMap[name]; ok {
+			delete(s.fileInfoMap, name)
 		}
 	}
 	if err = s.saveFileInfoMap(); err != nil {
