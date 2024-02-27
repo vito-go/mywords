@@ -98,8 +98,8 @@ func RestoreFromBackUpData(zipFile *C.char) *C.char {
 }
 
 //export ParseAndSaveArticleFromSourceUrlAndContent
-func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char, htmlContentC *C.char) *C.char {
-	art, err := serverGlobal.ParseAndSaveArticleFromSourceUrlAndContent(C.GoString(sourceUrl), []byte(C.GoString(htmlContentC)))
+func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char, htmlContentC *C.char, lastModified int64) *C.char {
+	art, err := serverGlobal.ParseAndSaveArticleFromSourceUrlAndContent(C.GoString(sourceUrl), []byte(C.GoString(htmlContentC)), lastModified)
 	if err != nil {
 		return CharErr(err.Error())
 	}

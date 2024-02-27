@@ -392,13 +392,14 @@ int queryWordLevel(String word) {
 
 // compute must be top level function
 RespData<Article> parseAndSaveArticleFromSourceUrlAndContent(
-    Map<String, String> param) {
+    Map<String, dynamic> param) {
   final String www = param['www'].toString();
   final String htmlContent = param['htmlContent'].toString();
+  final int lastModified = param['lastModified']??0;
   final sourceUrlC = www.toNativeUtf8();
   final htmlContentC = htmlContent.toNativeUtf8();
   final resultC =
-      _parseAndSaveArticleFromSourceUrlAndContent(sourceUrlC, htmlContentC);
+      _parseAndSaveArticleFromSourceUrlAndContent(sourceUrlC, htmlContentC,lastModified);
   final RespData<Article> respData = RespData<Article>.fromJson(
       jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
   malloc.free(resultC);

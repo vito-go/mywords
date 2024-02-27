@@ -51,6 +51,7 @@ class FileInfo {
 
 class Article {
   String title;
+  int lastModified;
   String version;
   String sourceUrl;
   String htmlContent;
@@ -62,6 +63,7 @@ class Article {
 
   Article({
     required this.version,
+    required this.lastModified,
     required this.title,
     required this.sourceUrl,
     required this.htmlContent,
@@ -80,6 +82,7 @@ class Article {
     final List<dynamic> ws = json["wordInfos"] ?? [];
     return Article(
       title: json["title"].toString(),
+      title: json["lastModified"]??0,
       version: json["version"].toString(),
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
@@ -96,6 +99,7 @@ class Article {
 
   Map<String, dynamic> toJson() => {
         "title": title,
+        "lastModified": lastModified,
         "version": version,
         "sourceUrl": sourceUrl,
         "htmlContent": htmlContent,

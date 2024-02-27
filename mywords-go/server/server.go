@@ -482,8 +482,8 @@ func (s *Server) saveKnownWordsMapToFile() error {
 	return nil
 }
 
-func (s *Server) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, htmlContent []byte) (*artical.Article, error) {
-	art, err := artical.ParseContent(sourceUrl, s.xpathExpr, htmlContent)
+func (s *Server) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, htmlContent []byte, lastModified int64) (*artical.Article, error) {
+	art, err := artical.ParseContent(sourceUrl, s.xpathExpr, htmlContent, lastModified)
 	if err != nil {
 		return nil, err
 	}
@@ -505,6 +505,10 @@ func (s *Server) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Ar
 	return art, nil
 }
 func (s *Server) saveArticle(art *artical.Article) error {
+	lastModified := art.LastModified
+	if lastModified <= 0 {
+		lastModified = time.Now().UnixMilli()
+	}
 	sourceUrl := art.SourceUrl
 	//gob marshal
 	var buf bytes.Buffer
@@ -535,7 +539,7 @@ func (s *Server) saveArticle(art *artical.Article) error {
 		SourceUrl:    sourceUrl,
 		FileName:     fileName,
 		Size:         int64(fileSize),
-		LastModified: time.Now().UnixMilli(),
+		LastModified: lastModified,
 		IsDir:        false,
 		TotalCount:   art.TotalCount,
 		NetCount:     art.NetCount,

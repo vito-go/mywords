@@ -63,6 +63,7 @@ class ArticlePageState extends State<ArticlePage> {
         (message) => parseAndSaveArticleFromSourceUrlAndContent(message),
         <String, String>{
           "www": art.sourceUrl,
+          "lastModified":art.lastModified,
           "htmlContent": art.htmlContent,
         }).then((respData) {
       if (respData.code != 0) {
