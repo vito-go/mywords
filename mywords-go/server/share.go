@@ -59,6 +59,9 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 		if pathBase == chartDataJsonFile && !param.SyncToadyWordCount {
 			return nil
 		}
+		if pathBase == knownWordsFile && !param.SyncKnownWords {
+			return nil
+		}
 		relPath, err := filepath.Rel(zipDir, path)
 		if err != nil {
 			return err
@@ -86,7 +89,7 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 }
 
 // RestoreFromShareServer . restore from a zip file
-func (s *Server) RestoreFromShareServer(ip string, port int, code int64, tempDir string, syncToadyWordCount bool) error {
+func (s *Server) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount bool) error {
 	httpUrl := fmt.Sprintf("http://%s:%d/%d", ip, port, code)
 	// save to temp dir
 	tempZipPath := filepath.Join(tempDir, fmt.Sprintf("mywors-%d.zip", time.Now().UnixMilli()))
@@ -94,14 +97,14 @@ func (s *Server) RestoreFromShareServer(ip string, port int, code int64, tempDir
 	defer func() {
 		_ = os.Remove(tempZipPath)
 	}()
-	size, err := s.download(httpUrl, tempZipPath, syncToadyWordCount)
+	size, err := s.download(httpUrl, syncKnownWords, tempZipPath, syncToadyWordCount)
 	if err != nil {
 		return err
 	}
 	if size <= 0 {
 		return nil
 	}
-	err = s.restoreFromBackUpData(tempZipPath, syncToadyWordCount)
+	err = s.restoreFromBackUpData(syncKnownWords, tempZipPath, syncToadyWordCount)
 	if err != nil {
 		return err
 	}
@@ -111,9 +114,10 @@ func (s *Server) RestoreFromShareServer(ip string, port int, code int64, tempDir
 type ShareFileParam struct {
 	AllExistGobGzFileMap map[string]bool `json:"allExistGobGzFileMap"`
 	SyncToadyWordCount   bool            `json:"syncToadyWordCount"`
+	SyncKnownWords       bool            `json:"syncKnownWords"`
 }
 
-func (s *Server) download(httpUrl string, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
+func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
 	allExistGobGzFileMap := make(map[string]bool, len(s.fileInfoMap)+len(s.fileInfoMap))
 	for k, _ := range s.fileInfoMap {
 		allExistGobGzFileMap[k] = true
@@ -121,7 +125,7 @@ func (s *Server) download(httpUrl string, tempZipPath string, syncToadyWordCount
 	for k, _ := range s.fileInfoArchivedMap {
 		allExistGobGzFileMap[k] = true
 	}
-	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount}
+	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount, SyncKnownWords: syncKnownWords}
 	fileInfoBytes, _ := json.Marshal(param)
 	resp, err := http.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))
 	//resp, err := http.Get(httpUrl)

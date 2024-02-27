@@ -202,10 +202,10 @@ func (s *Server) restoreFromBackUpDataKnownWordsFile(f *zip.File) error {
 	return s.saveKnownWordsMapToFile()
 }
 
-func (s *Server) RestoreFromBackUpData(backUpDataZipPath string) error {
-	return s.restoreFromBackUpData(backUpDataZipPath, false)
+func (s *Server) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool) error {
+	return s.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount)
 }
-func (s *Server) restoreFromBackUpData(backUpDataZipPath string, syncToadyWordCount bool) error {
+func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool) error {
 	r, err := zip.OpenReader(backUpDataZipPath)
 	if err != nil {
 		return err
@@ -216,12 +216,14 @@ func (s *Server) restoreFromBackUpData(backUpDataZipPath string, syncToadyWordCo
 		fileMap[f.Name] = f
 	}
 
-	for _, f := range r.File {
-		if filepath.Base(f.Name) == knownWordsFile {
-			if err = s.restoreFromBackUpDataKnownWordsFile(f); err != nil {
-				return err
+	if syncKnownWords {
+		for _, f := range r.File {
+			if filepath.Base(f.Name) == knownWordsFile {
+				if err = s.restoreFromBackUpDataKnownWordsFile(f); err != nil {
+					return err
+				}
+				break
 			}
-			break
 		}
 	}
 	var fileInfoMap map[string]FileInfo

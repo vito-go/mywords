@@ -30,9 +30,9 @@ final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
 
 // func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char,htmlContent *C.char) *C.char
 final _parseAndSaveArticleFromSourceUrlAndContent = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>,Int64),
-    Pointer<Utf8> Function(Pointer<Utf8>,
-        Pointer<Utf8>,int)>('ParseAndSaveArticleFromSourceUrlAndContent');
+    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int64),
+    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>,
+        int)>('ParseAndSaveArticleFromSourceUrlAndContent');
 
 // func DeleteGobFile(fileName *C.char) *C.char
 final _deleteGobFile = nativeAddLib.lookupFunction<
@@ -204,10 +204,22 @@ String dictWordQueryLink(String word) {
   return word;
 }
 
-// func RestoreFromBackUpData(zipFile *C.char) *C.char
-final restoreFromBackUpData = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Pointer<Utf8>),
-    Pointer<Utf8> Function(Pointer<Utf8>)>('RestoreFromBackUpData');
+// func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount bool) *C.char {
+final _restoreFromBackUpData = nativeAddLib.lookupFunction<
+    Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool),
+    Pointer<Utf8> Function(bool, Pointer<Utf8>, bool)>('RestoreFromBackUpData');
+
+RespData<void> restoreFromBackUpData(
+    bool syncKnownWords, String zipPath, bool syncToadyWordCount) {
+  final pathC = zipPath.toNativeUtf8();
+  final resultC =
+      _restoreFromBackUpData(syncKnownWords, pathC, syncToadyWordCount);
+  final respData =
+      RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
+  malloc.free(pathC);
+  malloc.free(resultC);
+  return respData;
+}
 
 // setXpathExpr . usually for debug
 final setXpathExpr = nativeAddLib.lookupFunction<
@@ -253,10 +265,11 @@ final _getToadyChartDateLevelCountMap = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(),
     Pointer<Utf8> Function()>('GetToadyChartDateLevelCountMap');
 
-// func RestoreFromShareServer(ipC *C.char, port int, code int64, tempDir *C.char) *C.char {
+// func RestoreFromShareServer(ipC *C.char, port int, code int64,syncKnownWords bool, tempDir *C.char) *C.char {
 final _restoreFromShareServer = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Pointer<Utf8>, Int64, Int64, Pointer<Utf8>, Bool),
-    Pointer<Utf8> Function(Pointer<Utf8>, int, int, Pointer<Utf8>,
+    Pointer<Utf8> Function(
+        Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool),
+    Pointer<Utf8> Function(Pointer<Utf8>, int, int, bool, Pointer<Utf8>,
         bool)>('RestoreFromShareServer');
 
 // func ShareClosed( ) *C.char
@@ -280,11 +293,11 @@ RespData<void> shareOpen(int port, int code) {
 }
 
 Future<RespData<void>> restoreFromShareServer(String ip, int port, int code,
-    String tempDir, bool syncToadyWordCount) async {
+    bool syncKnownWords, String tempDir, bool syncToadyWordCount) async {
   final tempDirC = tempDir.toNativeUtf8();
   final ipC = ip.toNativeUtf8();
-  final resultC =
-      _restoreFromShareServer(ipC, port, code, tempDirC, syncToadyWordCount);
+  final resultC = _restoreFromShareServer(
+      ipC, port, code, syncKnownWords, tempDirC, syncToadyWordCount);
   final RespData respData =
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(resultC);
@@ -395,11 +408,11 @@ RespData<Article> parseAndSaveArticleFromSourceUrlAndContent(
     Map<String, dynamic> param) {
   final String www = param['www'].toString();
   final String htmlContent = param['htmlContent'].toString();
-  final int lastModified = param['lastModified']??0;
+  final int lastModified = param['lastModified'] ?? 0;
   final sourceUrlC = www.toNativeUtf8();
   final htmlContentC = htmlContent.toNativeUtf8();
-  final resultC =
-      _parseAndSaveArticleFromSourceUrlAndContent(sourceUrlC, htmlContentC,lastModified);
+  final resultC = _parseAndSaveArticleFromSourceUrlAndContent(
+      sourceUrlC, htmlContentC, lastModified);
   final RespData<Article> respData = RespData<Article>.fromJson(
       jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
   malloc.free(resultC);
