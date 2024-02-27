@@ -55,7 +55,7 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 }
 
 // ParseVersion 如果article的文件的version不同，应该重新进行解析。
-const ParseVersion = "0.0.4"
+const ParseVersion = "0.0.5"
 
 var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
