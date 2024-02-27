@@ -147,6 +147,9 @@ func (m *MultiDictZip) SetDefaultDict(basePath string) error {
 	if err != nil {
 		return err
 	}
+	if oldDict := m.dictIndexInfo.DictZip; oldDict != nil {
+		oldDict.Close()
+	}
 	m.dictIndexInfo.DictBasePathTitleMap[basePath] = basePath
 	if err = m.saveInfo(); err != nil {
 		return err
@@ -168,8 +171,7 @@ func (m *MultiDictZip) SetDefaultDict(basePath string) error {
 			return errors.New("start error. time out")
 		}
 		m.runPort = d.port
-		fmt.Println(m.runPort)
-		m.dictIndexInfo.DefaultDictBasePath = filepath.Base(zipFile)
+		m.dictIndexInfo.DefaultDictBasePath = basePath
 		if err = m.saveInfo(); err != nil {
 			return err
 		}

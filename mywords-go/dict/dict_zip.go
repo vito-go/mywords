@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -112,7 +113,7 @@ func (d *DictZip) Close() {
 	if z := d.zipReadCloser; z != nil {
 		z.Close()
 	}
-
+	runtime.GC()
 }
 func (d *DictZip) start() error {
 	mux := http.NewServeMux()
