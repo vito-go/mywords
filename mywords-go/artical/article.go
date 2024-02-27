@@ -63,6 +63,8 @@ const ParseVersion = "0.0.4"
 
 var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
+var quote = "“"
+
 func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	const (
 		minLen = 4
@@ -107,7 +109,13 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 		// \. [A-Z“]
 		//sentences = append(sentences, content[start:s[0]+1])
 		//start = s[0] + 2
-		sentences = append(sentences, content[start:s[0]+5])
+		sen := []byte(content[start : s[0]+5])
+		if len(sen) > 2 {
+			if sen[len(sen)-1] == quote[1] && sen[len(sen)-2] == quote[0] {
+				sen = append(sen, quote[2])
+				sentences = append(sentences, string(sen))
+			}
+		}
 		start = s[0] + 6
 	}
 	sentences = append(sentences, content[start:])
