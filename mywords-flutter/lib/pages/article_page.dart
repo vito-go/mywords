@@ -59,15 +59,15 @@ class ArticlePageState extends State<ArticlePage> {
       myToast(context, "初始化中...");
       return;
     }
-    int lastModified=0;// update
-    if (!updateLastModified){
-      lastModified=art.lastModified;
+    int lastModified = 0; // update
+    if (!updateLastModified) {
+      lastModified = art.lastModified;
     }
     compute(
         (message) => parseAndSaveArticleFromSourceUrlAndContent(message),
         <String, dynamic>{
           "www": art.sourceUrl,
-          "lastModified":lastModified,
+          "lastModified": lastModified,
           "htmlContent": art.htmlContent,
         }).then((respData) {
       if (respData.code != 0) {
@@ -80,7 +80,7 @@ class ArticlePageState extends State<ArticlePage> {
       article = respData.data!;
       levelCountMap = _levelDistribute();
       if (!context.mounted) return;
-      myToast(context,"重新从本地文件解析成功！");
+      myToast(context, "重新从本地文件解析成功！");
       setState(() {});
     });
   }
@@ -104,6 +104,12 @@ class ArticlePageState extends State<ArticlePage> {
   int get count0 => levelCountMap['0'] ?? 0;
 
   int get count1 => levelCountMap['1'] ?? 0;
+  String get count0VsNet {
+    if (count0 == 0) return "%0";
+    final netCount = article?.netCount;
+    if (netCount == null) return "%0";
+    return "${(count0 / netCount * 100).toInt()}%";
+  }
 
   int get count2 => levelCountMap['2'] ?? 0;
 
@@ -204,7 +210,11 @@ class ArticlePageState extends State<ArticlePage> {
 
   List<Widget> actions() {
     return [
-      IconButton(onPressed: (){reParseArticle(true);}, icon: const Icon(Icons.refresh)),
+      IconButton(
+          onPressed: () {
+            reParseArticle(true);
+          },
+          icon: const Icon(Icons.refresh)),
       SizedBox(
         width: 80,
         child: TextButton(
@@ -264,7 +274,7 @@ class ArticlePageState extends State<ArticlePage> {
           "文章词汇量统计\n单词总数: ${art.totalCount}, 去重后: ${art.netCount}, 比率: ${(art.netCount / art.totalCount).toStringAsFixed(2)}"),
       const SizedBox(height: 5),
       Text(
-        "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: $count0 (${(count0 / art.netCount * 100).toInt()}%)  1级: $count1  2级: $count2  3级: $count3",
+        "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: $count0 ($count0VsNet)  1级: $count1  2级: $count2  3级: $count3",
       ),
       const Divider(),
     ];

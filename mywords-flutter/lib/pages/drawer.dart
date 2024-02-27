@@ -82,36 +82,6 @@ class MyDrawerState extends State<MyDrawer> {
     controller.dispose();
   }
 
-  void restoreFromFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-        initialDirectory: getDefaultDownloadDir(),
-        allowMultiple: false,
-        withReadStream: true,
-        type: FileType.custom,
-        allowedExtensions: ['zip']);
-    if (result == null) {
-      return;
-    }
-    final files = result.files;
-    if (files.isEmpty) {
-      return;
-    }
-    final file = files[0];
-    if (file.path == null) {
-      return;
-    }
-    final respData =
-        await compute((message) => _restoreFromBackUpData(message), file.path!);
-
-    if (respData.code != 0) {
-      myToast(context, "恢复失败!\n${respData.message}");
-      return;
-    }
-    myToast(context, "恢复成功");
-    Navigator.pop(context);
-    RestartApp.restart(context);
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -133,7 +103,8 @@ class MyDrawerState extends State<MyDrawer> {
             Navigator.pop(context);
             pushTo(context, const KnownWords());
           },
-        ),        ListTile(
+        ),
+        ListTile(
           title: const Text("学习统计"),
           leading: const Icon(Icons.stacked_line_chart),
           trailing: const Icon(Icons.navigate_next),
@@ -172,9 +143,7 @@ class MyDrawerState extends State<MyDrawer> {
         ListTile(
           title: const Text("同步数据"),
           leading: const Icon(Icons.sync),
-
           trailing: const Icon(Icons.navigate_next),
-          // onTap: restoreFromFile,
           onTap: () {
             Navigator.of(context).pop();
             pushTo(context, const RestoreData());
@@ -183,9 +152,7 @@ class MyDrawerState extends State<MyDrawer> {
         ListTile(
           title: const Text("设置词典数据库"),
           leading: const Icon(Icons.settings_suggest_outlined),
-
           trailing: const Icon(Icons.navigate_next),
-          // onTap: restoreFromFile,
           onTap: () {
             Navigator.of(context).pop();
             pushTo(context, const DictDatabase());
@@ -194,14 +161,4 @@ class MyDrawerState extends State<MyDrawer> {
       ],
     )));
   }
-}
-
-RespData<void> _restoreFromBackUpData(String zipPath) {
-  final pathC = zipPath.toNativeUtf8();
-  final resultC = restoreFromBackUpData(pathC);
-  final respData =
-      RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-  malloc.free(pathC);
-  malloc.free(resultC);
-  return respData;
 }

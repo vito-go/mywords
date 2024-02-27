@@ -89,8 +89,8 @@ func ParseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char {
 }
 
 //export RestoreFromBackUpData
-func RestoreFromBackUpData(zipFile *C.char) *C.char {
-	err := serverGlobal.RestoreFromBackUpData(C.GoString(zipFile))
+func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount bool) *C.char {
+	err := serverGlobal.RestoreFromBackUpData(syncKnownWords, C.GoString(zipFile), syncToadyWordCount)
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -224,8 +224,8 @@ func SetXpathExpr(expr *C.char) *C.char {
 }
 
 //export RestoreFromShareServer
-func RestoreFromShareServer(ipC *C.char, port int, code int64, tempDir *C.char, syncToadyWordCount bool) *C.char {
-	err := serverGlobal.RestoreFromShareServer(C.GoString(ipC), port, code, C.GoString(tempDir), syncToadyWordCount)
+func RestoreFromShareServer(ipC *C.char, port int, code int64, syncKnownWords bool, tempDir *C.char, syncToadyWordCount bool) *C.char {
+	err := serverGlobal.RestoreFromShareServer(C.GoString(ipC), port, code, syncKnownWords, C.GoString(tempDir), syncToadyWordCount)
 	if err != nil {
 		return CharErr(err.Error())
 	}

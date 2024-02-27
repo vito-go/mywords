@@ -99,6 +99,7 @@ class _RestoreDataState extends State<RestoreData> {
       'port': port,
       'code': code,
       'tempDir': tempDir,
+      'syncKnownWords': syncKnownWords,
       'syncToadyWordCount': syncToadyWordCount,
     });
     setState(() {
@@ -147,8 +148,12 @@ class _RestoreDataState extends State<RestoreData> {
     if (file.path == null) {
       return;
     }
-    final respData =
-        await compute((message) => _restoreFromBackUpData(message), file.path!);
+    final respData = await compute(
+        (message) => computeRestoreFromBackUpData(message), <String, dynamic>{
+      "syncKnownWords": syncKnownWords,
+      "zipPath": file.path!,
+      "syncToadyWordCount": syncToadyWordCount,
+    });
     if (respData.code != 0) {
       myToast(context, "恢复失败!\n${respData.message}");
       return;
@@ -201,6 +206,7 @@ class _RestoreDataState extends State<RestoreData> {
   }
 
   bool syncToadyWordCount = prefs.syncToadyWordCount;
+  bool syncKnownWords = prefs.syncKnownWords;
 
   @override
   Widget build(BuildContext context) {
@@ -214,6 +220,15 @@ class _RestoreDataState extends State<RestoreData> {
           setState(() {});
         },
         title: const Text("同步每日/累计单词学习统计"),
+      ),
+      SwitchListTile(
+        value: syncKnownWords,
+        onChanged: (v) {
+          syncKnownWords = v;
+          prefs.syncKnownWords = v;
+          setState(() {});
+        },
+        title: const Text("同步已知单词库"),
       ),
       ListTile(
         title: const Text("从本地同步"),
@@ -233,9 +248,7 @@ class _RestoreDataState extends State<RestoreData> {
       ListTile(title: textFieldIP()),
       Row(
         children: [
-          Flexible(
-            child: ListTile(title: textFieldPort()),
-          ),
+          Flexible(child: ListTile(title: textFieldPort())),
           Flexible(child: ListTile(title: textFieldCode())),
         ],
       ),
@@ -250,7 +263,7 @@ class _RestoreDataState extends State<RestoreData> {
       ),
     ];
 
-    final body = Column(children: children);
+    final col = Column(children: children);
 
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -258,19 +271,11 @@ class _RestoreDataState extends State<RestoreData> {
     );
     return Scaffold(
       appBar: appBar,
-      body: Padding(padding: const EdgeInsets.all(10), child: body),
+      body: Padding(
+          padding: const EdgeInsets.all(10),
+          child: SingleChildScrollView(child: col)),
     );
   }
-}
-
-RespData<void> _restoreFromBackUpData(String zipPath) {
-  final pathC = zipPath.toNativeUtf8();
-  final resultC = restoreFromBackUpData(pathC);
-  final respData =
-      RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-  malloc.free(pathC);
-  malloc.free(resultC);
-  return respData;
 }
 
 Future<RespData<void>> computeRestoreFromShareServer(
@@ -280,5 +285,18 @@ Future<RespData<void>> computeRestoreFromShareServer(
   final code = param['code'] as int;
   final tempDir = param['tempDir'] as String;
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
-  return restoreFromShareServer(ip, port, code, tempDir, syncToadyWordCount);
+  final syncKnownWords = param['syncKnownWords'] as bool;
+  return restoreFromShareServer(
+      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount);
+}
+
+// bool syncKnownWords,
+// String zipPath,
+// bool syncToadyWordCount,
+Future<RespData<void>> computeRestoreFromBackUpData(
+    Map<String, dynamic> param) async {
+  final zipPath = param['zipPath'] as String;
+  final syncToadyWordCount = param['syncToadyWordCount'] as bool;
+  final syncKnownWords = param['syncKnownWords'] as bool;
+  return restoreFromBackUpData(syncKnownWords, zipPath, syncToadyWordCount);
 }
