@@ -48,9 +48,6 @@ type Server struct {
 	chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
 }
 
-// //div/p//text()[not(ancestor::style or ancestor::a)]
-const defaultXpathExpr = `//div/p//text()[not(ancestor::style)]|//div/span/text()|//div[contains(@class,"article-paragraph")]//text()|//div/text()|//h1/text()|//h2/text()|//h3/text()`
-
 const (
 	dataDir           = `data`                     // 存放背单词的目录
 	gobFileDir        = "gob_gz_files"             // a.txt.gob, b.txt.gob, c.txt.gob ...
@@ -126,7 +123,7 @@ func NewServer(rootDataDir string, proxyUrl string) (*Server, error) {
 		knownWordsMap:          knownWordsMap,
 		fileInfoMap:            fileInfoMap,
 		proxy:                  proxy,
-		xpathExpr:              defaultXpathExpr,
+		xpathExpr:              artical.DefaultXpathExpr,
 		chartDateLevelCountMap: chartDateLevelCountMap,
 		fileInfoArchivedMap:    fileInfoArchivedMap,
 	}
@@ -420,7 +417,7 @@ func (s *Server) SetProxyUrl(proxyUrl string) (err error) {
 // SetXpathExpr . usually for debug
 func (s *Server) SetXpathExpr(expr string) (err error) {
 	if expr == "" {
-		s.xpathExpr = defaultXpathExpr
+		s.xpathExpr = artical.DefaultXpathExpr
 		return nil
 	}
 	_, err = xpath.Compile(expr)
