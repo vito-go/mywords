@@ -44,7 +44,7 @@ class ArticlePageState extends State<ArticlePage> {
       }
       article = respData.data!;
       if (article!.version != parseVersion()) {
-        reParseArticle();
+        reParseArticle(false);
         return;
       }
       levelCountMap = _levelDistribute();
@@ -52,17 +52,22 @@ class ArticlePageState extends State<ArticlePage> {
     });
   }
 
-  void reParseArticle() {
+  void reParseArticle(bool updateLastModified) {
     final art = article;
     if (art == null) {
       if (!context.mounted) return;
       myToast(context, "初始化中...");
       return;
     }
+    int lastModified=0;// update
+    if (!updateLastModified){
+      lastModified=art.lastModified;
+    }
     compute(
         (message) => parseAndSaveArticleFromSourceUrlAndContent(message),
-        <String, String>{
+        <String, dynamic>{
           "www": art.sourceUrl,
+          "lastModified":lastModified,
           "htmlContent": art.htmlContent,
         }).then((respData) {
       if (respData.code != 0) {
@@ -199,7 +204,7 @@ class ArticlePageState extends State<ArticlePage> {
 
   List<Widget> actions() {
     return [
-      IconButton(onPressed: reParseArticle, icon: const Icon(Icons.refresh)),
+      IconButton(onPressed: (){reParseArticle(true);}, icon: const Icon(Icons.refresh)),
       SizedBox(
         width: 80,
         child: TextButton(

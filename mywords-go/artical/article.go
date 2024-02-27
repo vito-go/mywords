@@ -18,15 +18,16 @@ import (
 )
 
 type Article struct {
-	Version     string     `json:"version"`
-	Title       string     `json:"title"`
-	SourceUrl   string     `json:"sourceUrl"`
-	HTMLContent string     `json:"htmlContent"`
-	MinLen      int        `json:"minLen"`
-	TopN        []string   `json:"topN"`
-	TotalCount  int        `json:"totalCount"`
-	NetCount    int        `json:"netCount"`
-	WordInfos   []WordInfo `json:"wordInfos"`
+	Version      string     `json:"version"`
+	LastModified int64      `json:"lastModified"`
+	Title        string     `json:"title"`
+	SourceUrl    string     `json:"sourceUrl"`
+	HTMLContent  string     `json:"htmlContent"`
+	MinLen       int        `json:"minLen"`
+	TopN         []string   `json:"topN"`
+	TotalCount   int        `json:"totalCount"`
+	NetCount     int        `json:"netCount"`
+	WordInfos    []WordInfo `json:"wordInfos"`
 }
 type WordInfo struct {
 	Text     string    `json:"text"`
@@ -35,13 +36,8 @@ type WordInfo struct {
 	Sentence []*string `json:"sentence"`
 }
 
-// ParseContent 从网页内容中解析出单词
-// 输入任意一个网址 获取单词，
-// 1 统计英文单词数量
-// 2.可以筛选长度
-// 3 带三个例句
-func ParseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
-	return parseContent(sourceUrl, expr, respBody)
+func ParseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (*Article, error) {
+	return parseContent(sourceUrl, expr, respBody, lastModified)
 }
 
 // ParseSourceUrl proxyUrl can be nil
@@ -50,7 +46,7 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 	if err != nil {
 		return nil, err
 	}
-	art, err := parseContent(sourceUrl, expr, respBody)
+	art, err := parseContent(sourceUrl, expr, respBody, time.Now().UnixMilli())
 	if err != nil {
 		return nil, err
 	}
@@ -59,11 +55,21 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 }
 
 // ParseVersion 如果article的文件的version不同，应该重新进行解析。
-const ParseVersion = "0.0.2"
+const ParseVersion = "0.0.5"
 
-var regSentenceSplit = regexp.MustCompile(`\. [A-Z“]`)
+var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
-func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
+const quote = "”"
+
+// parseContent 从网页内容中解析出单词
+// 输入任意一个网址 获取单词，
+// 1 统计英文单词数量
+// 2.可以筛选长度
+// 3 带三个例句
+func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (*Article, error) {
+	if lastModified <= 0 {
+		lastModified = time.Now().UnixMilli()
+	}
 	const (
 		minLen = 4
 		topN   = 50
@@ -104,8 +110,17 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	ss := regSentenceSplit.FindAllStringIndex(content, -1)
 	var start = 0
 	for _, s := range ss {
-		sentences = append(sentences, content[start:s[0]+1])
-		start = s[0] + 2
+		// \. [A-Z“]
+		//sentences = append(sentences, content[start:s[0]+1])
+		//start = s[0] + 2
+		sen := []byte(content[start : s[0]+5])
+		if len(sen) > 2 {
+			if sen[len(sen)-1] == quote[1] && sen[len(sen)-2] == quote[0] {
+				sen = append(sen, quote[2], '.')
+			}
+			sentences = append(sentences, string(sen))
+		}
+		start = s[0] + 6
 	}
 	sentences = append(sentences, content[start:])
 
@@ -116,10 +131,16 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 		if strings.HasPrefix(sentence, "<div ") {
 			continue
 		}
-		//sentence = regexp.MustCompile(`\s+`).ReplaceAllString(sentence, " ")
-		if len(sentence) < minLen {
-			continue
+		for {
+			if len(sentence) < minLen {
+				continue
+			}
+			if unicode.IsLetter(rune(sentence[0])) {
+				break
+			}
+			sentence = sentence[1:]
 		}
+		//sentence = regexp.MustCompile(`\s+`).ReplaceAllString(sentence, " ")
 		s := sentence
 		sentenceWords := regexp.MustCompile(fmt.Sprintf("[’A-Za-z-]{%d,}", minLen)).FindAllString(sentence, -1)
 		if len(sentenceWords) == 0 {
@@ -198,15 +219,16 @@ func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 		topNWords = append(topNWords, WordInfos[i].Text)
 	}
 	c := Article{
-		Title:       title,
-		SourceUrl:   sourceUrl,
-		HTMLContent: string(respBody),
-		MinLen:      minLen,
-		TotalCount:  totalCount,
-		NetCount:    len(wordsMap),
-		WordInfos:   WordInfos,
-		TopN:        topNWords,
-		Version:     ParseVersion,
+		Title:        title,
+		SourceUrl:    sourceUrl,
+		HTMLContent:  string(respBody),
+		MinLen:       minLen,
+		TotalCount:   totalCount,
+		NetCount:     len(wordsMap),
+		WordInfos:    WordInfos,
+		TopN:         topNWords,
+		Version:      ParseVersion,
+		LastModified: lastModified,
 	}
 	return &c, nil
 }
