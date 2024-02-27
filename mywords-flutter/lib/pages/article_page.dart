@@ -61,7 +61,7 @@ class ArticlePageState extends State<ArticlePage> {
     }
     compute(
         (message) => parseAndSaveArticleFromSourceUrlAndContent(message),
-        <String, String>{
+        <String, dynamic>{
           "www": art.sourceUrl,
           "lastModified":art.lastModified,
           "htmlContent": art.htmlContent,
