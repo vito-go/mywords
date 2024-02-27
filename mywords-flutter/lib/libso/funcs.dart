@@ -30,9 +30,9 @@ final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
 
 // func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char,htmlContent *C.char) *C.char
 final _parseAndSaveArticleFromSourceUrlAndContent = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
+    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>,Int64),
     Pointer<Utf8> Function(Pointer<Utf8>,
-        Pointer<Utf8>)>('ParseAndSaveArticleFromSourceUrlAndContent');
+        Pointer<Utf8>,int)>('ParseAndSaveArticleFromSourceUrlAndContent');
 
 // func DeleteGobFile(fileName *C.char) *C.char
 final _deleteGobFile = nativeAddLib.lookupFunction<
