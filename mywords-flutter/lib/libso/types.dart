@@ -82,7 +82,7 @@ class Article {
     final List<dynamic> ws = json["wordInfos"] ?? [];
     return Article(
       title: json["title"].toString(),
-      title: json["lastModified"]??0,
+      lastModified: json["lastModified"]??0,
       version: json["version"].toString(),
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
