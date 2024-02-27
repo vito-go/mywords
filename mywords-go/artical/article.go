@@ -40,6 +40,10 @@ func ParseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 	return parseContent(sourceUrl, expr, respBody, lastModified)
 }
 
+// //div/p//text()[not(ancestor::style or ancestor::a)]
+
+const DefaultXpathExpr = `//div/p//text()[not(ancestor::style)]|//div/span/text()|//div[contains(@class,"article-paragraph")]//text()|//div/text()|//h1/text()|//h2/text()|//h3/text()`
+
 // ParseSourceUrl proxyUrl can be nil
 func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article, error) {
 	respBody, err := getRespBody(sourceUrl, proxyUrl)
@@ -74,6 +78,9 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 		minLen = 4
 		topN   = 50
 	)
+	if expr == "" {
+		expr = DefaultXpathExpr
+	}
 	_, err := xpath.Compile(expr)
 	if err != nil {
 		return nil, err
@@ -127,15 +134,21 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 	var totalCount int
 	var wordsMap = make(map[string]int64, 1024)
 	var wordsSentences = make(map[string][]*string, 1024)
+loopSentences:
 	for _, sentence := range sentences {
 		if strings.HasPrefix(sentence, "<div ") {
 			continue
 		}
 		for {
 			if len(sentence) < minLen {
-				continue
+				continue loopSentences
 			}
-			if unicode.IsLetter(rune(sentence[0])) {
+			// can not use unicode.IsLetter,Ll/Lu/Lm/Lo/Lt  https://www.compart.com/en/unicode/category
+			//if unicode.IsLetter(rune(sentence[0])) {
+			//	break
+			//}
+			first := sentence[0]
+			if (first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') {
 				break
 			}
 			sentence = sentence[1:]
