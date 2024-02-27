@@ -63,7 +63,7 @@ const ParseVersion = "0.0.4"
 
 var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
-var quote = "“"
+var quote = "”"
 
 func parseContent(sourceUrl, expr string, respBody []byte) (*Article, error) {
 	const (
