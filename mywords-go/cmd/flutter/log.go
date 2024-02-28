@@ -10,26 +10,22 @@ import (
 
 //export Println
 func Println(msg *C.char) {
-	//mylog.Error("Flutter: " + C.GoString(msg))
 	mylog.WriteOut(mylog.LevelInfo, C.GoString(msg))
 
 }
 
 //export PrintInfo
 func PrintInfo(msg *C.char) {
-	//mylog.Info("Flutter: " + C.GoString(msg))
 	mylog.WriteOut(mylog.LevelInfo, C.GoString(msg))
 }
 
 //export PrintError
 func PrintError(msg *C.char) {
-	//mylog.Error("Flutter: " + C.GoString(msg))
 	mylog.WriteOut(mylog.LevelError, C.GoString(msg))
 }
 
 //export PrintWarn
 func PrintWarn(msg *C.char) {
-	//mylog.Warn("Flutter: " + C.GoString(msg))
 	mylog.WriteOut(mylog.LevelWarn, C.GoString(msg))
 }
 

@@ -56,7 +56,6 @@ class Article {
   String sourceUrl;
   String htmlContent;
   int minLen;
-  List<String> topN;
   int totalCount;
   int netCount;
   List<WordInfo> wordInfos;
@@ -68,7 +67,6 @@ class Article {
     required this.sourceUrl,
     required this.htmlContent,
     required this.minLen,
-    required this.topN,
     required this.totalCount,
     required this.netCount,
     required this.wordInfos,
@@ -87,7 +85,6 @@ class Article {
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
       minLen: json["minLen"],
-      topN: List<String>.from(json["topN"] ?? [].map((x) => x)),
       totalCount: json["totalCount"],
       netCount: json["netCount"],
       // wordInfos: List<WordInfo>.from(
@@ -104,7 +101,6 @@ class Article {
         "sourceUrl": sourceUrl,
         "htmlContent": htmlContent,
         "minLen": minLen,
-        "topN": List<dynamic>.from(topN.map((x) => x)),
         "totalCount": totalCount,
         "netCount": netCount,
         "wordInfos": List<dynamic>.from(wordInfos.map((x) => x.toJson())),

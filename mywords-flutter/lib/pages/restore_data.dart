@@ -159,8 +159,8 @@ class _RestoreDataState extends State<RestoreData> {
       return;
     }
     myToast(context, "恢复成功");
-    Navigator.pop(context);
-    RestartApp.restart(context);
+    addToGlobalEvent(
+        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
   }
 
   Widget textFieldCode() {

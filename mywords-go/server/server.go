@@ -434,8 +434,8 @@ func (s *Server) UpdateKnownWords(level WordKnownLevel, words ...string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	for _, word := range words {
-		s.updateKnownWordCountLineChart(level, word)
 		//updateKnownWordCountLineChart must be ahead of updateKnownWords
+		s.updateKnownWordCountLineChart(level, word)
 	}
 	err := s.updateKnownWords(level, words...)
 	if err != nil {

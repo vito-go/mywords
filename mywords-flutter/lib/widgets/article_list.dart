@@ -199,7 +199,7 @@ class _State extends State<ArticleListView> {
         builder: (BuildContext context) {
           return AlertDialog(
               title: const Text("提示"),
-              content: const Text("向左滑动文章可进行删除操作"),
+              content: const Text("向左滑动删除文章, 向右滑动归档文章"),
               actions: [
                 ElevatedButton(
                     onPressed: () {
