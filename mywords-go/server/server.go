@@ -312,36 +312,10 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 			s.fileInfoArchivedMap[name] = info
 		}
 	}
-	for name, info := range fileInfoArchivedMap {
-		if _, ok := s.fileInfoMap[name]; ok {
-			delete(s.fileInfoMap, name)
-			s.fileInfoArchivedMap[name] = info
-		}
-	}
-
-	//var fileNames []string
-	//for fileName := range s.fileInfoMap {
-	//	if _, ok := s.fileInfoArchivedMap[fileName]; ok {
-	//		fileNames = append(fileNames, fileName)
-	//	}
-	//}
-	//for _, name := range fileNames {
-	//	delete(s.fileInfoMap, name)
-	//}
 	// 同步后如果归档文章中有，那么就删除
-	for name := range s.fileInfoArchivedMap {
-		//TODO  is it necessary to do this?
-		if _, ok := s.fileInfoMap[name]; ok {
-			delete(s.fileInfoMap, name)
-		}
-	}
 	if err = s.saveFileInfoMap(); err != nil {
 		return err
 	}
-	if err = s.saveFileInfoArchivedMap(); err != nil {
-		return err
-	}
-
 	return nil
 }
 func (s *Server) parseChartDateLevelCountMapFromGobFile(r io.ReadCloser) error {
@@ -680,12 +654,9 @@ func (s *Server) DeleteGobFile(fileName string) error {
 func (s *Server) deleteGobFile(fileName string) error {
 	var err error
 	delete(s.fileInfoMap, fileName)
-	err = s.saveFileInfoMap()
-	if err != nil {
-		return err
-	}
 	delete(s.fileInfoArchivedMap, fileName)
-	err = s.saveFileInfoArchivedMap()
+
+	err = s.saveFileInfoMap()
 	if err != nil {
 		return err
 	}
@@ -704,12 +675,9 @@ func (s *Server) ArchiveGobFile(fileName string) error {
 		return nil
 	}
 	delete(s.fileInfoMap, fileName)
-	if err := s.saveFileInfoMap(); err != nil {
-		return err
-	}
 	info.LastModified = time.Now().UnixMilli()
 	s.fileInfoArchivedMap[fileName] = info
-	if err := s.saveFileInfoArchivedMap(); err != nil {
+	if err := s.saveFileInfoMap(); err != nil {
 		return err
 	}
 	return nil
@@ -722,9 +690,6 @@ func (s *Server) UnArchiveGobFile(fileName string) error {
 		return nil
 	}
 	delete(s.fileInfoArchivedMap, fileName)
-	if err := s.saveFileInfoArchivedMap(); err != nil {
-		return err
-	}
 	info.LastModified = time.Now().UnixMilli()
 	s.fileInfoMap[fileName] = info
 	if err := s.saveFileInfoMap(); err != nil {
@@ -735,20 +700,21 @@ func (s *Server) UnArchiveGobFile(fileName string) error {
 
 // saveFileInfo .
 func (s *Server) saveFileInfoMap() error {
+	for name := range s.fileInfoArchivedMap {
+		if _, ok := s.fileInfoMap[name]; ok {
+			delete(s.fileInfoMap, name)
+		}
+	}
+
 	path := filepath.Join(s.rootDataDir, dataDir, fileInfoFile)
 	b, _ := json.MarshalIndent(s.fileInfoMap, "", "  ")
 	err := os.WriteFile(path, b, 0644)
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-// saveFileInfo .
-func (s *Server) saveFileInfoArchivedMap() error {
-	path := filepath.Join(s.rootDataDir, dataDir, fileInfosArchived)
-	b, _ := json.MarshalIndent(s.fileInfoArchivedMap, "", "  ")
-	err := os.WriteFile(path, b, 0644)
+	path = filepath.Join(s.rootDataDir, dataDir, fileInfosArchived)
+	b, _ = json.MarshalIndent(s.fileInfoArchivedMap, "", "  ")
+	err = os.WriteFile(path, b, 0644)
 	if err != nil {
 		return err
 	}
