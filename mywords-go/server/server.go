@@ -490,7 +490,7 @@ func (s *Server) saveArticle(art *artical.Article) error {
 		return err
 	}
 	//save gob file
-	fileName := fmt.Sprintf("%x"+gobGzFileSuffix, sha1.Sum([]byte(art.HTMLContent)))
+	fileName := fmt.Sprintf("%x%s", sha1.Sum([]byte(art.HTMLContent)), gobGzFileSuffix)
 	path := filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName)
 	var bufGZ bytes.Buffer
 	gz := gzip.NewWriter(&bufGZ)
@@ -520,7 +520,14 @@ func (s *Server) saveArticle(art *artical.Article) error {
 	if s.fileInfoMap == nil {
 		s.fileInfoMap = make(map[string]FileInfo)
 	}
-	s.fileInfoMap[fileName] = fileInfo
+	if s.fileInfoArchivedMap == nil {
+		s.fileInfoArchivedMap = make(map[string]FileInfo)
+	}
+	if _, ok := s.fileInfoArchivedMap[fileName]; ok {
+		s.fileInfoArchivedMap[fileName] = fileInfo
+	} else {
+		s.fileInfoMap[fileName] = fileInfo
+	}
 	err = s.saveFileInfoMap()
 	if err != nil {
 		return err
@@ -705,7 +712,6 @@ func (s *Server) saveFileInfoMap() error {
 			delete(s.fileInfoMap, name)
 		}
 	}
-
 	path := filepath.Join(s.rootDataDir, dataDir, fileInfoFile)
 	b, _ := json.MarshalIndent(s.fileInfoMap, "", "  ")
 	err := os.WriteFile(path, b, 0644)
