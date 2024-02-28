@@ -52,6 +52,7 @@ class _State extends State<NetProxy> {
   void dispose() {
     super.dispose();
     controllerPort.dispose();
+    controllerIP.dispose();
   }
 
   final schemeList = <String>["http", "socks5"];
@@ -141,7 +142,7 @@ class _State extends State<NetProxy> {
   }
 
   setNetProxy() {
-    final netProxy = "$scheme://${controllerIP.text}:${controllerPort.text}";
+    final netProxy = "$scheme://${controllerIP.text.trim()}:${controllerPort.text}";
     final netProxyC = netProxy.toNativeUtf8();
     final resultC = setProxyUrl(netProxyC);
     malloc.free(netProxyC);

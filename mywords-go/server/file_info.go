@@ -7,6 +7,6 @@ type FileInfo struct {
 	Size         int64  `json:"size"`         // bytes
 	LastModified int64  `json:"lastModified"` // milliseconds
 	IsDir        bool   `json:"isDir"`        // always false
-	TotalCount   int    `json:"totalCount"`
-	NetCount     int    `json:"netCount"`
+	TotalCount   int    `json:"totalCount"`   //
+	NetCount     int    `json:"netCount"`     // can be zero
 }

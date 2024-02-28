@@ -105,9 +105,9 @@ class ArticlePageState extends State<ArticlePage> {
 
   int get count1 => levelCountMap['1'] ?? 0;
   String get count0VsNet {
-    if (count0 == 0) return "%0";
+    if (count0 == 0) return "0%";
     final netCount = article?.netCount;
-    if (netCount == null) return "%0";
+    if (netCount == null) return "0%";
     return "${(count0 / netCount * 100).toInt()}%";
   }
 

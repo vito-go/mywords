@@ -24,7 +24,6 @@ type Article struct {
 	SourceUrl    string     `json:"sourceUrl"`
 	HTMLContent  string     `json:"htmlContent"`
 	MinLen       int        `json:"minLen"`
-	TopN         []string   `json:"topN"`
 	TotalCount   int        `json:"totalCount"`
 	NetCount     int        `json:"netCount"`
 	WordInfos    []WordInfo `json:"wordInfos"`
@@ -64,6 +63,7 @@ const ParseVersion = "0.0.5"
 var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
 const quote = "”"
+const minLen = 3
 
 // parseContent 从网页内容中解析出单词
 // 输入任意一个网址 获取单词，
@@ -74,10 +74,7 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 	if lastModified <= 0 {
 		lastModified = time.Now().UnixMilli()
 	}
-	const (
-		minLen = 4
-		topN   = 50
-	)
+
 	if expr == "" {
 		expr = DefaultXpathExpr
 	}
@@ -223,14 +220,6 @@ loopSentences:
 
 		}
 	})
-	var topNWords []string
-
-	for i := 0; i < len(WordInfos); i++ {
-		if len(topNWords) >= topN {
-			break
-		}
-		topNWords = append(topNWords, WordInfos[i].Text)
-	}
 	c := Article{
 		Title:        title,
 		SourceUrl:    sourceUrl,
@@ -239,7 +228,6 @@ loopSentences:
 		TotalCount:   totalCount,
 		NetCount:     len(wordsMap),
 		WordInfos:    WordInfos,
-		TopN:         topNWords,
 		Version:      ParseVersion,
 		LastModified: lastModified,
 	}
@@ -285,16 +273,4 @@ func getRespBody(www string, proxyUrl *url.URL) ([]byte, error) {
 }
 
 // define meaninglessMap
-var meaninglessMap = map[string]struct{}{
-	"a": {}, "an": {}, "the": {}, "I": {}, "you": {}, "he": {}, "she": {}, "it": {}, "we": {}, "they": {}, "me": {}, "him": {}, "her": {}, "us": {}, "them": {}, "in": {},
-	"on": {}, "at": {}, "over": {}, "under": {}, "between": {}, "from": {},
-	"to": {}, "with": {}, "about": {}, "and": {}, "or": {}, "but": {},
-	"although": {}, "because": {}, "if": {}, "unless": {}, "since": {},
-	"until": {}, "be": {}, "do": {}, "have": {}, "can": {}, "could": {},
-	"may": {}, "might": {}, "must": {}, "shall": {}, "should": {}, "will": {},
-	"would": {}, "oh": {}, "ah": {}, "wow": {}, "alas": {}, "ouch": {}, "hurrah": {},
-	"very": {}, "quite": {}, "rather": {}, "just": {}, "so": {}, "too": {},
-	"enough": {}, "almost": {}, "only": {}, "when": {}, "where": {}, "why": {},
-	"how": {}, "what": {}, "that": {}, "who": {}, "whom": {}, "whose": {},
-	"which": {},
-}
+var meaninglessMap = map[string]struct{}{}
