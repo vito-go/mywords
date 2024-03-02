@@ -87,6 +87,7 @@ class ArticlePageState extends State<ArticlePage> {
 
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.updateKnownWord) {
+      FocusManager.instance.primaryFocus?.unfocus();
       setState(() {});
     }
   }
