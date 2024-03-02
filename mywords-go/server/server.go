@@ -252,6 +252,8 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 		return nil
 	}
 	var fileInfoMapOK = make(map[string]FileInfo)
+	var fileInfoMapArchivedOK = make(map[string]FileInfo)
+
 	// restore gob files
 	for _, f := range r.File {
 		k := filepath.Base(f.Name)
@@ -260,13 +262,7 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 				return err
 			}
 			fileInfoMapOK[k] = info
-		}
-	}
-	var fileInfoMapArchivedOK = make(map[string]FileInfo)
-	// restore gob files
-	for _, f := range r.File {
-		k := filepath.Base(f.Name)
-		if info, ok := fileInfoArchivedMap[k]; ok {
+		} else if info, ok = fileInfoArchivedMap[k]; ok {
 			if err = s.restoreFromBackUpDataFromAZipFile(f); err != nil {
 				return err
 			}
@@ -306,8 +302,12 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 		}
 	}
 	for name, info := range fileInfoArchivedMap {
-		// update fileInfoArchivedMap mainly for LastModified
-		if _, ok := s.fileInfoArchivedMap[name]; ok {
+		if _, ok := s.fileInfoMap[name]; ok {
+			// ok means the file exists in s.fileInfoMap
+			delete(s.fileInfoMap, name)
+			s.fileInfoArchivedMap[name] = info
+		} else if _, ok = s.fileInfoArchivedMap[name]; ok {
+			// update fileInfoArchivedMap mainly for LastModified
 			// ok means the file exists in s.fileInfoMap
 			s.fileInfoArchivedMap[name] = info
 		}
