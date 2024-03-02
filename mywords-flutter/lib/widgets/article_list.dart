@@ -118,57 +118,56 @@ class _State extends State<ArticleListView> {
 
   Widget buildFileInfo() {
     final listView = ListView.separated(
-      itemBuilder: (BuildContext context, int index) {
-        final item = fileInfos[index];
-        final listTile = ListTile(
-            title: Text(
-              "${item.title} ${item.sourceUrl}",
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+        itemBuilder: (BuildContext context, int index) {
+          final item = fileInfos[index];
+          final listTile = ListTile(
+              title: Text(
+                "${item.title} ${item.sourceUrl}",
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () {
+                pushTo(context, ArticlePage(fileName: item.fileName))
+                    .then((value) {
+                  if (widget.refresh != null) widget.refresh!();
+                });
+              },
+              minLeadingWidth: 0,
+              leading:
+                  Text("[${index + 1}]", style: const TextStyle(fontSize: 14)),
+              subtitle: Text(
+                "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))} total:${item.totalCount} net:${item.netCount}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ));
+          return Dismissible(
+            key: UniqueKey(),
+            background: getBackgroundWidget(
+              context,
+              left: getBackgroundChild(widget.leftLabel, widget.leftIconData),
+              right: getBackgroundChild("删除", Icons.delete),
             ),
-            onTap: () {
-              pushTo(context, ArticlePage(fileName: item.fileName))
-                  .then((value) {
-                if (widget.refresh != null) widget.refresh!();
-              });
-            },
-            minLeadingWidth: 0,
-            leading:
-                Text("[${index + 1}]", style: const TextStyle(fontSize: 14)),
-            subtitle: Text(
-              "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))} total:${item.totalCount} net:${item.netCount}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ));
-        return Dismissible(
-          key: UniqueKey(),
-          background: getBackgroundWidget(
-            context,
-            left: getBackgroundChild(widget.leftLabel, widget.leftIconData),
-            right: getBackgroundChild("删除", Icons.delete),
-          ),
-          direction: DismissDirection.horizontal,
-          onDismissed: (DismissDirection direction) {
-            myPrint(direction);
-            if (direction == DismissDirection.endToStart) {
-              slideToDelete(item);
-            } else if (direction == DismissDirection.startToEnd) {
-              switch (widget.toEndSlide) {
-                case ToEndSlide.archive:
-                  slideToArchive(item);
-                case ToEndSlide.unarchive:
-                  slideToUnArchive(item);
+            direction: DismissDirection.horizontal,
+            onDismissed: (DismissDirection direction) {
+              myPrint(direction);
+              if (direction == DismissDirection.endToStart) {
+                slideToDelete(item);
+              } else if (direction == DismissDirection.startToEnd) {
+                switch (widget.toEndSlide) {
+                  case ToEndSlide.archive:
+                    slideToArchive(item);
+                  case ToEndSlide.unarchive:
+                    slideToUnArchive(item);
+                }
               }
-            }
-          },
-          child: listTile,
-        );
-      },
-      itemCount: fileInfos.length,
+            },
+            child: listTile,
+          );
+        },
+        itemCount: fileInfos.length,
         separatorBuilder: (BuildContext context, int index) {
-        return const Divider();
-        }
-    );
+          return const Divider();
+        });
     return RefreshIndicator(
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
