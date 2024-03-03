@@ -58,7 +58,7 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 }
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.0.6"
+const ParseVersion = "0.0.7"
 
 var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 
@@ -162,7 +162,7 @@ loopSentences:
 				continue
 			}
 			//word = strings.TrimPrefix(word, "’")
-			if _, ok := meaninglessMap[strings.ToLower(word)]; ok {
+			if _, ok := functionWordsMap[strings.ToLower(word)]; ok {
 				continue
 			}
 			if len(word) < minLen {
@@ -271,6 +271,3 @@ func getRespBody(www string, proxyUrl *url.URL) ([]byte, error) {
 	}
 	return body, nil
 }
-
-// define meaninglessMap
-var meaninglessMap = map[string]struct{}{}
