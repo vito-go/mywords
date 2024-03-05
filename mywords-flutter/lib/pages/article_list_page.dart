@@ -161,13 +161,13 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
         : TextStyle(color: Theme.of(context).primaryColor);
     return RichText(
         text: TextSpan(
-            text: "1级:",
+            text: "1级: ",
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             children: [
           TextSpan(text: '$count1', style: style),
-          const TextSpan(text: "  2级:"),
+          const TextSpan(text: "  2级: "),
           TextSpan(text: '$count2', style: style),
-          const TextSpan(text: "  3级:"),
+          const TextSpan(text: "  3级: "),
           TextSpan(text: '$count3', style: style),
         ]));
   }
