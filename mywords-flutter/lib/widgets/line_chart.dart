@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 
 class LineValue {
   late final String tip; //图例提示文字
+  late final double barWidth; //图例提示文字
   late final List<FlSpot> flSpots;
 
-  LineValue(this.tip, this.flSpots);
+  LineValue(this.tip, this.flSpots, this.barWidth);
 }
 
 class ChartLineData {
@@ -45,7 +46,8 @@ class ChartLineData {
         listSpots.add(FlSpot((double.tryParse(ele[0].toString()) ?? 0),
             (double.tryParse(ele[1].toString()) ?? 0)));
       }
-      list.add(LineValue(element["tip"].toString(), listSpots));
+      list.add(LineValue(element["tip"].toString(), listSpots,
+          double.parse((element["barWidth"] ?? "2.0").toString())));
     }
     lineValues = list;
   }
@@ -221,7 +223,7 @@ class _LineChart extends StatelessWidget {
 
   const _LineChart({required this.data, required this.isCurved});
 
-  final double barWidth = 2; // 根据lines 动态调整
+  final double barWidth = 1; // 根据lines 动态调整
 
   @override
   Widget build(BuildContext context) {
@@ -325,6 +327,7 @@ class _LineChart extends StatelessWidget {
     for (var i = 0; i < data.lineValues.length; i++) {
       result.add(lineChartBarData1(
         color: lineColors[i],
+        barWidth: data.lineValues[i].barWidth,
         spots: data.lineValues[i].flSpots,
         isCurved: isCurved,
       ));
@@ -391,6 +394,7 @@ class _LineChart extends StatelessWidget {
   LineChartBarData lineChartBarData1(
       {required Color color,
       required List<FlSpot> spots,
+      required double barWidth,
       bool isCurved = true}) {
     return LineChartBarData(
       isCurved: isCurved,

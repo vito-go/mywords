@@ -7,8 +7,9 @@ import (
 )
 
 type lineValue struct {
-	Tip     string  `json:"tip"`
-	FlSpots [][]int `json:"flSpots"` // x,y
+	Tip      string  `json:"tip"`
+	BarWidth float64 `json:"barWidth"`
+	FlSpots  [][]int `json:"flSpots"` // x,y
 }
 type ChartData struct {
 	Title       string         `json:"title"`
@@ -59,10 +60,10 @@ func (s *Server) GetChartData() (*ChartData, error) {
 	}
 	const allTitle = "all"
 	chartData.LineValues = []lineValue{
-		{Tip: allTitle},
-		{Tip: WordKnownLevel(1).Name()},
-		{Tip: WordKnownLevel(2).Name()},
-		{Tip: WordKnownLevel(3).Name()},
+		{Tip: allTitle, BarWidth: 2.0},
+		{Tip: WordKnownLevel(1).Name(), BarWidth: 0.5},
+		{Tip: WordKnownLevel(2).Name(), BarWidth: 0.75},
+		{Tip: WordKnownLevel(3).Name(), BarWidth: 1.0},
 	}
 	allDates := make([]string, 0, len(s.chartDateLevelCountMap))
 	for date := range s.chartDateLevelCountMap {
@@ -83,15 +84,23 @@ func (s *Server) GetChartData() (*ChartData, error) {
 				break
 			}
 		}
-
-		for level, count := range levelCountMap {
+		for _, level := range allWordLevels {
+			count := len(levelCountMap[level])
 			for i := 0; i < len(chartData.LineValues); i++ {
 				if chartData.LineValues[i].Tip == level.Name() {
-					chartData.LineValues[i].FlSpots = append(chartData.LineValues[i].FlSpots, []int{dateIdx, len(count)})
+					chartData.LineValues[i].FlSpots = append(chartData.LineValues[i].FlSpots, []int{dateIdx, count})
 					break
 				}
 			}
 		}
+		//for level, count := range levelCountMap {
+		//	for i := 0; i < len(chartData.LineValues); i++ {
+		//		if chartData.LineValues[i].Tip == level.Name() {
+		//			chartData.LineValues[i].FlSpots = append(chartData.LineValues[i].FlSpots, []int{dateIdx, len(count)})
+		//			break
+		//		}
+		//	}
+		//}
 	}
 	// at most chartData.LineValues[i].FlSpots has 14 elements, last 14 days
 	for i := 0; i < len(chartData.LineValues); i++ {
@@ -117,7 +126,7 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 	}
 	const allTitle = "累计"
 	chartData.LineValues = []lineValue{
-		{Tip: allTitle},
+		{Tip: allTitle, BarWidth: 2.0},
 	}
 	allDates := make([]string, 0, len(s.chartDateLevelCountMap))
 	for date := range s.chartDateLevelCountMap {
