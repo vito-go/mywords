@@ -38,18 +38,6 @@
   ![img.png](images/the-economist-china.png)
 利用这些资源，您不仅能够有针对性地扩充您的词汇，也可以深入了解不同的话题和背景知识，全方位提升英语能力。
 
-
-## 项目依赖
-- Windows 环境下，需要对CGO进行支持
-- 如果没有安装对应的 CGO 运行时环境、则在运行的时候会引发如下错误。
-  > exec: “gcc”: executable file not found in %PATH%
-    - Windows GO 语言 CGO 运行时环境配置
-        - https://www.expoli.tech/articles/2022/10/18/1666087321618
-
-    - Make for Windows
-        - https://gnuwin32.sourceforge.net/packages/make.htm
-        - Complete package, except sources
-
 ## 开始使用指南
 想要开始使用这个英语单词学习工具，你需要根据你的使用平台选择正确的编译指令进行编译操作：
 - **编译前提**：
@@ -114,9 +102,9 @@
 
   - 结构说明：
     - `data/`: 文件夹，存放字典资源文件，如图片、声音等。
-    - `html/`: 文件夹，存放单词释义的html文件，文件名应包含`.html`后缀。
-    - `*.css`, `*.js`: 文件，html文件夹下的html文件需要引用的资源
-    - `word_html_map.json`: 文件，存放单词和html文件名的映射关系，格式为键值对（key为单词，value为html文件名(不含`.html`后缀)）。
+    - `html/`: 文件夹，存放单词释义的html文件。
+    - `*.css`, `*.js`: 文件，html文件夹下的html文件需要引用的资源，文件名应包含.html后缀。
+    - `word_html_map.json`: json文件，存放单词和html文件名的映射关系，格式为键值对json（key为单词，value为html文件名，不含.html后缀）。
 
 4. **自制词典数据**：
   - 您可以下载mdx/mdd格式的词典文件，例如[牛津高阶英汉双解词典（第10版）V3](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E8%AF%8D%E5%85%B8%EF%BC%88%E7%AC%AC10%E7%89%88%EF%BC%89V3/)
