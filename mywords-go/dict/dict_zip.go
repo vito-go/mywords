@@ -314,7 +314,8 @@ func (d *DictZip) replaceCss(htmlNode *html.Node) {
 }
 func (d *DictZip) replaceHTMLContent(htmlContent string) (string, error) {
 	// 查找正则表达式去除所有的含有css的标签, 因为过滤后的文本的link标签可能在body中，所以需要用htmlquery来解析
-	cssExpr := `<link.*?href="(.*\.css)".*?>`
+	//cssExpr := `<link.*?href="(.*\.css)".*?>`
+	cssExpr := `<link[^>]*?href="(.*?\.css)"[^>]*?>`
 	reg := regexp.MustCompile(cssExpr)
 	var allCssNames []string
 	csss := reg.FindAllStringSubmatch(htmlContent, -1)
