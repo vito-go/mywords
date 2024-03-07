@@ -29,13 +29,13 @@ type DictZip struct {
 	lis                net.Listener
 	port               int
 	zipReadCloser      *zip.ReadCloser
-	// 新增
+
 	jsCssCache sync.Map // key:htmlBasePath, value:htmlContent string:[]byte
 }
 
 func (d *DictZip) getZipFile(path string) (*zip.File, bool) {
 	path = filepath.ToSlash(path)
-	// windows系统的路径分隔符是\
+	// windows 系统的路径分隔符是\
 	f, ok := d.zipFileMap[path]
 	return f, ok
 }
@@ -204,12 +204,12 @@ func (d *DictZip) replaceJS(htmlNode *html.Node) {
 		return
 	}
 	jss := htmlquery.Find(htmlNode, "//script[contains(@src,'.js')]")
-	for _, mp3 := range jss {
-		mp3.Parent.RemoveChild(mp3)
-		for i := 0; i < len(mp3.Attr); i++ {
-			if mp3.Attr[i].Key == "src" {
+	for _, ele := range jss {
+		ele.Parent.RemoveChild(ele)
+		for i := 0; i < len(ele.Attr); i++ {
+			if ele.Attr[i].Key == "src" {
 				//thumb_fruit_misc.png
-				mp3Href := strings.TrimSpace(mp3.Attr[i].Val)
+				mp3Href := strings.TrimSpace(ele.Attr[i].Val)
 				b, err := d.originalContentByBasePath(mp3Href)
 				if err != nil {
 					continue
@@ -270,51 +270,27 @@ func (d *DictZip) replaceMP3(htmlNode *html.Node) {
 }
 func (d *DictZip) replacePng(htmlNode *html.Node) {
 	pngs := htmlquery.Find(htmlNode, "//img[contains(@src,'.png')]")
-	for _, mp3 := range pngs {
-		for i := 0; i < len(mp3.Attr); i++ {
-			if mp3.Attr[i].Key == "src" {
+	for _, ele := range pngs {
+		for i := 0; i < len(ele.Attr); i++ {
+			if ele.Attr[i].Key == "src" {
 				//thumb_fruit_misc.png
-				mp3Href := strings.TrimSpace(mp3.Attr[i].Val)
+				mp3Href := strings.TrimSpace(ele.Attr[i].Val)
 				b, err := d.originalContentByBasePath(mp3Href)
 				if err != nil {
 					mylog.Error(err.Error())
 					continue
 				}
 				// set png href with base64
-				mp3.Attr[i].Val = fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(b))
+				ele.Attr[i].Val = fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(b))
 			}
 		}
 	}
 }
-func (d *DictZip) replaceCss(htmlNode *html.Node) {
-	styleNode := htmlquery.FindOne(htmlNode, "//style")
-	if styleNode == nil {
-		return
-	}
-	pngs := htmlquery.Find(htmlNode, "//link[contains(@href,'.css')]")
-	for _, mp3 := range pngs {
-		mp3.Parent.RemoveChild(mp3)
-		for i := 0; i < len(mp3.Attr); i++ {
-			if mp3.Attr[i].Key == "href" {
-				//thumb_fruit_misc.png
-				cssName := strings.TrimSpace(mp3.Attr[i].Val)
-				b, err := d.originalContentByBasePath(cssName)
-				if err != nil {
-					continue
-				}
-				// append child node script to header, content is b
-				cssNode := &html.Node{
-					Data: string(b),
-					Type: html.TextNode,
-				}
-				styleNode.AppendChild(cssNode)
-			}
-		}
-	}
-}
+
 func (d *DictZip) replaceHTMLContent(htmlContent string) (string, error) {
-	// 查找正则表达式去除所有的含有css的标签, 因为过滤后的文本的link标签可能在body中，所以需要用htmlquery来解析
-	cssExpr := `<link.*?href="(.*\.css)".*?>`
+	// 查找正则表达式去除所有的含有css的标签, 因为过滤后的文本的link标签可能在body中，所以需要用正则表达式来解析并替换
+	//cssExpr := `<link.*?href="(.*\.css)".*?>`
+	cssExpr := `<link[^>]*?href="(.*?\.css)"[^>]*?>`
 	reg := regexp.MustCompile(cssExpr)
 	var allCssNames []string
 	csss := reg.FindAllStringSubmatch(htmlContent, -1)
@@ -339,19 +315,14 @@ func (d *DictZip) replaceHTMLContent(htmlContent string) (string, error) {
 	if styleNode == nil {
 		return "", errors.New("style node not found")
 	}
-	// 替换的顺序不能变，因为替换后的htmlNode会变化 ，比如替换了png后，会添加script标签
+	// 替换的顺序不能变，因为替换后的htmlNode会变化
 	d.replacePng(htmlNode)
-	d.replaceJS(htmlNode)
-	d.replaceMP3(htmlNode)
-	d.replaceCSS(htmlNode, allCssNames)
 	// 找出包含所有的script标签并且src属性值包含.js的标签，然后删除这些标签
+	d.replaceJS(htmlNode)
+	//  找出包含所有的a标签并且href属性值包含.mp3的标签，然后删除这些标签
+	d.replaceMP3(htmlNode)
 	// 找出包含所有的link标签并且href属性值包含.css的标签，然后删除这些标签
-	// 找出所有的 <a> 元素且链接值包含.mp3的标签
-	//htmlNode, _ = html.Parse(bytes.NewReader([]byte(htmlquery.OutputHTML(htmlNode, true))))
-	//htmlNode, _ = html.Parse(bytes.NewReader([]byte(htmlquery.OutputHTML(htmlNode, true))))
-	//htmlNode, _ = html.Parse(bytes.NewReader([]byte(htmlquery.OutputHTML(htmlNode, true))))
-	// 找出所有的 src 属性值包含.png的标签 ,一定要先替换Png，再替换mp3，否则会找不到png,因为mp3中会添加script标签
-	//htmlNode, _ = html.Parse(bytes.NewReader([]byte(htmlquery.OutputHTML(htmlNode, true))))
+	d.replaceCSS(htmlNode, allCssNames)
 	return htmlquery.OutputHTML(htmlNode, true), nil
 }
 
@@ -383,7 +354,7 @@ func completeHtml(word, htmlOriginalContent string) (string, bool) {
 	return complete, needReplace
 }
 
-// htmlBasePath 带html后缀
+// getContentByHtmlBasePath htmlBasePath 带html后缀
 func (d *DictZip) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, error) {
 	f, ok := d.getZipFile(filepath.Join(htmlDir, htmlBasePath))
 	if !ok {
