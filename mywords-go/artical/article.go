@@ -58,9 +58,10 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 }
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.0.7"
+const ParseVersion = "0.0.8"
 
-var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
+// var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
+var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
 
 const quote = "”"
 const minLen = 3
@@ -117,14 +118,15 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 		// \. [A-Z“]
 		//sentences = append(sentences, content[start:s[0]+1])
 		//start = s[0] + 2
-		sen := []byte(content[start : s[0]+5])
+		sen := []byte(content[start : s[0]+4])
+		start = s[0] + 5
 		if len(sen) > 2 {
 			if sen[len(sen)-1] == quote[1] && sen[len(sen)-2] == quote[0] {
 				sen = append(sen, quote[2], '.')
+				start += 2
 			}
 			sentences = append(sentences, string(sen))
 		}
-		start = s[0] + 6
 	}
 	sentences = append(sentences, content[start:])
 
@@ -132,7 +134,8 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 	var wordsMap = make(map[string]int64, 1024)
 	var wordsSentences = make(map[string][]*string, 1024)
 loopSentences:
-	for _, sentence := range sentences {
+	for idx := range sentences {
+		sentence := sentences[idx]
 		if strings.HasPrefix(sentence, "<div ") {
 			continue
 		}
@@ -151,7 +154,7 @@ loopSentences:
 			sentence = sentence[1:]
 		}
 		//sentence = regexp.MustCompile(`\s+`).ReplaceAllString(sentence, " ")
-		s := sentence
+		senPointer := &sentences[idx]
 		sentenceWords := regexp.MustCompile(fmt.Sprintf("[’A-Za-z-]{%d,}", minLen)).FindAllString(sentence, -1)
 		if len(sentenceWords) == 0 {
 			continue
@@ -181,16 +184,17 @@ loopSentences:
 				continue
 			}
 			wordsMap[word]++
+			// 最多保留3个例句
 			if len(wordsSentences[word]) < 3 {
 				var exist bool
 				for _, pointer := range wordsSentences[word] {
-					if *pointer == s {
+					if *pointer == *senPointer {
 						exist = true
 						break
 					}
 				}
 				if !exist {
-					wordsSentences[word] = append(wordsSentences[word], &s)
+					wordsSentences[word] = append(wordsSentences[word], senPointer)
 				}
 
 			}
