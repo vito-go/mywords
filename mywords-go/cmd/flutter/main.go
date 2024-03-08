@@ -1,38 +1,22 @@
+//go:build !flutter
+
 package main
 
-import "C"
 import (
-	"fmt"
-	"mywords/dict"
-	"mywords/server"
-	"sync"
-	"time"
+	"os"
+	"path/filepath"
 )
 
+// 可以命令行的方式运行
 func main() {
-	// must Init when using the exported method in this package
-	fmt.Println("Hello World from Flutter")
-}
-
-func init() {
-	// flutter 中的日志是 UTC 时间，所以这里要设置时区
-	time.Local = time.FixedZone("CST", 8*3600)
-}
-
-var once sync.Once
-
-//export Init
-func Init(rootDataDir *C.char, proxyUrl *C.char) {
-	once.Do(func() {
-		initGlobal(C.GoString(rootDataDir), C.GoString(proxyUrl))
-	})
-}
-func initGlobal(rootDataDir string, proxyUrl string) {
-	srv, err := server.NewServer(rootDataDir, proxyUrl)
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
-	serverGlobal = srv
-	multiDictGlobal = dict.NewMultiDictZip(rootDataDir)
-	go multiDictGlobal.Init()
+	initGlobal(filepath.Join(homeDir, ".local/share/com.example.mywords"), "")
+	err = serverGlobal.ShareOpen(18964, 890604)
+	if err != nil {
+		panic(err)
+	}
+	select {}
 }
