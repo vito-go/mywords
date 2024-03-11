@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"math"
 	"sort"
 	"time"
 )
@@ -21,6 +21,21 @@ type ChartData struct {
 	LineValues  []lineValue    `json:"lineValues"` // multiple lines
 	BaselineY   int            `json:"baselineY"`
 	MinY        int            `json:"minY"`
+}
+
+func (chartData *ChartData) SetMinY() {
+	var minY = math.MaxInt
+	for _, lv := range chartData.LineValues {
+		for _, v := range lv.FlSpots {
+			if v[1] < minY {
+				minY = v[1]
+			}
+		}
+	}
+	if minY == math.MaxInt {
+		minY = 0
+	}
+	chartData.MinY = minY
 }
 
 const lastDays = 20
@@ -151,11 +166,11 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 	}
 	// at most chartData.LineValues[i].FlSpots has 14 elements, last 14 days
 	for i := 0; i < len(chartData.LineValues); i++ {
-		fmt.Println(len(chartData.LineValues[i].FlSpots))
 		if len(chartData.LineValues[i].FlSpots) > lastDays {
 			chartData.LineValues[i].FlSpots = chartData.LineValues[i].FlSpots[len(chartData.LineValues[i].FlSpots)-lastDays:]
 		}
 	}
+	chartData.SetMinY()
 	return chartData, nil
 }
 
