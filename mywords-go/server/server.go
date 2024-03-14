@@ -203,10 +203,10 @@ func (s *Server) restoreFromBackUpDataKnownWordsFile(f *zip.File) error {
 	return s.saveKnownWordsMapToFile()
 }
 
-func (s *Server) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool) error {
-	return s.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount)
+func (s *Server) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
+	return s.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount, syncByRemoteArchived)
 }
-func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool) error {
+func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
 	r, err := zip.OpenReader(backUpDataZipPath)
 	if err != nil {
 		return err
@@ -275,7 +275,13 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 		s.fileInfoMap[k] = v
 	}
 	for k, v := range fileInfoMapArchivedOK {
-		s.fileInfoArchivedMap[k] = v
+		if syncByRemoteArchived {
+			s.fileInfoArchivedMap[k] = v
+			continue
+		}
+		if _, ok := s.fileInfoMap[k]; !ok {
+			s.fileInfoMap[k] = v
+		}
 	}
 
 	if syncToadyWordCount {
@@ -286,8 +292,7 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 				if err != nil {
 					return err
 				}
-				err = s.parseChartDateLevelCountMapFromGobFile(reader)
-				if err != nil {
+				if err = s.parseChartDateLevelCountMapFromGobFile(reader); err != nil {
 					return err
 				}
 				break
@@ -302,15 +307,17 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 			s.fileInfoMap[name] = info
 		}
 	}
-	for name, info := range fileInfoArchivedMap {
-		if _, ok := s.fileInfoMap[name]; ok {
-			// ok means the file exists in s.fileInfoMap
-			delete(s.fileInfoMap, name)
-			s.fileInfoArchivedMap[name] = info
-		} else if _, ok = s.fileInfoArchivedMap[name]; ok {
-			// update fileInfoArchivedMap mainly for LastModified
-			// ok means the file exists in s.fileInfoMap
-			s.fileInfoArchivedMap[name] = info
+	if syncByRemoteArchived {
+		for name, info := range fileInfoArchivedMap {
+			if _, ok := s.fileInfoMap[name]; ok {
+				// ok means the file exists in s.fileInfoMap
+				delete(s.fileInfoMap, name)
+				s.fileInfoArchivedMap[name] = info
+			} else if _, ok = s.fileInfoArchivedMap[name]; ok {
+				// update fileInfoArchivedMap mainly for LastModified
+				// ok means the file exists in s.fileInfoMap
+				s.fileInfoArchivedMap[name] = info
+			}
 		}
 	}
 	// 同步后如果归档文章中有，那么就删除

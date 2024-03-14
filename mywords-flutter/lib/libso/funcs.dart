@@ -206,14 +206,14 @@ String dictWordQueryLink(String word) {
 
 // func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount bool) *C.char {
 final _restoreFromBackUpData = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool),
-    Pointer<Utf8> Function(bool, Pointer<Utf8>, bool)>('RestoreFromBackUpData');
+    Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool,Bool),
+    Pointer<Utf8> Function(bool, Pointer<Utf8>, bool,bool)>('RestoreFromBackUpData');
 
 RespData<void> restoreFromBackUpData(
-    bool syncKnownWords, String zipPath, bool syncToadyWordCount) {
+    bool syncKnownWords, String zipPath, bool syncToadyWordCount,bool syncByRemoteArchived) {
   final pathC = zipPath.toNativeUtf8();
   final resultC =
-      _restoreFromBackUpData(syncKnownWords, pathC, syncToadyWordCount);
+      _restoreFromBackUpData(syncKnownWords, pathC, syncToadyWordCount,syncByRemoteArchived);
   final respData =
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(pathC);
