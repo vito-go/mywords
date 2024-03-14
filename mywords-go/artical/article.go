@@ -2,14 +2,18 @@ package artical
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"errors"
 	"fmt"
 	"github.com/antchfx/xpath"
 	htmlquery "github.com/antchfx/xquery/html"
+	"github.com/ledongthuc/pdf"
 	"io"
 	"mywords/dict"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -55,6 +59,69 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 	}
 	art.SourceUrl = sourceUrl
 	return art, nil
+}
+func readPdf(path string) (string, error) {
+	f, r, err := pdf.Open(path)
+	// remember close file
+	defer f.Close()
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	b, err := r.GetPlainText()
+	if err != nil {
+		return "", err
+	}
+	_, err = buf.ReadFrom(b)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+// ParseLocalFile . only supported txt and pdf
+func ParseLocalFile(path string) (*Article, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	if info.IsDir() {
+		return nil, errors.New("not a file")
+	}
+	if info.Size() >= 64<<20 {
+		return nil, errors.New("this file size is too large, which must be less than 64Mb")
+	}
+	ext := filepath.Ext(path)
+	var content string
+	if strings.ToLower(ext) == ".txt" {
+		pureContentBytes, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		content = string(pureContentBytes)
+	} else if strings.ToLower(ext) == ".pdf" {
+		content, err = readPdf(path)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New("file format not supported")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	sh := sha1.New()
+	_, err = io.Copy(sh, f)
+	if err != nil {
+		return nil, err
+	}
+	sha1Bytes := sh.Sum(nil)
+	sourceUrl := fmt.Sprintf("bytes://%x%s", sha1Bytes, ext)
+	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
+	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "
+	return articleFromContent("", time.Now().UnixMilli(), filepath.Base(path), sourceUrl, pureContent)
 }
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。

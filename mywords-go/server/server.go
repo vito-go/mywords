@@ -485,6 +485,19 @@ func (s *Server) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Ar
 	}
 	return art, nil
 }
+
+func (s *Server) ParseAndSaveArticleFromFile(path string) (*artical.Article, error) {
+	art, err := artical.ParseLocalFile(path)
+	if err != nil {
+		return nil, err
+	}
+	err = s.saveArticle(art)
+	if err != nil {
+		return nil, err
+	}
+	return art, nil
+}
+
 func (s *Server) saveArticle(art *artical.Article) error {
 	lastModified := art.LastModified
 	if lastModified <= 0 {
