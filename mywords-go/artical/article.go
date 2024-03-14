@@ -88,7 +88,7 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 		return nil, err
 	}
 	nodes := htmlquery.Find(rootNode, expr)
-	var contentBuf strings.Builder
+	var pureContentBuf strings.Builder
 	for _, n := range nodes {
 		text := strings.TrimSpace(htmlquery.InnerText(n))
 		if text == "" {
@@ -98,9 +98,9 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 			continue
 		}
 		text = regexp.MustCompile(`\s+`).ReplaceAllString(text, " ") + " "
-		contentBuf.WriteString(text)
+		pureContentBuf.WriteString(text)
 	}
-	content := contentBuf.String()
+	pureContent := pureContentBuf.String()
 	var title string
 	titleNode := htmlquery.FindOne(rootNode, "//title/text()")
 	if titleNode != nil {
@@ -111,14 +111,18 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 	}
 	//sentences := strings.SplitAfter(content, ". ")
 	// The U.S.
+	return articleFromContent(string(respBody), lastModified, title, sourceUrl, pureContent)
+}
+
+func articleFromContent(HTMLContent string, lastModified int64, title, sourceUrl, pureContent string) (*Article, error) {
 	sentences := make([]string, 0, 512)
-	ss := regSentenceSplit.FindAllStringIndex(content, -1)
+	ss := regSentenceSplit.FindAllStringIndex(pureContent, -1)
 	var start = 0
 	for _, s := range ss {
 		// \. [A-Z“]
 		//sentences = append(sentences, content[start:s[0]+1])
 		//start = s[0] + 2
-		sen := []byte(content[start : s[0]+4])
+		sen := []byte(pureContent[start : s[0]+4])
 		start = s[0] + 5
 		if len(sen) > 2 {
 			if sen[len(sen)-1] == quote[1] && sen[len(sen)-2] == quote[0] {
@@ -128,7 +132,7 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 			sentences = append(sentences, string(sen))
 		}
 	}
-	sentences = append(sentences, content[start:])
+	sentences = append(sentences, pureContent[start:])
 
 	var totalCount int
 	var wordsMap = make(map[string]int64, 1024)
@@ -227,7 +231,7 @@ loopSentences:
 	c := Article{
 		Title:        title,
 		SourceUrl:    sourceUrl,
-		HTMLContent:  string(respBody),
+		HTMLContent:  HTMLContent,
 		MinLen:       minLen,
 		TotalCount:   totalCount,
 		NetCount:     len(wordsMap),
