@@ -268,9 +268,9 @@ final _getToadyChartDateLevelCountMap = nativeAddLib.lookupFunction<
 // func RestoreFromShareServer(ipC *C.char, port int, code int64,syncKnownWords bool, tempDir *C.char) *C.char {
 final _restoreFromShareServer = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(
-        Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool),
+        Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool,Bool),
     Pointer<Utf8> Function(Pointer<Utf8>, int, int, bool, Pointer<Utf8>,
-        bool)>('RestoreFromShareServer');
+        bool,bool)>('RestoreFromShareServer');
 
 // func ShareClosed( ) *C.char
 final _shareClosed = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
@@ -293,11 +293,11 @@ RespData<void> shareOpen(int port, int code) {
 }
 
 Future<RespData<void>> restoreFromShareServer(String ip, int port, int code,
-    bool syncKnownWords, String tempDir, bool syncToadyWordCount) async {
+    bool syncKnownWords, String tempDir, bool syncToadyWordCount,bool syncByRemoteArchived) async {
   final tempDirC = tempDir.toNativeUtf8();
   final ipC = ip.toNativeUtf8();
   final resultC = _restoreFromShareServer(
-      ipC, port, code, syncKnownWords, tempDirC, syncToadyWordCount);
+      ipC, port, code, syncKnownWords, tempDirC, syncToadyWordCount,syncByRemoteArchived);
   final RespData respData =
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(resultC);

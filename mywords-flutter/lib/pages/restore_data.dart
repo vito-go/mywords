@@ -102,6 +102,8 @@ class _RestoreDataState extends State<RestoreData> {
       'tempDir': tempDir,
       'syncKnownWords': syncKnownWords,
       'syncToadyWordCount': syncToadyWordCount,
+      "syncByRemoteArchived": syncByRemoteArchived,
+
     });
     setState(() {
       isSyncing = false;
@@ -296,8 +298,9 @@ Future<RespData<void>> computeRestoreFromShareServer(
   final tempDir = param['tempDir'] as String;
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
+  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
   return restoreFromShareServer(
-      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount);
+      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount,syncByRemoteArchived);
 }
 
 // bool syncKnownWords,
