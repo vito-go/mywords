@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_archived_list.dart';
 import 'package:mywords/pages/known_words.dart';
+import 'package:mywords/pages/parse_local_file.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
@@ -144,6 +145,15 @@ class MyDrawerState extends State<MyDrawer> {
           onTap: () {
             Navigator.pop(context);
             pushTo(context, const StatisticChart());
+          },
+        ),
+        ListTile(
+          title: const Text("解析本地文章"),
+          leading: const Icon(Icons.article_outlined),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            pushTo(context, const ParseLocalFile());
           },
         ),
         ListTile(

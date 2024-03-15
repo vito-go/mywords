@@ -78,6 +78,22 @@ func readPdf(path string) (string, error) {
 	}
 	return buf.String(), nil
 }
+func getLocalFileSourceUrl(path string) (string, error) {
+	ext := filepath.Ext(path)
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	sh := sha1.New()
+	_, err = io.Copy(sh, f)
+	if err != nil {
+		return "", err
+	}
+	sha1Bytes := sh.Sum(nil)
+	sourceUrl := fmt.Sprintf("bytes://%x%s", sha1Bytes, ext)
+	return sourceUrl, err
+}
 
 // ParseLocalFile . only supported txt and pdf
 func ParseLocalFile(path string) (*Article, error) {
@@ -86,12 +102,26 @@ func ParseLocalFile(path string) (*Article, error) {
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, errors.New("not a file")
+		return nil, errors.New("文件夹不支持")
 	}
 	if info.Size() >= 64<<20 {
-		return nil, errors.New("this file size is too large, which must be less than 64Mb")
+		return nil, errors.New("文件过大，不能超过64MB")
 	}
 	ext := filepath.Ext(path)
+	if strings.ToLower(ext) != ".html" {
+		return nil, errors.New("file format not supported")
+	}
+	var sourceUrl string
+	sourceUrl, err = getLocalFileSourceUrl(path)
+	if err != nil {
+		return nil, err
+	}
+	htmlBody, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return parseContent(sourceUrl, DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
+	// todo the other file format to be supported
 	var content string
 	if strings.ToLower(ext) == ".txt" {
 		pureContentBytes, err := os.ReadFile(path)
@@ -104,21 +134,25 @@ func ParseLocalFile(path string) (*Article, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else if strings.ToLower(ext) == ".html" {
+		sourceUrl, err = getLocalFileSourceUrl(path)
+		if err != nil {
+			return nil, err
+		}
+		htmlBody, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		return parseContent(sourceUrl, DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
 	} else {
 		return nil, errors.New("file format not supported")
 	}
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
+	if sourceUrl == "" {
+		sourceUrl, err = getLocalFileSourceUrl(path)
+		if err != nil {
+			return nil, err
+		}
 	}
-	defer f.Close()
-	sh := sha1.New()
-	_, err = io.Copy(sh, f)
-	if err != nil {
-		return nil, err
-	}
-	sha1Bytes := sh.Sum(nil)
-	sourceUrl := fmt.Sprintf("bytes://%x%s", sha1Bytes, ext)
 	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
 	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "
 	return articleFromContent("", time.Now().UnixMilli(), filepath.Base(path), sourceUrl, pureContent)

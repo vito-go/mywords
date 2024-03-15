@@ -24,10 +24,5 @@ func TestMain(m *testing.M) {
 	}
 	os.WriteFile("apple.html", []byte(content), 0644)
 	fmt.Println(content)
-	art, err := serverGlobal.ParseAndSaveArticleFromFile("/home/vito/Downloads/Shihao Liu - Golang Developer.pdf")
-	if err != nil {
-		panic(err)
-	}
-	_ = art
 	//select {}
 }
