@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/antchfx/xpath"
 	htmlquery "github.com/antchfx/xquery/html"
-	"github.com/ledongthuc/pdf"
 	"io"
 	"mywords/dict"
 	"net/http"
@@ -60,24 +59,7 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 	art.SourceUrl = sourceUrl
 	return art, nil
 }
-func readPdf(path string) (string, error) {
-	f, r, err := pdf.Open(path)
-	// remember close file
-	defer f.Close()
-	if err != nil {
-		return "", err
-	}
-	var buf bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		return "", err
-	}
-	_, err = buf.ReadFrom(b)
-	if err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
+
 func getLocalFileSourceUrl(path string) (string, error) {
 	ext := filepath.Ext(path)
 	f, err := os.Open(path)
@@ -95,7 +77,7 @@ func getLocalFileSourceUrl(path string) (string, error) {
 	return sourceUrl, err
 }
 
-// ParseLocalFile . only supported txt and pdf
+// ParseLocalFile . only supported html
 func ParseLocalFile(path string) (*Article, error) {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -121,7 +103,7 @@ func ParseLocalFile(path string) (*Article, error) {
 		return nil, err
 	}
 	return parseContent(sourceUrl, DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
-	// todo the other file format to be supported
+	// TODO: the other file format to be supported, how to preview txt file?
 	var content string
 	if strings.ToLower(ext) == ".txt" {
 		pureContentBytes, err := os.ReadFile(path)
@@ -129,29 +111,8 @@ func ParseLocalFile(path string) (*Article, error) {
 			return nil, err
 		}
 		content = string(pureContentBytes)
-	} else if strings.ToLower(ext) == ".pdf" {
-		content, err = readPdf(path)
-		if err != nil {
-			return nil, err
-		}
-	} else if strings.ToLower(ext) == ".html" {
-		sourceUrl, err = getLocalFileSourceUrl(path)
-		if err != nil {
-			return nil, err
-		}
-		htmlBody, err := os.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		return parseContent(sourceUrl, DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
 	} else {
 		return nil, errors.New("file format not supported")
-	}
-	if sourceUrl == "" {
-		sourceUrl, err = getLocalFileSourceUrl(path)
-		if err != nil {
-			return nil, err
-		}
 	}
 	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
 	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "

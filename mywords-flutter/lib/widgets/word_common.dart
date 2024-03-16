@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_default_meaning.dart';
 import 'package:mywords/widgets/word_html.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -116,6 +117,15 @@ Widget buildSelectionWordArea(Widget child) {
       child: child);
 }
 
+bool isWordParticular(int element) {
+  if ((element >= 97 && element <= 122) ||
+      (element >= 65 && element <= 90) ||
+      (element == 45)) {
+    return true;
+  }
+  return false;
+}
+
 Widget highlightTextSplitBySpace(
     BuildContext context, String text, List<String> tokens,
     {Widget Function(BuildContext context, EditableTextState editableTextState)?
@@ -135,23 +145,20 @@ Widget highlightTextSplitBySpace(
       color = Colors.green;
       fontWeight = FontWeight.bold;
     }
+    if (info.startsWith("bill")) {
+      myPrint(info);
+    }
     final runes = info.runes.toList();
     int start = 0;
     int? end;
     for (var i = 0; i < runes.length; i++) {
-      final element = runes[i];
-      if ((element >= 97 && element <= 122) ||
-          (element >= 65 && element <= 90) ||
-          (element == 45)) {
+      if (isWordParticular(runes[i])) {
         start = i;
         break;
       }
     }
     for (var i = runes.length - 1; i >= 0; i--) {
-      final element = runes[i];
-      if ((element >= 97 && element <= 122) ||
-          (element >= 65 && element <= 90) ||
-          (element == 45)) {
+      if (isWordParticular(runes[i])) {
         end = i + 1;
         break;
       }
