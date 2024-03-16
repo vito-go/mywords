@@ -41,6 +41,7 @@ class _State extends State<ArticleListView> {
   void dispose() {
     super.dispose();
     globalEventSubscription?.cancel();
+    controller.dispose();
   }
 
   StreamSubscription<GlobalEvent>? globalEventSubscription;
@@ -128,6 +129,7 @@ class _State extends State<ArticleListView> {
 
   Widget buildFileInfo() {
     final listView = ListView.separated(
+        controller: controller,
         itemBuilder: (BuildContext context, int index) {
           final item = fileInfos[index];
           final listTile = ListTile(
@@ -235,6 +237,11 @@ class _State extends State<ArticleListView> {
         initFileInfos();
         break;
       case GlobalEventType.updateKnownWord:
+      case GlobalEventType.articleListScrollToTop:
+        if (fileInfos.isNotEmpty) {
+          controller.animateTo(0,
+              duration: const Duration(milliseconds: 150), curve: Curves.linear);
+        }
     }
   }
 
@@ -271,6 +278,8 @@ class _State extends State<ArticleListView> {
             child: Row(children: children)));
     return backgroundWidget;
   }
+
+  ScrollController controller = ScrollController();
 
   @override
   Widget build(BuildContext context) {

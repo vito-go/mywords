@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import '../common/global_event.dart';
 import 'drawer.dart';
 import '../widgets/restart_app.dart';
 import 'article_list_page.dart';
@@ -11,7 +12,9 @@ class Home extends StatefulWidget {
   @override
   State<Home> createState() => _State();
 }
-const appVersion="1.0.1";
+
+const appVersion = "1.0.1";
+
 class _State extends State<Home> {
   final PageController _pageController =
       PageController(initialPage: prefs.defaultHomeIndex);
@@ -121,6 +124,11 @@ class _State extends State<Home> {
         currentIndex: idx,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         onTap: (int i) {
+          if (idx == i && i == 0) {
+            // 滚动置顶
+            addToGlobalEvent(
+                GlobalEvent(eventType: GlobalEventType.articleListScrollToTop));
+          }
           if (idx == i) return;
           _pageController.jumpToPage(i);
           idx = i;

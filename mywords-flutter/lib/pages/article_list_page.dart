@@ -116,8 +116,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       return;
     }
     controller.text = "";
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   FocusNode focus = FocusNode();
@@ -157,8 +156,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   Widget get todaySubtitle {
     final style = prefs.isDark
-        ? TextStyle(color: Colors.orange.shade300)
-        : TextStyle(color: Theme.of(context).primaryColor);
+        ? TextStyle(color: Colors.orange.shade300,fontWeight: FontWeight.bold)
+        : TextStyle(color: Theme.of(context).primaryColor,fontWeight: FontWeight.bold);
     return RichText(
         text: TextSpan(
             text: "1级: ",
@@ -180,7 +179,6 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           valueListenable: valueNotifierChart,
           builder: (BuildContext context, Key value, Widget? child) {
             return ListTile(
-              // leading: toolTipToday,
               leading: IconButton(
                   onPressed: () {
                     pushTo(context, const ToadyKnownWords());
@@ -189,8 +187,21 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                     Icons.wordpress,
                     color: Theme.of(context).primaryColor,
                   )),
-              title: Text("今日学习单词总数: ${count1 + count2 + count3}"),
+              title: RichText(
+                text: TextSpan(
+                    text: "今日学习单词总数: ",
+                    style: TextStyle(
+                        color: prefs.isDark ? Colors.white70 : Colors.black),
+                    children: [
+                      TextSpan(
+                          text: "${count1 + count2 + count3}",
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.bold))
+                    ]),
+              ),
               subtitle: todaySubtitle,
+              minLeadingWidth: 0,
               trailing: IconButton(
                   onPressed: () {
                     pushTo(context, const StatisticChart());
@@ -201,7 +212,10 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   )),
             );
           }),
-      textField(),
+      Padding(
+        padding: const EdgeInsets.only(right: 10, left: 10),
+        child: textField(),
+      ),
       ValueListenableBuilder(
           valueListenable: valueNotifier,
           builder: (BuildContext context, bool value, Widget? child) {
@@ -224,9 +238,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       )),
     ];
 
-    return Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        child: Column(children: colChildren));
+    return Column(children: colChildren);
   }
 
   ValueNotifier<Key> valueNotifierChart = ValueNotifier(UniqueKey());
