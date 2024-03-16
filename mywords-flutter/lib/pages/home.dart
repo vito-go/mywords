@@ -14,7 +14,7 @@ class Home extends StatefulWidget {
 
 class _State extends State<Home> {
   final PageController _pageController =
-  PageController(initialPage: prefs.defaultHomeIndex);
+      PageController(initialPage: prefs.defaultHomeIndex);
 
   @override
   void initState() {
@@ -40,28 +40,24 @@ class _State extends State<Home> {
   void aboutOnTap() async {
     String version = "1.0.0";
     const applicationName = "mywords";
-    if (context.mounted) {
-      showAboutDialog(
-        context: context,
-        applicationName: applicationName,
-        applicationIcon: InkWell(
-          child: const FlutterLogo(),
-          onTap: () async {},
-        ),
-        applicationVersion: "version: $version",
-        applicationLegalese: '© All rights reserved',
-        children: [
-          const SizedBox(
-            height: 5,
-          ),
-          const Text("author:liushihao888@gmail.com"),
-          const SizedBox(
-            height: 2,
-          ),
-          const Text("address: Beijing, China"),
-        ],
-      );
-    }
+    if (!context.mounted) return;
+    showAboutDialog(
+      context: context,
+      applicationName: applicationName,
+      applicationIcon: InkWell(
+        // child: SizedBox(width: 50,height: 50,child: Image.asset("logo.png")),
+        child: CircleAvatar(child: Image.asset("logo.png")),
+        onTap: () async {},
+      ),
+      applicationVersion: "version: $version",
+      applicationLegalese: '© All rights reserved',
+      children: [
+        const SizedBox(height: 5),
+        const Text("author: liushihao888@gmail.com"),
+        const SizedBox(height: 2),
+        const Text("address: Beijing, China"),
+      ],
+    );
   }
 
   changeTheme() {
@@ -120,15 +116,11 @@ class _State extends State<Home> {
     ];
   }
 
-  BottomNavigationBar get bottomBar =>
-      BottomNavigationBar(
+  BottomNavigationBar get bottomBar => BottomNavigationBar(
         items: bottomBarItems,
         type: BottomNavigationBarType.fixed,
         currentIndex: idx,
-        selectedItemColor: Theme
-            .of(context)
-            .colorScheme
-            .primary,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         onTap: (int i) {
           if (idx == i) return;
           _pageController.jumpToPage(i);
@@ -146,10 +138,7 @@ class _State extends State<Home> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: const Text("MyWords"),
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // toolbarHeight: 48,
         // centerTitle: true,
         actions: actions,
