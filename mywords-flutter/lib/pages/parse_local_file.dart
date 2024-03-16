@@ -1,21 +1,11 @@
-import 'dart:convert';
 
-import 'package:ffi/ffi.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:mywords/common/global_event.dart';
-import 'package:mywords/common/prefs/prefs.dart';
-import 'package:path_provider/path_provider.dart';
 import '../libso/funcs.dart';
-import '../libso/resp_data.dart';
 import '../util/path.dart';
 import '../util/util.dart';
-import '../widgets/private_ip.dart';
-import '../widgets/restart_app.dart';
 
 class ParseLocalFile extends StatefulWidget {
   const ParseLocalFile({super.key});
@@ -83,7 +73,7 @@ class _State extends State<ParseLocalFile> {
 
     myToast(context, "解析成功!");
     addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
+        GlobalEvent(eventType: GlobalEventType.updateArticleList));
     return;
   }
 
@@ -142,7 +132,7 @@ class _State extends State<ParseLocalFile> {
       return;
     }
     addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
+        GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   @override

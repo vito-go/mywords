@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/funcs.dart';
-import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/line_chart.dart';
 
 class StatisticChart extends StatefulWidget {

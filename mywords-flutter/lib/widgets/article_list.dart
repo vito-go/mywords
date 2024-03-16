@@ -53,7 +53,8 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.archiveArticle));
+      addToGlobalEvent(
+          GlobalEvent(eventType: GlobalEventType.updateArticleList));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -80,7 +81,8 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.archiveArticle));
+      addToGlobalEvent(
+          GlobalEvent(eventType: GlobalEventType.updateArticleList));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -104,6 +106,8 @@ class _State extends State<ArticleListView> {
         if (!context.mounted) {
           return;
         }
+        addToGlobalEvent(
+            GlobalEvent(eventType: GlobalEventType.updateArticleList));
         myToast(context, respData.message);
         return;
       }
@@ -224,16 +228,13 @@ class _State extends State<ArticleListView> {
 
   void globalEventHandler(GlobalEvent event) {
     switch (event.eventType) {
-      case GlobalEventType.parseAndSaveArticle:
+      case GlobalEventType.updateArticleList:
         initFileInfos();
         break;
       case GlobalEventType.syncData:
         initFileInfos();
         break;
       case GlobalEventType.updateKnownWord:
-      case GlobalEventType.archiveArticle:
-        initFileInfos();
-        break;
     }
   }
 

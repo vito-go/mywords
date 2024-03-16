@@ -4,10 +4,9 @@ StreamController<GlobalEvent> _globalEventBroadcast =
     StreamController.broadcast();
 
 enum GlobalEventType {
-  parseAndSaveArticle,
   syncData,
   updateKnownWord,
-  archiveArticle,
+  updateArticleList,
 }
 
 void addToGlobalEvent(GlobalEvent event) {

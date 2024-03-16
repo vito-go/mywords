@@ -13,7 +13,6 @@ import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
-import 'package:mywords/widgets/restart_app.dart';
 
 import '../common/global_event.dart';
 import '../libso/funcs.dart';
@@ -113,7 +112,7 @@ class MyDrawerState extends State<MyDrawer> {
     }
     myToast(context, "恢复成功");
     addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
+        GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   @override

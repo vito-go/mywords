@@ -76,7 +76,7 @@ class ArticlePageState extends State<ArticlePage> {
         return;
       }
       addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
+          GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
       levelCountMap = _levelDistribute();
       if (!context.mounted) return;
