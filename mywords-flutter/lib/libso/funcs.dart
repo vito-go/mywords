@@ -27,6 +27,10 @@ final _updateKnownWords = nativeAddLib.lookupFunction<
 final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>),
     Pointer<Utf8> Function(Pointer<Utf8>)>('ParseAndSaveArticleFromSourceUrl');
+// func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
+final _parseAndSaveArticleFromFile = nativeAddLib.lookupFunction<
+    Pointer<Utf8> Function(Pointer<Utf8>),
+    Pointer<Utf8> Function(Pointer<Utf8>)>('ParseAndSaveArticleFromFile');
 
 // func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char,htmlContent *C.char) *C.char
 final _parseAndSaveArticleFromSourceUrlAndContent = nativeAddLib.lookupFunction<
@@ -332,6 +336,17 @@ RespData<void> parseAndSaveArticleFromSourceUrl(String www) {
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(resultC);
   malloc.free(sourceUrl);
+  return respData;
+}
+
+// compute must be top level function
+RespData<void> parseAndSaveArticleFromFile(String path) {
+  final pathC = path.toNativeUtf8();
+  final resultC = _parseAndSaveArticleFromFile(pathC);
+  final RespData respData =
+      RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
+  malloc.free(resultC);
+  malloc.free(pathC);
   return respData;
 }
 

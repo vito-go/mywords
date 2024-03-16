@@ -88,6 +88,15 @@ func ParseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char {
 	return CharOk(art)
 }
 
+//export ParseAndSaveArticleFromFile
+func ParseAndSaveArticleFromFile(pathC *C.char) *C.char {
+	art, err := serverGlobal.ParseAndSaveArticleFromFile(C.GoString(pathC))
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharOk(art)
+}
+
 //export RestoreFromBackUpData
 func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount, syncByRemoteArchived bool) *C.char {
 	err := serverGlobal.RestoreFromBackUpData(syncKnownWords, C.GoString(zipFile), syncToadyWordCount, syncByRemoteArchived)

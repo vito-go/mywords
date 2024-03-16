@@ -193,7 +193,7 @@ class ArticlePageState extends State<ArticlePage> {
       if (!showSentence) {
         continue;
       }
-      items.add(highlightText(info.sentence.join('\n\n'), [info.text],
+      items.add(highlightTextSplitBySpace(context,info.sentence.join('\n\n'), [info.text],
           contextMenuBuilder:
               (BuildContext context, EditableTextState editableTextState) {
         return contextMenuBuilder(context, editableTextState);
