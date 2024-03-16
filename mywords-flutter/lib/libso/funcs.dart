@@ -27,6 +27,10 @@ final _updateKnownWords = nativeAddLib.lookupFunction<
 final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(Pointer<Utf8>),
     Pointer<Utf8> Function(Pointer<Utf8>)>('ParseAndSaveArticleFromSourceUrl');
+// func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
+final _parseAndSaveArticleFromFile = nativeAddLib.lookupFunction<
+    Pointer<Utf8> Function(Pointer<Utf8>),
+    Pointer<Utf8> Function(Pointer<Utf8>)>('ParseAndSaveArticleFromFile');
 
 // func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char,htmlContent *C.char) *C.char
 final _parseAndSaveArticleFromSourceUrlAndContent = nativeAddLib.lookupFunction<
@@ -206,14 +210,14 @@ String dictWordQueryLink(String word) {
 
 // func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount bool) *C.char {
 final _restoreFromBackUpData = nativeAddLib.lookupFunction<
-    Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool),
-    Pointer<Utf8> Function(bool, Pointer<Utf8>, bool)>('RestoreFromBackUpData');
+    Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool,Bool),
+    Pointer<Utf8> Function(bool, Pointer<Utf8>, bool,bool)>('RestoreFromBackUpData');
 
 RespData<void> restoreFromBackUpData(
-    bool syncKnownWords, String zipPath, bool syncToadyWordCount) {
+    bool syncKnownWords, String zipPath, bool syncToadyWordCount,bool syncByRemoteArchived) {
   final pathC = zipPath.toNativeUtf8();
   final resultC =
-      _restoreFromBackUpData(syncKnownWords, pathC, syncToadyWordCount);
+      _restoreFromBackUpData(syncKnownWords, pathC, syncToadyWordCount,syncByRemoteArchived);
   final respData =
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(pathC);
@@ -268,9 +272,9 @@ final _getToadyChartDateLevelCountMap = nativeAddLib.lookupFunction<
 // func RestoreFromShareServer(ipC *C.char, port int, code int64,syncKnownWords bool, tempDir *C.char) *C.char {
 final _restoreFromShareServer = nativeAddLib.lookupFunction<
     Pointer<Utf8> Function(
-        Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool),
+        Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool,Bool),
     Pointer<Utf8> Function(Pointer<Utf8>, int, int, bool, Pointer<Utf8>,
-        bool)>('RestoreFromShareServer');
+        bool,bool)>('RestoreFromShareServer');
 
 // func ShareClosed( ) *C.char
 final _shareClosed = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
@@ -293,11 +297,11 @@ RespData<void> shareOpen(int port, int code) {
 }
 
 Future<RespData<void>> restoreFromShareServer(String ip, int port, int code,
-    bool syncKnownWords, String tempDir, bool syncToadyWordCount) async {
+    bool syncKnownWords, String tempDir, bool syncToadyWordCount,bool syncByRemoteArchived) async {
   final tempDirC = tempDir.toNativeUtf8();
   final ipC = ip.toNativeUtf8();
   final resultC = _restoreFromShareServer(
-      ipC, port, code, syncKnownWords, tempDirC, syncToadyWordCount);
+      ipC, port, code, syncKnownWords, tempDirC, syncToadyWordCount,syncByRemoteArchived);
   final RespData respData =
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(resultC);
@@ -332,6 +336,17 @@ RespData<void> parseAndSaveArticleFromSourceUrl(String www) {
       RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
   malloc.free(resultC);
   malloc.free(sourceUrl);
+  return respData;
+}
+
+// compute must be top level function
+RespData<void> parseAndSaveArticleFromFile(String path) {
+  final pathC = path.toNativeUtf8();
+  final resultC = _parseAndSaveArticleFromFile(pathC);
+  final RespData respData =
+      RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
+  malloc.free(resultC);
+  malloc.free(pathC);
   return respData;
 }
 

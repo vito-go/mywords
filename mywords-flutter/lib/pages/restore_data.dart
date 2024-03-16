@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:path_provider/path_provider.dart';
@@ -101,6 +102,8 @@ class _RestoreDataState extends State<RestoreData> {
       'tempDir': tempDir,
       'syncKnownWords': syncKnownWords,
       'syncToadyWordCount': syncToadyWordCount,
+      "syncByRemoteArchived": syncByRemoteArchived,
+
     });
     setState(() {
       isSyncing = false;
@@ -116,7 +119,7 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.syncData));
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.syncData,param: syncToadyWordCount));
     return 0;
   }
 
@@ -153,6 +156,7 @@ class _RestoreDataState extends State<RestoreData> {
       "syncKnownWords": syncKnownWords,
       "zipPath": file.path!,
       "syncToadyWordCount": syncToadyWordCount,
+      "syncByRemoteArchived": syncByRemoteArchived,
     });
     if (respData.code != 0) {
       myToast(context, "恢复失败!\n${respData.message}");
@@ -206,6 +210,7 @@ class _RestoreDataState extends State<RestoreData> {
   }
 
   bool syncToadyWordCount = prefs.syncToadyWordCount;
+  bool syncByRemoteArchived = prefs.syncByRemoteArchived;
   bool syncKnownWords = prefs.syncKnownWords;
 
   @override
@@ -229,6 +234,15 @@ class _RestoreDataState extends State<RestoreData> {
           setState(() {});
         },
         title: const Text("同步已知单词库"),
+      ),
+      SwitchListTile(
+        value: syncByRemoteArchived,
+        onChanged: (v) {
+          syncByRemoteArchived = v;
+          prefs.syncByRemoteArchived = v;
+          setState(() {});
+        },
+        title: const Text("同步文章归档信息"),
       ),
       ListTile(
         title: const Text("从本地同步"),
@@ -271,9 +285,7 @@ class _RestoreDataState extends State<RestoreData> {
     );
     return Scaffold(
       appBar: appBar,
-      body: Padding(
-          padding: const EdgeInsets.all(10),
-          child: SingleChildScrollView(child: col)),
+      body: SingleChildScrollView(child: col),
     );
   }
 }
@@ -286,8 +298,9 @@ Future<RespData<void>> computeRestoreFromShareServer(
   final tempDir = param['tempDir'] as String;
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
+  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
   return restoreFromShareServer(
-      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount);
+      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount,syncByRemoteArchived);
 }
 
 // bool syncKnownWords,
@@ -298,5 +311,7 @@ Future<RespData<void>> computeRestoreFromBackUpData(
   final zipPath = param['zipPath'] as String;
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
-  return restoreFromBackUpData(syncKnownWords, zipPath, syncToadyWordCount);
+  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
+  return restoreFromBackUpData(
+      syncKnownWords, zipPath, syncToadyWordCount, syncByRemoteArchived);
 }

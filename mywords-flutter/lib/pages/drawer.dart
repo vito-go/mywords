@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_archived_list.dart';
 import 'package:mywords/pages/known_words.dart';
+import 'package:mywords/pages/parse_local_file.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
@@ -14,6 +15,7 @@ import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/restart_app.dart';
 
+import '../common/global_event.dart';
 import '../libso/funcs.dart';
 import 'dict_database.dart';
 import 'restore_data.dart';
@@ -82,6 +84,38 @@ class MyDrawerState extends State<MyDrawer> {
     controller.dispose();
   }
 
+  void parseLocalFiles() async {
+    // todo
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        initialDirectory: getDefaultDownloadDir(),
+        allowMultiple: false,
+        withReadStream: true,
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'PDF', 'txt', 'TXT']);
+    if (result == null) {
+      return;
+    }
+    final files = result.files;
+    if (files.isEmpty) {
+      return;
+    }
+    final file = files[0];
+    if (file.path == null) {
+      return;
+    }
+
+    final respData = await compute(
+        (message) => computeRestoreFromBackUpData(message),
+        <String, dynamic>{});
+    if (respData.code != 0) {
+      myToast(context, "恢复失败!\n${respData.message}");
+      return;
+    }
+    myToast(context, "恢复成功");
+    addToGlobalEvent(
+        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -111,6 +145,15 @@ class MyDrawerState extends State<MyDrawer> {
           onTap: () {
             Navigator.pop(context);
             pushTo(context, const StatisticChart());
+          },
+        ),
+        ListTile(
+          title: const Text("解析本地文章"),
+          leading: const Icon(Icons.article_outlined),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            pushTo(context, const ParseLocalFile());
           },
         ),
         ListTile(

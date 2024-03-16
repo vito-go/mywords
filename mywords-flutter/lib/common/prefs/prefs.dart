@@ -21,6 +21,9 @@ class _Prefs {
   String get _defaultHomeIndex => "mywords:_defaultHomeIndex";
 
   String get _syncToadyWordCount => "mywords:_syncToadyWordCount";
+
+  String get _syncByRemoteArchived => "mywords:_syncByRemoteArchived";
+
   String get _syncKnownWords => "mywords:_syncKnownWords";
 
   String get _showWordLevel => "mywords:_showWordLevel";
@@ -100,6 +103,13 @@ class _Prefs {
 
   set syncToadyWordCount(bool v) {
     _globalPrefs.setBool(_syncToadyWordCount, v);
+  }
+
+  bool get syncByRemoteArchived =>
+      _globalPrefs.getBool(_syncByRemoteArchived) ?? false;
+
+  set syncByRemoteArchived(bool v) {
+    _globalPrefs.setBool(_syncByRemoteArchived, v);
   }
 
   bool get syncKnownWords => _globalPrefs.getBool(_syncKnownWords) ?? false;

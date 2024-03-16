@@ -7,6 +7,7 @@ enum GlobalEventType {
   parseAndSaveArticle,
   syncData,
   updateKnownWord,
+  archiveArticle,
 }
 
 void addToGlobalEvent(GlobalEvent event) {

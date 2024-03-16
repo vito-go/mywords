@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/widgets/word_header_row.dart';
-import 'package:mywords/widgets/word_list.dart';
 
 import '../libso/funcs.dart';
 
@@ -35,7 +34,7 @@ class _State extends State<WordDefaultMeaning> {
   Widget build(BuildContext context) {
     final col = Column(
       children: [
-        WordHeaderRow(word: word,key: UniqueKey()),
+        WordHeaderRow(word: word, key: UniqueKey()),
         Flexible(
             child: SingleChildScrollView(
                 child: SelectableText(
@@ -83,4 +82,29 @@ class _State extends State<WordDefaultMeaning> {
     );
     return Padding(padding: const EdgeInsets.all(10), child: col);
   }
+}
+
+String fixDefaultMeaning(String meaning) {
+  meaning = meaning.replaceAll("*", "\n*");
+  List<String> result = [];
+  final ss = meaning.split(". ");
+  for (int i = 0; i < ss.length; i++) {
+    final s = ss[i];
+    if (s == "") continue;
+    if (s.startsWith(RegExp(r'^\d+ '))) {
+      if (s.endsWith('.')) {
+        result.add("\n\n$s ");
+      } else {
+        result.add("\n\n$s. ");
+      }
+      continue;
+    }
+    if (s.endsWith('.')) {
+      result.add("$s ");
+    } else {
+      result.add("$s. ");
+    }
+  }
+  meaning = result.join('');
+  return meaning;
 }

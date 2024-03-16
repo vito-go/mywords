@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/widgets/word_common.dart';
-import 'package:mywords/widgets/word_default_meaning.dart';
 
 import '../common/global_event.dart';
 import '../libso/funcs.dart';
@@ -169,57 +168,6 @@ InkWell buildInkWell(String word, int showLevel, int realLevel,
           )),
       onTap: () {
         onTap(showLevel, word);
-      });
-}
-
-String fixDefaultMeaning(String meaning) {
-  meaning = meaning.replaceAll("*", "\n*");
-  List<String> result = [];
-  final ss = meaning.split(". ");
-  for (int i = 0; i < ss.length; i++) {
-    final s = ss[i];
-    if (s == "") continue;
-    if (s.startsWith(RegExp(r'^\d+ '))) {
-      if (s.endsWith('.')) {
-        result.add("\n\n$s ");
-      } else {
-        result.add("\n\n$s. ");
-      }
-      continue;
-    }
-    if (s.endsWith('.')) {
-      result.add("$s ");
-    } else {
-      result.add("$s. ");
-    }
-  }
-  meaning = result.join('');
-  return meaning;
-}
-
-void showWordWithDefault(BuildContext context, String word) {
-  String meaning = dictWordQuery(word);
-  if (meaning == "") {
-    word = dictWordQueryLink(word);
-    meaning = dictWordQuery(word);
-  }
-  if (meaning == '') {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
-      duration: const Duration(milliseconds: 2000),
-    ));
-    return;
-  }
-  meaning = fixDefaultMeaning(meaning);
-  showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.75),
-          child: WordDefaultMeaning(word: word, meaning: meaning),
-        );
       });
 }
 

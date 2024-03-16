@@ -48,7 +48,12 @@ class _State extends State<ArticleListView> {
   void slideToUnArchive(FileInfo item) {
     final fileName = item.fileName;
     final t = Timer(const Duration(milliseconds: 4000), () async {
-      unArchiveGobFile(fileName);
+      final respData = unArchiveGobFile(fileName);
+      if (respData.code != 0) {
+        myToast(context, respData.message);
+        return;
+      }
+      addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.archiveArticle));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -75,6 +80,7 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
+      addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.archiveArticle));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -193,6 +199,7 @@ class _State extends State<ArticleListView> {
     if (prefs.toastSlideToDelete == true) {
       return;
     }
+    if (fileInfos.isEmpty) return;
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -216,9 +223,17 @@ class _State extends State<ArticleListView> {
   }
 
   void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.parseAndSaveArticle ||
-        event.eventType == GlobalEventType.syncData) {
-      initFileInfos();
+    switch (event.eventType) {
+      case GlobalEventType.parseAndSaveArticle:
+        initFileInfos();
+        break;
+      case GlobalEventType.syncData:
+        initFileInfos();
+        break;
+      case GlobalEventType.updateKnownWord:
+      case GlobalEventType.archiveArticle:
+        initFileInfos();
+        break;
     }
   }
 

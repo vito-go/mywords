@@ -35,7 +35,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   }
 
   void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.syncData) {
+    if (event.eventType == GlobalEventType.syncData && event.param == true) {
       valueNotifierChart.value = UniqueKey();
     }
     if (event.eventType == GlobalEventType.updateKnownWord) {
