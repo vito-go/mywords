@@ -145,9 +145,6 @@ Widget highlightTextSplitBySpace(
       color = Colors.green;
       fontWeight = FontWeight.bold;
     }
-    if (info.startsWith("bill")) {
-      myPrint(info);
-    }
     final runes = info.runes.toList();
     int start = 0;
     int? end;
@@ -163,7 +160,7 @@ Widget highlightTextSplitBySpace(
         break;
       }
     }
-    final word = utf8.decode(runes.sublist(start, end), allowMalformed: true);
+    final word = String.fromCharCodes(runes.sublist(start, end));
     children.add(TextSpan(
         text: info,
         recognizer: TapGestureRecognizer()
