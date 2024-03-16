@@ -117,7 +117,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     }
     controller.text = "";
     addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.parseAndSaveArticle));
+        GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   FocusNode focus = FocusNode();

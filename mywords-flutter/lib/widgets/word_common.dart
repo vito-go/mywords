@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_default_meaning.dart';
 import 'package:mywords/widgets/word_html.dart';
 import 'package:url_launcher/url_launcher_string.dart';
