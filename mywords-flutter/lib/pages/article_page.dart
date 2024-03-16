@@ -105,6 +105,7 @@ class ArticlePageState extends State<ArticlePage> {
   int get count0 => levelCountMap['0'] ?? 0;
 
   int get count1 => levelCountMap['1'] ?? 0;
+
   String get count0VsNet {
     if (count0 == 0) return "0%";
     final netCount = article?.netCount;
@@ -194,8 +195,8 @@ class ArticlePageState extends State<ArticlePage> {
         continue;
       }
       // 前面带的空格是为了避免中间行单词粘在一起
-      items.add(highlightTextSplitBySpace(context,info.sentence.join(' \n\n'), [info.text],
-          contextMenuBuilder:
+      items.add(highlightTextSplitBySpace(
+          context, info.sentence.join(' \n\n'), [info.text], contextMenuBuilder:
               (BuildContext context, EditableTextState editableTextState) {
         return contextMenuBuilder(context, editableTextState);
       }));
@@ -235,6 +236,60 @@ class ArticlePageState extends State<ArticlePage> {
     globalEventSubscription?.cancel();
   }
 
+  Widget wordLevelRichText(Article art) {
+    return RichText(
+      text:
+          TextSpan(style: TextStyle(color: Colors.black), text: "", children: [
+        const TextSpan(
+            text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+            style: TextStyle(color: Colors.blueGrey)),
+        const TextSpan(text: "0级: "),
+        TextSpan(
+            text: "$count0 ($count0VsNet)",
+            style: const TextStyle(
+                color: Colors.red, fontWeight: FontWeight.bold)),
+        const TextSpan(text: "  1级: "),
+        TextSpan(
+            text: "$count1",
+            style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.normal)),
+        const TextSpan(text: "  2级: "),
+        TextSpan(
+            text: "$count2",
+            style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.normal)),
+        const TextSpan(text: "  3级: "),
+        TextSpan(
+            text: "$count3",
+            style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.normal)),
+      ]),
+    );
+  }
+
+  Widget staticsRichText(int totalCount, int netCount) {
+    return RichText(
+        text: TextSpan(
+            style: const TextStyle(color: Colors.black),
+            text: "词汇量统计: 总数: ",
+            children: [
+          TextSpan(
+              text: "$totalCount",
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          const TextSpan(text: ", 去重后: "),
+          TextSpan(
+              text: "$netCount",
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          const TextSpan(text: ", 比率: "),
+          TextSpan(
+              text: (netCount / totalCount).toStringAsFixed(2),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+        ]));
+  }
+
   @override
   Widget build(BuildContext context) {
     var appBar = AppBar(
@@ -257,9 +312,9 @@ class ArticlePageState extends State<ArticlePage> {
       ListTile(
         title: Text(
           art.sourceUrl,
-          maxLines: 4,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.blue),
+          style: const TextStyle(color: Colors.blue, fontSize: 14),
         ),
         onTap: () {
           launchUrlString(art.sourceUrl);
@@ -272,11 +327,14 @@ class ArticlePageState extends State<ArticlePage> {
             },
             icon: const Icon(Icons.copy)),
       ),
-      Text(
-          "文章词汇量统计\n单词总数: ${art.totalCount}, 去重后: ${art.netCount}, 比率: ${(art.netCount / art.totalCount).toStringAsFixed(2)}"),
+      Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8),
+        child: staticsRichText(art.totalCount, art.netCount),
+      ),
       const SizedBox(height: 5),
-      Text(
-        "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n0级: $count0 ($count0VsNet)  1级: $count1  2级: $count2  3级: $count3",
+      Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8),
+        child: wordLevelRichText(art),
       ),
       const Divider(),
     ];
@@ -322,19 +380,16 @@ class ArticlePageState extends State<ArticlePage> {
         ],
       ));
       children.add(const SizedBox(height: 10));
-      children.add(Expanded(child: buildWords(wordInfos)));
+      children.add(Expanded(
+          child: Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8),
+              child: buildWords(wordInfos))));
     }
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
     );
 
-    return Scaffold(
-      appBar: appBar,
-      body: Padding(
-        padding: const EdgeInsets.all(8),
-        child: body,
-      ),
-    );
+    return Scaffold(appBar: appBar, body: body);
   }
 }
