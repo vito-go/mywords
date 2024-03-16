@@ -193,7 +193,8 @@ class ArticlePageState extends State<ArticlePage> {
       if (!showSentence) {
         continue;
       }
-      items.add(highlightText(info.sentence.join('\n\n'), [info.text],
+      // 前面带的空格是为了避免中间行单词粘在一起
+      items.add(highlightTextSplitBySpace(context,info.sentence.join(' \n\n'), [info.text],
           contextMenuBuilder:
               (BuildContext context, EditableTextState editableTextState) {
         return contextMenuBuilder(context, editableTextState);
