@@ -7,6 +7,7 @@ enum GlobalEventType {
   syncData,
   updateKnownWord,
   updateArticleList,
+  articleListScrollToTop,
 }
 
 void addToGlobalEvent(GlobalEvent event) {
