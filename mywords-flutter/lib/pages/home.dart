@@ -11,7 +11,7 @@ class Home extends StatefulWidget {
   @override
   State<Home> createState() => _State();
 }
-
+const appVersion="1.0.1";
 class _State extends State<Home> {
   final PageController _pageController =
       PageController(initialPage: prefs.defaultHomeIndex);
@@ -38,7 +38,6 @@ class _State extends State<Home> {
   ];
 
   void aboutOnTap() async {
-    String version = "1.0.0";
     const applicationName = "mywords";
     if (!context.mounted) return;
     showAboutDialog(
@@ -49,7 +48,7 @@ class _State extends State<Home> {
         child: CircleAvatar(child: Image.asset("logo.png")),
         onTap: () async {},
       ),
-      applicationVersion: "version: $version",
+      applicationVersion: "version: $appVersion",
       applicationLegalese: '© All rights reserved',
       children: [
         const SizedBox(height: 5),
