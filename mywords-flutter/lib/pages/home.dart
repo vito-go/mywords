@@ -38,7 +38,7 @@ class _State extends State<Home> {
   ];
 
   void aboutOnTap() async {
-    String version = "0.0.1";
+    String version = "1.0.0";
     const applicationName = "mywords";
     if (context.mounted) {
       showAboutDialog(
