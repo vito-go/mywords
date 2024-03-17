@@ -126,8 +126,8 @@ class _State extends State<Home> {
         onTap: (int i) {
           if (idx == i && i == 0) {
             // 滚动置顶
-            addToGlobalEvent(
-                GlobalEvent(eventType: GlobalEventType.articleListScrollToTop));
+            addToGlobalEvent(GlobalEvent(
+                eventType: GlobalEventType.articleListScrollToTop, param: 1));
           }
           if (idx == i) return;
           _pageController.jumpToPage(i);

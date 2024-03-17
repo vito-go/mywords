@@ -270,7 +270,7 @@ class _State extends State<DictDatabase> {
     );
     return Scaffold(
       appBar: appBar,
-      body: Padding(padding: const EdgeInsets.all(10), child: body),
+      body: body,
     );
   }
 }

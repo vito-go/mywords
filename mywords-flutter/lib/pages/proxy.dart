@@ -199,7 +199,7 @@ class _State extends State<NetProxy> {
     );
     return Scaffold(
       appBar: appBar,
-      body: Padding(padding: const EdgeInsets.all(10), child: body),
+      body: body,
     );
   }
 }

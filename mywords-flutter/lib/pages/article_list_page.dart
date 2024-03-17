@@ -30,6 +30,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     super.dispose();
     controller.dispose();
     focus.dispose();
+    valueNotifier.dispose();
     globalEventSubscription?.cancel();
     valueNotifierChart.dispose();
   }
@@ -156,8 +157,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   Widget get todaySubtitle {
     final style = prefs.isDark
-        ? TextStyle(color: Colors.orange.shade300,fontWeight: FontWeight.bold)
-        : TextStyle(color: Theme.of(context).primaryColor,fontWeight: FontWeight.bold);
+        ? TextStyle(color: Colors.orange.shade300, fontWeight: FontWeight.bold)
+        : TextStyle(
+            color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold);
     return RichText(
         text: TextSpan(
             text: "1级: ",
@@ -225,16 +227,13 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
             }
             return const SizedBox(height: 5);
           }),
-      Expanded(
+      const Expanded(
           child: ArticleListView(
-        refresh: () {
-          myPrint("刷新图标数据");
-          valueNotifierChart.value = UniqueKey();
-        },
         getFileInfos: showFileInfoList,
         toEndSlide: ToEndSlide.archive,
         leftLabel: '归档',
         leftIconData: Icons.archive,
+        pageNo: 1,
       )),
     ];
 
