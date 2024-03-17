@@ -16,17 +16,17 @@ enum ToEndSlide { archive, unarchive }
 class ArticleListView extends StatefulWidget {
   const ArticleListView({
     super.key,
-    this.refresh,
     required this.getFileInfos,
     required this.toEndSlide,
     required this.leftLabel,
     required this.leftIconData,
+    required this.pageNo,
   });
 
-  final VoidCallback? refresh;
   final String leftLabel;
   final IconData leftIconData;
   final ToEndSlide toEndSlide;
+  final int pageNo; // 页码，用来做监听事件区分，1, 2, 3
 
   final RespData<List<FileInfo>> Function() getFileInfos;
 
@@ -140,9 +140,7 @@ class _State extends State<ArticleListView> {
               ),
               onTap: () {
                 pushTo(context, ArticlePage(fileName: item.fileName))
-                    .then((value) {
-                  if (widget.refresh != null) widget.refresh!();
-                });
+                    .then((value) {});
               },
               minLeadingWidth: 0,
               leading:
@@ -187,7 +185,6 @@ class _State extends State<ArticleListView> {
           await initFileInfos();
           if (!context.mounted) return;
           myToast(context, "Successfully!");
-          if (widget.refresh != null) widget.refresh!();
         });
   }
 
@@ -237,10 +234,13 @@ class _State extends State<ArticleListView> {
         initFileInfos();
         break;
       case GlobalEventType.updateKnownWord:
+
+        break;
       case GlobalEventType.articleListScrollToTop:
-        if (fileInfos.isNotEmpty) {
+        if (widget.pageNo == event.param && fileInfos.isNotEmpty) {
           controller.animateTo(0,
-              duration: const Duration(milliseconds: 150), curve: Curves.linear);
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.linear);
         }
     }
   }

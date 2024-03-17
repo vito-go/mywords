@@ -80,7 +80,8 @@ class ArticlePageState extends State<ArticlePage> {
       article = respData.data!;
       levelCountMap = _levelDistribute();
       if (!context.mounted) return;
-      myToast(context, "重新从本地文件解析成功！");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       setState(() {});
     });
   }
@@ -346,12 +347,12 @@ class ArticlePageState extends State<ArticlePage> {
       children.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          const Tooltip(
-            showDuration: Duration(seconds: 15),
+            Tooltip(
+            showDuration: const Duration(seconds: 30),
             message:
-                "说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤单词。",
+                "解析器版本: ${parseVersion()}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
             triggerMode: TooltipTriggerMode.tap,
-            child: Icon(Icons.info),
+            child: const Icon(Icons.info),
           ),
           const Text("分级筛选"),
           buildShowLevel(0, label: "0", onTap: () {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -23,6 +22,5 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	os.WriteFile("apple.html", []byte(content), 0644)
-	fmt.Println(content)
 	//select {}
 }
