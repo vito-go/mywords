@@ -271,6 +271,43 @@ class ArticlePageState extends State<ArticlePage> {
     );
   }
 
+  Widget get getHeaderRow => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Tooltip(
+            showDuration: const Duration(seconds: 30),
+            message:
+                "解析器版本: ${parseVersion()}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
+            triggerMode: TooltipTriggerMode.tap,
+            child: const Icon(Icons.info),
+          ),
+          const Text("分级筛选"),
+          buildShowLevel(0, label: "0", onTap: () {
+            showLevel = 0;
+            setState(() {});
+          }, showLevel: showLevel),
+          buildShowLevel(1, label: "1", showLevel: showLevel, onTap: () {
+            showLevel = 1;
+            setState(() {});
+          }),
+          buildShowLevel(2, label: "2", showLevel: showLevel, onTap: () {
+            showLevel = 2;
+            setState(() {});
+          }),
+          buildShowLevel(3, label: "3", showLevel: showLevel, onTap: () {
+            showLevel = 3;
+            setState(() {});
+          }),
+          Switch(
+              value: showSentence,
+              onChanged: (v) {
+                setState(() {
+                  showSentence = v;
+                });
+              })
+        ],
+      );
+
   Widget staticsRichText(int totalCount, int netCount) {
     return RichText(
         text: TextSpan(
@@ -348,46 +385,11 @@ class ArticlePageState extends State<ArticlePage> {
                 HtmlWidget(art.htmlContent, renderMode: RenderMode.listView)),
       )));
     } else {
-      children.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Tooltip(
-            showDuration: const Duration(seconds: 30),
-            message:
-                "解析器版本: ${parseVersion()}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
-            triggerMode: TooltipTriggerMode.tap,
-            child: const Icon(Icons.info),
-          ),
-          const Text("分级筛选"),
-          buildShowLevel(0, label: "0", onTap: () {
-            showLevel = 0;
-            setState(() {});
-          }, showLevel: showLevel),
-          buildShowLevel(1, label: "1", showLevel: showLevel, onTap: () {
-            showLevel = 1;
-            setState(() {});
-          }),
-          buildShowLevel(2, label: "2", showLevel: showLevel, onTap: () {
-            showLevel = 2;
-            setState(() {});
-          }),
-          buildShowLevel(3, label: "3", showLevel: showLevel, onTap: () {
-            showLevel = 3;
-            setState(() {});
-          }),
-          Switch(
-              value: showSentence,
-              onChanged: (v) {
-                setState(() {
-                  showSentence = v;
-                });
-              })
-        ],
-      ));
-      children.add(const SizedBox(height: 10));
+      children.add(getHeaderRow);
+      children.add(const SizedBox(height: 8));
       children.add(Expanded(
           child: Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8),
+              padding: const EdgeInsets.only(left: 16, right: 16),
               child: buildWords(wordInfos))));
     }
     final body = Column(
