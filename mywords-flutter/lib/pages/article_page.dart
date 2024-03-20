@@ -342,12 +342,16 @@ class ArticlePageState extends State<ArticlePage> {
     if (preview) {
       children.add(Expanded(
           child: buildSelectionWordArea(
-              HtmlWidget(art.htmlContent, renderMode: RenderMode.listView))));
+        Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+            child:
+                HtmlWidget(art.htmlContent, renderMode: RenderMode.listView)),
+      )));
     } else {
       children.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-            Tooltip(
+          Tooltip(
             showDuration: const Duration(seconds: 30),
             message:
                 "解析器版本: ${parseVersion()}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
