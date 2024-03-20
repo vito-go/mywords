@@ -8,6 +8,8 @@ clean:
 	rm -rf linux-deb/opt/mywords/*
 	rm -rf android/app/jniLibs/*
 
+build-la:build-apk build-linux
+
 build-apk:
 	- mkdir bin
 	flutter build apk  --target-platform android-arm64
