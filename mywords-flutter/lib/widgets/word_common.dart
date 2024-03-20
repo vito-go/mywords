@@ -111,7 +111,7 @@ Widget buildSelectionWordArea(Widget child) {
       onSelectionChanged: (content) {
         selectedContent = content;
       },
-      child: child);
+      child: Padding(padding: const EdgeInsets.only(left: 10,right: 10,bottom: 10),child: child,));
 }
 
 bool isWordParticular(int element) {
