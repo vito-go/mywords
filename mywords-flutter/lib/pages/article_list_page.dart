@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
@@ -53,19 +54,26 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   List<FileInfo> get fileInfos => showFileInfoList().data ?? [];
 
   void search() async {
+    if (valueNotifier.value) {
+      return;
+    }
     if (controller.text == "") {
       myToast(context, "网址不能为空");
       return;
     }
-    if (valueNotifier.value) {
-      return;
+    int indexStart = controller.text.indexOf("https://");
+    if (indexStart == -1) {
+      indexStart = controller.text.indexOf("http://");
     }
-    final uri = Uri.tryParse(controller.text);
-    if (uri == null) {
-      myToast(context, "not a url");
-      return;
+    if (indexStart == -1) {
+      myToast(context, "网址有误，请检查");
     }
-    final www = controller.text.trim();
+    final String www=controller.text.substring(indexStart).trim();
+
+    myPrint(www);
+    if (www!=controller.text){
+      controller.text=www;
+    }
     final idx = fileInfos.indexWhere((element) => element.sourceUrl == www);
     if (idx != -1) {
       final fileName = fileInfos[idx].fileName;
@@ -73,24 +81,25 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('您已经解析过该网址，是否重新解析？'),
+              title: const Text("提示"),
+              content: const Text('您已经解析过该网址，是否重新解析？'),
               actions: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
+                    TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                           pushTo(context, ArticlePage(fileName: fileName));
                         },
                         child: const Text("查看")),
-                    ElevatedButton(
+                    TextButton(
                         onPressed: () async {
                           Navigator.of(context).pop();
                           computeParse(www);
                         },
                         child: const Text("重新解析")),
-                    ElevatedButton(
+                    TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                         },

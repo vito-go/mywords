@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/funcs.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/line_chart.dart';
 
 class StatisticChart extends StatefulWidget {
@@ -14,10 +15,7 @@ class StatisticChart extends StatefulWidget {
 class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   List<Widget> get myTabs => [
         const Text("每日统计"),
-        const Tooltip(
-          message: "请注意：每日学习的单词可能存在重复，因此您累计学习的数量可能与已知单词总数不一致。",
-          child: Text("累计统计"),
-        )
+        const Text("累计统计"),
       ];
 
   List<Widget> get tableWidgets {
@@ -49,6 +47,15 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
     );
   }
 
+  Widget get toolTipAccumulate {
+    return const Tooltip(
+      showDuration: Duration(seconds: 30),
+      message: "请注意：每日学习的单词可能与往日学习的存在重复，因此您累计学习的数量可能与已知单词总数不一致。",
+      triggerMode: TooltipTriggerMode.tap,
+      child: Icon(Icons.help),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -65,7 +72,9 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
       ),
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       actions: [
-        Padding(padding: const EdgeInsets.only(right: 16), child: toolTipToday)
+        Padding(padding: const EdgeInsets.only(right: 16), child: toolTipToday),
+        Padding(
+            padding: const EdgeInsets.only(right: 20), child: toolTipAccumulate)
       ],
     );
     return DefaultTabController(
