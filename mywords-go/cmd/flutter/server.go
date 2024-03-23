@@ -8,6 +8,7 @@ import (
 	"mywords/mylog"
 	"mywords/server"
 	"mywords/util"
+	"net"
 	"strings"
 )
 
@@ -185,6 +186,15 @@ func ArticleFromGobFile(fileName *C.char) *C.char {
 	return CharOk(art)
 }
 
+//export GetFileNameBySourceUrl
+func GetFileNameBySourceUrl(sourceUrl *C.char) *C.char {
+	fileName, ok := serverGlobal.GetFileNameBySourceUrl(C.GoString(sourceUrl))
+	if !ok {
+		return CharOk("")
+	}
+	return CharOk(fileName)
+}
+
 //export DeleteGobFile
 func DeleteGobFile(fileName *C.char) *C.char {
 	err := serverGlobal.DeleteGobFile(C.GoString(fileName))
@@ -245,7 +255,17 @@ func RestoreFromShareServer(ipC *C.char, port int, code int64, syncKnownWords bo
 func QueryWordLevel(wordC *C.char) *C.char {
 	l, _ := serverGlobal.QueryWordLevel(C.GoString(wordC))
 	return CharOk(l)
+}
 
+//export QueryWordsLevel
+func QueryWordsLevel(wordC *C.char) *C.char {
+	var words []string
+	err := json.Unmarshal([]byte(C.GoString(wordC)), &words)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	l := serverGlobal.QueryWordsLevel(words...)
+	return CharOk(l)
 }
 
 //export LevelDistribute
@@ -272,4 +292,27 @@ func FixMyKnownWords() *C.char {
 		return CharErr(err.Error())
 	}
 	return CharSuccess()
+}
+
+//export GetIPv4s
+func GetIPv4s() *C.char {
+	addrs, _ := net.InterfaceAddrs()
+	var ips []string // not include loopback address
+	for _, addr := range addrs {
+		ip, _, err := net.ParseCIDR(addr.String())
+		if err != nil {
+			continue
+
+		}
+		if ip.IsLoopback() {
+			continue
+		}
+		// ipv4 only
+		if ip.To4() == nil {
+			continue
+		}
+		ips = append(ips, ip.String())
+
+	}
+	return CharOk(ips)
 }

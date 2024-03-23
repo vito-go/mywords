@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
-
-import 'package:ffi/ffi.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:io';
-
-import '../libso/log.dart';
-
 
 
 class StreamLog extends StatefulWidget {
@@ -50,7 +47,7 @@ class StreamLogState extends State<StreamLog> {
     if (xLogNonce != logNonce) {
       req.response.statusCode = 403;
       req.response.close();
-      println("ERROR request log. X-Log-Nonce error: $xLogNonce");
+      handler.println("ERROR request log. X-Log-Nonce error: $xLogNonce");
       return;
     }
     if (!open) {
@@ -80,11 +77,8 @@ class StreamLogState extends State<StreamLog> {
       return sec.nextInt(256);
     }));
     logUrl = "http://127.0.0.1:${value.port}";
-    final logUrlC = logUrl.toNativeUtf8();
-    final logNonceC = logNonce.toNativeUtf8();
     debugPrint("设置http log url: $logUrl, logNonce: $logNonce");
-    setLogUrl(logUrlC, logNonceC, false);
-    malloc.free(logUrlC);
+    handler.setLogUrl(logUrl, logNonce);
     httpServer = value;
     setState(() {});
   }

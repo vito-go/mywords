@@ -1,13 +1,9 @@
-import 'dart:convert';
-
-import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import '../libso/funcs.dart';
-import '../libso/resp_data.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import '../util/util.dart';
-
 
 class NetProxy extends StatefulWidget {
   const NetProxy({super.key});
@@ -123,32 +119,19 @@ class _State extends State<NetProxy> {
     );
   }
 
-  delNetProxy() {
-    const netProxy = "";
-    final netProxyC = netProxy.toNativeUtf8();
-    final resultC = setProxyUrl(netProxyC);
-    malloc.free(netProxyC);
-    final RespData respData = RespData.fromJson(
-        jsonDecode(resultC.toDartString()) ?? {}, (json) => null);
-    malloc.free(resultC);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
+  delNetProxy() async {
+    await handler.setProxyUrl("");
     controllerIP.text = '';
     controllerPort.text = '';
     prefs.netProxy = '';
     myToast(context, "删除代理");
   }
 
-  setNetProxy() {
-    final netProxy = "$scheme://${controllerIP.text.trim()}:${controllerPort.text}";
-    final netProxyC = netProxy.toNativeUtf8();
-    final resultC = setProxyUrl(netProxyC);
-    malloc.free(netProxyC);
-    final RespData respData = RespData.fromJson(
-        jsonDecode(resultC.toDartString()) ?? {}, (json) => null);
-    malloc.free(resultC);
+  setNetProxy() async {
+    final netProxy =
+        "$scheme://${controllerIP.text.trim()}:${controllerPort.text}";
+    final respData = await handler.setProxyUrl(netProxy);
+
     if (respData.code != 0) {
       myToast(context, respData.message);
       return;

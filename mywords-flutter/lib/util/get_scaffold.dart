@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
- bool platFormIsMobile() {
+
+bool platFormIsMobile() {
   if (kIsWeb) {
     return false;
   }
@@ -12,12 +13,13 @@ import 'package:flutter/material.dart';
   return false;
 }
 
-Widget getScaffold(BuildContext context,
-    {required Widget body,
-    PreferredSizeWidget? appBar,
-    Widget? drawer,
-    double noMobileWidthRate = 0.35,
-     }) {
+Widget getScaffold(
+  BuildContext context, {
+  required Widget body,
+  PreferredSizeWidget? appBar,
+  Widget? drawer,
+  double noMobileWidthRate = 0.35,
+}) {
   if (platFormIsMobile()) {
     return Scaffold(
       body: body,

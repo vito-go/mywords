@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/dict.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import '../libso/resp_data.dart';
 import '../util/path.dart';
 import '../util/util.dart';
 
@@ -42,7 +44,6 @@ Future<void> blockShowDialog(BuildContext context, Future<void> future) {
         return FutureBuilder(
             future: future,
             builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-              myPrint("snapShot: ${snapshot.data}");
               //snapshot就是_calculation在时间轴上执行过程的状态快照
               switch (snapshot.connectionState) {
                 case ConnectionState.none:
@@ -67,7 +68,7 @@ Future<void> blockShowDialog(BuildContext context, Future<void> future) {
 class _State extends State<DictDatabase> {
   List<_DictDirName> dictDirNames = [];
 
-  String get defaultDictBasePath => getDefaultDict().data ?? '';
+  String defaultDictBasePath = '';
 
   Widget buildDictDirNames() {
     return ListView.separated(
@@ -80,9 +81,14 @@ class _State extends State<DictDatabase> {
                 ? null
                 : () {
                     blockShowDialog(context, () async {
-                      await compute(
-                          (message) => setDefaultDict(message), s.basePath);
+                      final respData = await compute(
+                          (message) => computeSetDefaultDict(message),
+                          s.basePath);
+                      if (respData.code != 0) {
+                        return;
+                      }
                       initDictDirNames();
+                      defaultDictBasePath = s.basePath;
                       setState(() {});
                     }());
                     return;
@@ -94,8 +100,8 @@ class _State extends State<DictDatabase> {
                     dictDirNames.removeAt(index);
                   });
                   final t = Timer(const Duration(milliseconds: 4000), () async {
-                    final respData = delDict(s.basePath);
-                    if (respData.code!=0){
+                    final respData = await handler.delDict(s.basePath);
+                    if (respData.code != 0) {
                       myToast(context, respData.message);
                     }
                   });
@@ -122,8 +128,8 @@ class _State extends State<DictDatabase> {
         itemCount: dictDirNames.length);
   }
 
-  void initDictDirNames() {
-    final respData = dictList();
+  void initDictDirNames() async {
+    final respData = await handler.dictList();
     final data = respData.data ?? [];
     dictDirNames.clear();
     for (Map<String, dynamic> ele in data) {
@@ -131,10 +137,17 @@ class _State extends State<DictDatabase> {
     }
   }
 
+  void initDefaultDictBasePath() async {
+    final value = await handler.getDefaultDict();
+    defaultDictBasePath = value.data ?? "";
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     initDictDirNames();
+    initDefaultDictBasePath();
   }
 
   @override
@@ -142,25 +155,16 @@ class _State extends State<DictDatabase> {
     super.dispose();
   }
 
-
   bool isSyncing = false;
   bool selectZipFileDone = false;
-
-  Widget syncShareDataBuild() {
-    return ElevatedButton.icon(
-      onPressed: zipFilePath == "" || isSyncing ? null : _addDict,
-      icon: const Icon(Icons.menu_book_outlined),
-      label: const Text("开始解析"),
-    );
-  }
 
   Widget systemDictButton() {
     return ElevatedButton.icon(
       onPressed: defaultDictBasePath == ""
           ? null
-          : () {
-              setDefaultDict("");
-              setState(() {});
+          : () async {
+              await handler.setDefaultDict("");
+              initDefaultDictBasePath();
             },
       icon: const Icon(Icons.settings),
       label: const Text("设置默认"),
@@ -175,50 +179,52 @@ class _State extends State<DictDatabase> {
         initialDirectory: getDefaultDownloadDir(),
         allowMultiple: false,
         type: FileType.custom,
+        withReadStream: kIsWeb,
         allowedExtensions: ['zip']);
     setState(() {
       selectZipFileDone = false;
     });
+
     if (result == null) {
       return;
     }
-
     final files = result.files;
     if (files.isEmpty) {
       return;
     }
     final file = files[0];
-    if (file.path == null) {
-      return;
+    if (kIsWeb) {
+      if (file.readStream == null) return;
+    } else {
+      if (file.path == null) return;
     }
     setState(() {
-      zipFilePath = file.path!;
-      myPrint(zipFilePath);
-    });
-    return;
-  }
-
-  void _addDict() async {
-    setState(() {
+      zipFilePath = file.name;
       isSyncing = true;
     });
-    final respData = await compute((message) => addDict(message), zipFilePath);
+    final RespData<void> respData;
+    if (kIsWeb) {
+      respData = await compute((message) => computeAddDictWithFile(message),
+          {"bytes": file.readStream!, "name": file.name});
+    } else {
+      respData =
+          await compute((message) => computeAddDict(message), file.path!);
+    }
     setState(() {
       isSyncing = false;
     });
     if (respData.code != 0) {
-      if (!context.mounted)return;
+      if (!context.mounted) return;
       myToast(context, "解析失败!\n${respData.message}");
       return;
     }
-    if (!context.mounted)return;
+    if (!context.mounted) return;
     myToast(context, "解析成功");
     initDictDirNames();
     zipFilePath = '';
     setState(() {});
   }
 
-  bool syncToadyWordCount = prefs.syncToadyWordCount;
   String zipFilePath = "";
 
   @override
@@ -240,19 +246,14 @@ class _State extends State<DictDatabase> {
           color: Theme.of(context).primaryColor,
         ),
       ),
-      ListTile(
-        trailing: syncShareDataBuild(),
-        title: isSyncing ? const LinearProgressIndicator() : null,
-        leading: const Tooltip(
-          message: "加载词典数据库，zip文件格式",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info),
-        ),
+      SizedBox(
+        height: 5,
+        child: isSyncing ? const LinearProgressIndicator() : const Text(""),
       ),
       ListTile(
         trailing: systemDictButton(),
         title: const Text("内置词典(简洁版本)"),
-        subtitle: Text(defaultDictBasePath == "" ? "默认" : ""),
+        subtitle: Text(defaultDictBasePath == "" ? "(默认)" : ""),
         leading: const Tooltip(
           message: "内置词典",
           triggerMode: TooltipTriggerMode.tap,
@@ -273,4 +274,39 @@ class _State extends State<DictDatabase> {
       body: body,
     );
   }
+}
+
+Future<RespData<void>> computeAddDict(String dataDir) async {
+  return handler.addDict(dataDir);
+}
+
+Future<RespData<void>> computeAddDictWithFile(
+    Map<String, dynamic> param) async {
+  String name = param['name']!;
+  Stream<List<int>> bytes = param['bytes']!;
+  final dio = Dio();
+  const www = "http://127.0.0.1:18960/addDictWithFile";
+
+  try {
+    final Response<String> response = await dio.post(
+      www,
+      data: bytes,
+      queryParameters: {"name": name},
+      options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (_) {
+            return true;
+          }),
+    );
+    if (response.statusCode != 200) {
+      return RespData.err(response.data ?? "");
+    }
+    return RespData.dataOK(null);
+  } catch (e) {
+    return RespData.err(e.toString());
+  }
+}
+
+Future<RespData<void>> computeSetDefaultDict(String basePath) async {
+  return handler.setDefaultDict(basePath);
 }

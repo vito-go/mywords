@@ -1,16 +1,17 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/pages/home.dart';
 import 'package:mywords/widgets/restart_app.dart';
 
 import 'common/prefs/prefs.dart';
-import 'libso/init.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
-  await initLib();
+  await handler.initLib();
   runApp(const RestartApp(child: MyApp()));
 }
 

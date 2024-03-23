@@ -1,47 +1,48 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/widgets/word_default_meaning.dart';
 import 'package:mywords/widgets/word_html.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../libso/dict.dart';
-import '../libso/funcs.dart';
 import 'dart:io';
 
-void queryWordInDict(BuildContext context, String word) async {
-  if (Platform.isAndroid || Platform.isIOS) {
-    String htmlBasePath = finalHtmlBasePathWithOutHtml(word);
-    if (htmlBasePath == '') {
-      word = dictWordQueryLink(word);
-      htmlBasePath = finalHtmlBasePathWithOutHtml(word);
-    }
-    if (htmlBasePath == '') {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
-        duration: const Duration(milliseconds: 2000),
-      ));
-      return;
-    }
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        enableDrag: false,
-        builder: (BuildContext context) {
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.75),
-            child: WordWebView(word: word),
-          );
-        });
+void _queryWordInDictWithMobile(BuildContext context, String word) async {
+  String htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
+  if (htmlBasePath == '') {
+    word = await handler.dictWordQueryLink(word);
+    htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
+  }
+  if (htmlBasePath == '') {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
+      duration: const Duration(milliseconds: 2000),
+    ));
     return;
   }
-  String url = getUrlByWord(word);
+  showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: false,
+      builder: (BuildContext context) {
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75),
+          child: WordWebView(word: word),
+        );
+      });
+  return;
+}
+
+void _queryWordInDictNotMobile(BuildContext context, String word) async {
+  String url = await handler.getUrlByWord(word);
   if (url.isEmpty) {
-    word = dictWordQueryLink(word);
-    url = finalHtmlBasePathWithOutHtml(word);
+    word = await handler.dictWordQueryLink(word);
+    url = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (url.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -53,11 +54,25 @@ void queryWordInDict(BuildContext context, String word) async {
   launchUrlString(url);
 }
 
-void showWordWithDefault(BuildContext context, String word) {
-  String meaning = dictWordQuery(word);
+void queryWordInDict(BuildContext context, String word) async {
+  if (kIsWeb) {
+    _queryWordInDictNotMobile(context, word);
+    return;
+  }
+  if (Platform.isAndroid || Platform.isIOS) {
+    _queryWordInDictWithMobile(context, word);
+    return;
+  }
+
+  // Desktop;
+  _queryWordInDictNotMobile(context, word);
+}
+
+void showWordWithDefault(BuildContext context, String word) async {
+  String meaning = await handler.dictWordQuery(word);
   if (meaning == "") {
-    word = dictWordQueryLink(word);
-    meaning = dictWordQuery(word);
+    word = await handler.dictWordQueryLink(word);
+    meaning = await handler.dictWordQuery(word);
   }
   if (meaning == '') {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -79,8 +94,8 @@ void showWordWithDefault(BuildContext context, String word) {
       });
 }
 
-void showWord(BuildContext context, String word) {
-  final defaultDict = getDefaultDict().data ?? '';
+void showWord(BuildContext context, String word) async {
+  final defaultDict = (await handler.getDefaultDict()).data ?? '';
   if (defaultDict == '') {
     return showWordWithDefault(context, word);
   }

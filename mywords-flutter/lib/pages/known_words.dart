@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/dict.dart';
-import 'package:mywords/util/util.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
 import 'package:mywords/widgets/word_list.dart';
 import '../common/global_event.dart';
-import '../libso/funcs.dart';
 
 class KnownWords extends StatefulWidget {
   const KnownWords({super.key});
@@ -23,10 +23,16 @@ class _State extends State<KnownWords> {
   Map<int, List<String>> levelWordsMap = {};
   StreamSubscription<GlobalEvent>? globalEventSubscription;
 
+  void setAllKnownWordMap() async {
+    final value = await handler.allKnownWordMap();
+    levelWordsMap = value.data ?? {};
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
-    levelWordsMap = allKnownWordMap().data ?? {};
+    setAllKnownWordMap();
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
@@ -56,19 +62,6 @@ class _State extends State<KnownWords> {
 
   List<Widget> actions() {
     return [];
-    return [
-      IconButton(
-          onPressed: () {
-            final respData = fixMyKnownWords();
-            if (respData.code != 0) {
-              myToast(context, respData.message);
-              return;
-            }
-            myToast(context, "Successfully");
-            setState(() {});
-          },
-          icon: const Icon(Icons.refresh))
-    ];
   }
 
   @override
@@ -93,7 +86,9 @@ class _State extends State<KnownWords> {
         ),
         const Divider(),
         Expanded(
-            child: WordList(showLevel: showLevel, levelWordsMap: levelWordsMap))
+            child: WordList(
+                showLevel: showLevel,
+                getLevelWordsMap: handler.allKnownWordMap))
       ],
     );
 

@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/widgets/word_list.dart';
 import '../common/global_event.dart';
-import '../libso/funcs.dart';
+
 import '../util/navigator.dart';
 
 class ToadyKnownWords extends StatefulWidget {
@@ -21,12 +23,19 @@ class _State extends State<ToadyKnownWords> {
   int showLevel = prefs.showWordLevel;
 
   Map<int, List<String>> levelWordsMap = {};
+
   StreamSubscription<GlobalEvent>? globalEventSubscription;
+
+  void setLevelWordsMap() async {
+    final value = await handler.todayKnownWordMap();
+    levelWordsMap = value.data ?? {};
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
-    levelWordsMap = todayKnownWordMap().data ?? {};
+    setLevelWordsMap();
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
@@ -44,6 +53,7 @@ class _State extends State<ToadyKnownWords> {
 
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.updateKnownWord) {
+      setLevelWordsMap();
       setState(() {});
     }
   }
@@ -86,7 +96,9 @@ class _State extends State<ToadyKnownWords> {
         ),
         const Divider(),
         Expanded(
-            child: WordList(showLevel: showLevel, levelWordsMap: levelWordsMap))
+            child: WordList(
+                showLevel: showLevel,
+                getLevelWordsMap: handler.todayKnownWordMap))
       ],
     );
 

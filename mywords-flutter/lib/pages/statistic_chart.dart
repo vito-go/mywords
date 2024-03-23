@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mywords/libso/funcs.dart';
-import 'package:mywords/util/util.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
 import 'package:mywords/widgets/line_chart.dart';
 
 class StatisticChart extends StatefulWidget {
@@ -18,21 +19,28 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
         const Text("累计统计"),
       ];
 
-  List<Widget> get tableWidgets {
-    return [
-      LineChartSample(chartLineData: getChartData().data!, isCurved: true),
-      LineChartSample(
-          chartLineData: getChartDataAccumulate().data!, isCurved: false),
-    ];
+  ChartLineData? todayData;
+  ChartLineData? accumulateData;
+  Map<String, dynamic> todayCountMap = {};
+
+  void initData() async {
+    todayData = (await handler.getChartData()).data!;
+    accumulateData = (await handler.getChartDataAccumulate()).data!;
+    todayCountMap = (await handler.getToadyChartDateLevelCountMap()).data ?? {};
+    setState(() {});
   }
 
-  Map<String, dynamic> get todayCountMap {
-    final respData = getToadyChartDateLevelCountMap();
-    if (respData.code != 0) {
-      return {};
+  List<Widget> get tableWidgets {
+    if (todayData == null || accumulateData == null) {
+      return [
+        const Center(child:  CircularProgressIndicator()),
+        const Center(child:  CircularProgressIndicator()),
+      ];
     }
-    final data = respData.data ?? {};
-    return data;
+    return [
+      LineChartSample(chartLineData: todayData!, isCurved: true),
+      LineChartSample(chartLineData: accumulateData!, isCurved: false),
+    ];
   }
 
   Widget get toolTipToday {
@@ -59,6 +67,7 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    initData();
   }
 
   @override

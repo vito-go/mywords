@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global_event.dart';
-import 'package:mywords/libso/funcs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 import 'package:mywords/widgets/article_list.dart';
 
@@ -16,6 +17,7 @@ class ArticleArchivedPage extends StatefulWidget {
 class _State extends State<ArticleArchivedPage> {
   @override
   Widget build(BuildContext context) {
+    handler.getArchivedFileInfoList();
     return Scaffold(
         appBar: AppBar(
           title: const Text("已归档文章"),
@@ -31,8 +33,8 @@ class _State extends State<ArticleArchivedPage> {
                 icon: const Icon(Icons.vertical_align_top_outlined))
           ],
         ),
-        body: const ArticleListView(
-          getFileInfos: getArchivedFileInfoList,
+        body: ArticleListView(
+          getFileInfos: handler.getArchivedFileInfoList,
           toEndSlide: ToEndSlide.unarchive,
           leftLabel: '恢复',
           leftIconData: Icons.restore,

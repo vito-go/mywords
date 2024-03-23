@@ -1,17 +1,30 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/widgets/word_common.dart';
 
 import '../common/global_event.dart';
-import '../libso/funcs.dart';
+import '../libso/resp_data.dart';
 import '../util/util.dart';
+
+class _WordLevel {
+  String word;
+  int level;
+
+  _WordLevel(this.word, this.level);
+}
 
 class WordList extends StatefulWidget {
   const WordList(
-      {super.key, required this.showLevel, required this.levelWordsMap});
+      {super.key, required this.showLevel, required this.getLevelWordsMap});
 
   final int showLevel;
-  final Map<int, List<String>> levelWordsMap; // level: [word1,word2]
+
+  final FutureOr<RespData<Map<int, List<String>>>> Function()
+      getLevelWordsMap; // level: [word1,word2]
 
   @override
   State<StatefulWidget> createState() {
@@ -20,59 +33,100 @@ class WordList extends StatefulWidget {
 }
 
 class _State extends State<WordList> {
-  late Map<int, List<String>> levelWordsMap =
-      widget.levelWordsMap; // level: [word1,word2]
+  late final FutureOr<RespData<Map<int, List<String>>>> Function()
+      getLevelWordsMap = widget.getLevelWordsMap; // level: [word1,word2]
+
+  Map<int, List<String>> levelWordsMap = {}; // level: [word1,word2]
   late int showLevel = widget.showLevel;
 
   @override
   void initState() {
     super.initState();
+    _updateLevelWordsMap();
   }
 
-  _updateKnownWordsSetState(int level, String word) {
-    _updateKnownWords(context, level, word);
+  _updateKnownWordsSetState(int level, String word) async {
+    final respData = await handler.updateKnownWords(level, word);
+    if (respData.code != 0) {
+      myToast(context, respData.message);
+      return;
+    }
+    levelWordsMap[1]?.remove(word);
+    levelWordsMap[2]?.remove(word);
+    levelWordsMap[3]?.remove(word);
+    levelWordsMap[level]?.add(word);
+    myPrint(levelWordsMap);
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
     setState(() {});
   }
 
-  Widget get listViewWord {
-    List<Widget> items = [];
-    List<String> allWords = [];
-    allWords.addAll(levelWordsMap[1] ?? []);
-    allWords.addAll(levelWordsMap[2] ?? []);
-    allWords.addAll(levelWordsMap[3] ?? []);
+  void _updateLevelWordsMap() async {
+    final value = await getLevelWordsMap();
+    levelWordsMap = value.data ?? {};
+    myPrint(levelWordsMap.length);
+    setState(() {});
+  }
 
-    for (int i = 0; i < allWords.length; i++) {
-      final word = allWords[i];
-      final int realLevel = queryWordLevel(word);
-      if (showLevel != 0 && showLevel != realLevel) {
-        continue;
-      }
-      List<Widget> children = [
-        Text("[${i + 1}]"),
-        TextButton(
-            onPressed: () {
-              showWord(context, word);
-            },
-            child: Text(
-              word,
-              maxLines: 2,
-              style: const TextStyle(fontSize: 16),
-            )),
-        const Expanded(child: Text('')),
-        buildInkWell(word, 0, realLevel, _updateKnownWordsSetState),
-        const SizedBox(width: 6),
-        buildInkWell(word, 1, realLevel, _updateKnownWordsSetState),
-        const SizedBox(width: 6),
-        buildInkWell(word, 2, realLevel, _updateKnownWordsSetState),
-        const SizedBox(width: 6),
-        buildInkWell(word, 3, realLevel, _updateKnownWordsSetState),
-        const SizedBox(width: 16),
-      ];
-      items.add(Row(children: children));
+  Widget buildWordLevelRow(int idx, String word, int realLevel) {
+    List<Widget> children = [
+      Text("[${idx + 1}]"),
+      TextButton(
+          onPressed: () {
+            showWord(context, word);
+          },
+          child: Text(
+            word,
+            maxLines: 2,
+            style: const TextStyle(fontSize: 16),
+          )),
+      const Expanded(child: Text('')),
+      buildInkWell(word, 0, realLevel, _updateKnownWordsSetState),
+      const SizedBox(width: 6),
+      buildInkWell(word, 1, realLevel, _updateKnownWordsSetState),
+      const SizedBox(width: 6),
+      buildInkWell(word, 2, realLevel, _updateKnownWordsSetState),
+      const SizedBox(width: 6),
+      buildInkWell(word, 3, realLevel, _updateKnownWordsSetState),
+      const SizedBox(width: 16),
+    ];
+    return Row(children: children);
+  }
+
+  Widget get listViewBuild {
+    final List<_WordLevel> items = [];
+    switch (showLevel) {
+      case 0:
+        final l1 = levelWordsMap[1] ?? [];
+        items.addAll(List<_WordLevel>.generate(
+            l1.length, (index) => _WordLevel(l1[index], 1)));
+        final l2 = levelWordsMap[2] ?? [];
+        items.addAll(List<_WordLevel>.generate(
+            l2.length, (index) => _WordLevel(l2[index], 2)));
+        final l3 = levelWordsMap[3] ?? [];
+        items.addAll(List<_WordLevel>.generate(
+            l3.length, (index) => _WordLevel(l3[index], 3)));
+        break;
+      case 1:
+        final l1 = levelWordsMap[1] ?? [];
+        items.addAll(List<_WordLevel>.generate(
+            l1.length, (index) => _WordLevel(l1[index], 1)));
+        break;
+      case 2:
+        final l2 = levelWordsMap[2] ?? [];
+        items.addAll(List<_WordLevel>.generate(
+            l2.length, (index) => _WordLevel(l2[index], 2)));
+        break;
+      case 3:
+        final l3 = levelWordsMap[3] ?? [];
+        items.addAll(List<_WordLevel>.generate(
+            l3.length, (index) => _WordLevel(l3[index], 3)));
+        break;
     }
-
     return ListView.separated(
-        itemBuilder: (BuildContext context, int index) => items[index],
+        itemBuilder: (BuildContext context, int index) {
+          return buildWordLevelRow(
+              index, items[index].word, items[index].level);
+        },
         separatorBuilder: (BuildContext context, int index) => const Divider(),
         itemCount: items.length);
   }
@@ -109,40 +163,10 @@ class _State extends State<WordList> {
             ],
           ),
         ),
-        Expanded(child: listViewWord),
+        Expanded(child: listViewBuild),
       ],
     );
   }
-}
-
-Widget contextMenuBuilder(
-    BuildContext context, EditableTextState editableTextState) {
-  final textEditingValue = editableTextState.textEditingValue;
-  final TextSelection selection = textEditingValue.selection;
-  final buttonItems = editableTextState.contextMenuButtonItems;
-  if (!selection.isCollapsed) {
-    final selectText = selection.textInside(textEditingValue.text).trim();
-    if (!selectText.contains(" ")) {
-      buttonItems.add(ContextMenuButtonItem(
-          onPressed: () {
-            showWord(context, selectText);
-          },
-          label: "Lookup"));
-    }
-  }
-  return AdaptiveTextSelectionToolbar.buttonItems(
-    buttonItems: buttonItems,
-    anchors: editableTextState.contextMenuAnchors,
-  );
-}
-
-void _updateKnownWords(BuildContext context, int level, String word) {
-  final respData = updateKnownWords(level, word);
-  if (respData.code != 0) {
-    myToast(context, respData.message);
-    return;
-  }
-  addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
 }
 
 InkWell buildInkWell(String word, int showLevel, int realLevel,

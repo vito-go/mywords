@@ -1,9 +1,11 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global_event.dart';
-import '../libso/funcs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
+import '../libso/resp_data.dart';
 import '../util/path.dart';
 import '../util/util.dart';
 
@@ -59,7 +61,7 @@ class _State extends State<ParseLocalFile> {
     });
     for (final p in filePaths) {
       final respData =
-          await compute((message) => parseAndSaveArticleFromFile(message), p);
+          await compute((message) => computeParseAndSaveArticleFromFile(message), p);
       if (respData.code == 0) {
         filePathMap[p] = '';
       } else {
@@ -72,8 +74,7 @@ class _State extends State<ParseLocalFile> {
     });
 
     myToast(context, "解析成功!");
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
     return;
   }
 
@@ -89,7 +90,7 @@ class _State extends State<ParseLocalFile> {
           final errMsg = filePathMap[p];
           Widget leading;
           if (errMsg == null) {
-            leading = Icon(Icons.access_time_rounded, color: Colors.amber);
+            leading = const Icon(Icons.access_time_rounded, color: Colors.amber);
           } else if (errMsg == '') {
             leading = const Icon(
               Icons.done_all,
@@ -125,14 +126,13 @@ class _State extends State<ParseLocalFile> {
   }
 
   Future<void> computeParse(String path) async {
-    final respData = await compute(parseAndSaveArticleFromFile, path);
+    final respData = await compute(computeParseAndSaveArticleFromFile, path);
     if (respData.code != 0) {
       if (!context.mounted) return;
       myToast(context, respData.message);
       return;
     }
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   @override
@@ -173,4 +173,8 @@ class _State extends State<ParseLocalFile> {
       body: col,
     );
   }
+}
+
+Future<RespData<void>> computeParseAndSaveArticleFromFile(String path) async {
+  return handler.parseAndSaveArticleFromFile(path);
 }

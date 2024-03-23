@@ -1,9 +1,11 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/libso/dict.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_header_row.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import 'package:mywords/libso/handler_for_native.dart'
+if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
@@ -76,8 +78,8 @@ class _State extends State<WordWebView> {
     );
   }
 
-  void _loadHtmlStringByWord(String word) {
-    final htmlContent = getHTMLRenderContentByWord(word).data ?? '';
+  void _loadHtmlStringByWord(String word)async {
+    final htmlContent = (await handler.getHTMLRenderContentByWord(word)).data ?? '';
     if (htmlContent == "") return;
     controller.loadHtmlString(htmlContent, baseUrl: word);
   }

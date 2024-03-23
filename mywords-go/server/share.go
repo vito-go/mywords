@@ -88,7 +88,7 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 	return nil
 }
 
-// RestoreFromShareServer . restore from a zip file
+// RestoreFromShareServer . restore from a zip file,tempDir can be empty
 func (s *Server) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount, syncByRemoteArchived bool) error {
 	httpUrl := fmt.Sprintf("http://%s:%d/%d", ip, port, code)
 	// save to temp dir

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
-import 'dart:io';
+
+import 'get_scaffold.dart';
 
 String formatTime(DateTime now) {
   String month = now.month < 10 ? "0${now.month}" : "${now.month}";
@@ -58,19 +59,6 @@ myPrint(dynamic msg,
   }
 }
 
-bool platFormIsMobile() {
-  // if (kIsWeb) {
-  //   final ua = window.navigator.userAgent.toLowerCase();
-  //   if (ua.contains("android") || ua.contains("ios")) {
-  //     return true;
-  //   }
-  //   return false;
-  // }
-  if (Platform.isAndroid || Platform.isIOS) {
-    return true;
-  }
-  return false;
-}
 
 copyToClipBoard(BuildContext context, String content) {
   Clipboard.setData(ClipboardData(text: content));

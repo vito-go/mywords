@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:path_provider/path_provider.dart';
-import '../libso/funcs.dart';
 import '../libso/resp_data.dart';
 import '../util/path.dart';
 import '../util/util.dart';
-import '../widgets/private_ip.dart';
+import 'package:mywords/widgets/private_ip.dart'
+;
 
 class RestoreData extends StatefulWidget {
   const RestoreData({super.key});
@@ -87,8 +89,12 @@ class _RestoreDataState extends State<RestoreData> {
     });
     final port = int.parse(controllerPort.text);
     final code = int.parse(controllerCode.text);
-    final dir = await getTemporaryDirectory();
-    final tempDir = dir.path;
+    String tempDir = "";
+    if (!kIsWeb) {
+      final dir = await getTemporaryDirectory();
+      tempDir = dir.path;
+    }
+
     final respData = await compute(
         (message) => computeRestoreFromShareServer(message), <String, dynamic>{
       'ip': controllerIP.text,
@@ -98,7 +104,6 @@ class _RestoreDataState extends State<RestoreData> {
       'syncKnownWords': syncKnownWords,
       'syncToadyWordCount': syncToadyWordCount,
       "syncByRemoteArchived": syncByRemoteArchived,
-
     });
     setState(() {
       isSyncing = false;
@@ -114,7 +119,8 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.syncData,param: syncToadyWordCount));
+    addToGlobalEvent(GlobalEvent(
+        eventType: GlobalEventType.syncData, param: syncToadyWordCount));
     return 0;
   }
 
@@ -158,8 +164,7 @@ class _RestoreDataState extends State<RestoreData> {
       return;
     }
     myToast(context, "恢复成功");
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   Widget textFieldCode() {
@@ -238,39 +243,43 @@ class _RestoreDataState extends State<RestoreData> {
           setState(() {});
         },
         title: const Text("同步文章归档信息"),
-      ),
-      ListTile(
-        title: const Text("从本地同步"),
-        leading: const Tooltip(
-          message: "从本地选择zip文件进行数据同步",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info_outline),
-        ),
-        trailing: IconButton(
-          onPressed: restoreFromFile,
-          icon: Icon(
-            Icons.file_open,
-            color: Theme.of(context).primaryColor,
+      )
+    ];
+    if (!kIsWeb) {
+      children.add(
+        ListTile(
+          title: const Text("从本地同步"),
+          leading: const Tooltip(
+            message: "从本地选择zip文件进行数据同步",
+            triggerMode: TooltipTriggerMode.tap,
+            child: Icon(Icons.info_outline),
+          ),
+          trailing: IconButton(
+            onPressed: restoreFromFile,
+            icon: Icon(
+              Icons.file_open,
+              color: Theme.of(context).primaryColor,
+            ),
           ),
         ),
+      );
+    }
+    children.add(ListTile(title: textFieldIP()));
+    children.add(Row(
+      children: [
+        Flexible(child: ListTile(title: textFieldPort())),
+        Flexible(child: ListTile(title: textFieldCode())),
+      ],
+    ));
+    children.add(ListTile(
+      trailing: syncShareDataBuild(),
+      title: isSyncing ? const LinearProgressIndicator() : null,
+      leading: const Tooltip(
+        message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
+        triggerMode: TooltipTriggerMode.tap,
+        child: Icon(Icons.info),
       ),
-      ListTile(title: textFieldIP()),
-      Row(
-        children: [
-          Flexible(child: ListTile(title: textFieldPort())),
-          Flexible(child: ListTile(title: textFieldCode())),
-        ],
-      ),
-      ListTile(
-        trailing: syncShareDataBuild(),
-        title: isSyncing ? const LinearProgressIndicator() : null,
-        leading: const Tooltip(
-          message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info),
-        ),
-      ),
-    ];
+    ));
 
     final col = Column(children: children);
 
@@ -294,8 +303,8 @@ Future<RespData<void>> computeRestoreFromShareServer(
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
   final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-  return restoreFromShareServer(
-      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount,syncByRemoteArchived);
+  return handler.restoreFromShareServer(ip, port, code, syncKnownWords, tempDir,
+      syncToadyWordCount, syncByRemoteArchived);
 }
 
 // bool syncKnownWords,
@@ -307,6 +316,6 @@ Future<RespData<void>> computeRestoreFromBackUpData(
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
   final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-  return restoreFromBackUpData(
+  return handler.restoreFromBackUpData(
       syncKnownWords, zipPath, syncToadyWordCount, syncByRemoteArchived);
 }
