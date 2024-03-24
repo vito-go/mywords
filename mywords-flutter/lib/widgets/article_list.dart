@@ -11,7 +11,7 @@ import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global_event.dart';
+import 'package:mywords/common/global_event.dart';
 
 enum ToEndSlide { archive, unarchive }
 

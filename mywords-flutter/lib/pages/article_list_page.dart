@@ -12,8 +12,8 @@ import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global_event.dart';
-import '../widgets/article_list.dart';
+import 'package:mywords/common/global_event.dart';
+import 'package:mywords/widgets/article_list.dart';
 
 class ArticleListPage extends StatefulWidget {
   const ArticleListPage({super.key});

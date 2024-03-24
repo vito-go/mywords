@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/widgets/word_list.dart';
 
-import '../common/global_event.dart';
+import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 

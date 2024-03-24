@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:mywords/libso/debug_host_origin.dart';
 import 'package:mywords/libso/interface.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
 import 'package:mywords/widgets/line_chart.dart';
+
+import 'package:mywords/environment.dart';
 
 final Interface handler = HTTPHandler();
 

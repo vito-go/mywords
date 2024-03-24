@@ -5,10 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
-import '../libso/debug_host_origin.dart';
-import '../libso/resp_data.dart';
-import '../util/path.dart';
-import '../util/util.dart';
+import 'package:mywords/environment.dart';
+import 'package:mywords/libso/debug_host_origin.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/path.dart';
+import 'package:mywords/util/util.dart';
 
 class _DictDirName {
 //   	type t struct {
@@ -234,7 +236,7 @@ class _State extends State<DictDatabase> {
       ListTile(
         title: const Text("加载本地词典数据库zip文件"),
         leading: const Tooltip(
-          message: "从本地选择zip文件，解析完成后可以清除app缓存和删除原文件",
+          message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info),
         ),
@@ -270,7 +272,7 @@ class _State extends State<DictDatabase> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("设置词典数据库"),
     );
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: body,
     );

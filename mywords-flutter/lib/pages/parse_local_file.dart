@@ -6,10 +6,12 @@ import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
-import '../libso/debug_host_origin.dart';
-import '../libso/resp_data.dart';
-import '../util/path.dart';
-import '../util/util.dart';
+import 'package:mywords/environment.dart';
+import 'package:mywords/libso/debug_host_origin.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/path.dart';
+import 'package:mywords/util/util.dart';
 
 class ParseLocalFile extends StatefulWidget {
   const ParseLocalFile({super.key});
@@ -147,6 +149,7 @@ class _State extends State<ParseLocalFile> {
         title: const Text("选择文件"),
         leading: const Tooltip(
           message: "从本地选择html格式文章进行解析，支持多选文件",
+          showDuration:Duration(seconds: 10),
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info_outline),
         ),
@@ -168,7 +171,7 @@ class _State extends State<ParseLocalFile> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("解析本地文章"),
     );
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: col,
     );

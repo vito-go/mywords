@@ -5,6 +5,8 @@ import 'package:mywords/libso/handler_for_native.dart'
 
 import 'package:mywords/widgets/article_list.dart';
 
+import 'package:mywords/util/get_scaffold.dart';
+
 class ArticleArchivedPage extends StatefulWidget {
   const ArticleArchivedPage({super.key});
 
@@ -18,7 +20,7 @@ class _State extends State<ArticleArchivedPage> {
   @override
   Widget build(BuildContext context) {
     handler.getArchivedFileInfoList();
-    return Scaffold(
+    return getScaffold(context,
         appBar: AppBar(
           title: const Text("已归档文章"),
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,

@@ -6,9 +6,9 @@ import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/widgets/word_common.dart';
 
-import '../common/global_event.dart';
-import '../libso/resp_data.dart';
-import '../util/util.dart';
+import 'package:mywords/common/global_event.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/util.dart';
 
 class _WordLevel {
   String word;

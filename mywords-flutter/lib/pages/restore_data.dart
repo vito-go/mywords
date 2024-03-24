@@ -7,9 +7,10 @@ import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:path_provider/path_provider.dart';
-import '../libso/resp_data.dart';
-import '../util/path.dart';
-import '../util/util.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/path.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/private_ip.dart'
 ;
 
@@ -277,6 +278,7 @@ class _RestoreDataState extends State<RestoreData> {
       leading: const Tooltip(
         message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
         triggerMode: TooltipTriggerMode.tap,
+        showDuration: Duration(seconds: 15),
         child: Icon(Icons.info),
       ),
     ));
@@ -287,7 +289,7 @@ class _RestoreDataState extends State<RestoreData> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("同步数据"),
     );
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: SingleChildScrollView(child: col),
     );

@@ -12,7 +12,7 @@ import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global_event.dart';
+import 'package:mywords/common/global_event.dart';
 import 'dict_database.dart';
 import 'restore_data.dart';
 import 'share_data.dart';

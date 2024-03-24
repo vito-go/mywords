@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,10 +10,11 @@ import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../libso/debug_host_origin.dart';
-import '../libso/resp_data.dart';
-import '../util/path.dart';
-import '../util/util.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/util.dart';
+
+import 'package:mywords/environment.dart';
 
 class SyncData extends StatefulWidget {
   const SyncData({super.key});
@@ -264,7 +264,7 @@ class _SyncDataState extends State<SyncData> {
       title: const Text("分享/备份数据"),
     );
 
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: Padding(padding: const EdgeInsets.all(10), child: body),
     );

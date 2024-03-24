@@ -12,7 +12,8 @@ import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../widgets/word_list.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/widgets/word_list.dart';
 
 class ArticlePage extends StatefulWidget {
   final String fileName;
@@ -51,6 +52,7 @@ class ArticlePageState extends State<ArticlePage> {
           wordInfos.length, (index) => wordInfos[index].wordLink);
       artWordLevelMap = await handler.queryWordsLevel(allWordLink);
       levelCountMap = await _levelDistribute();
+      parseVersion= await handler.parseVersion();
       setState(() {});
     });
   }
@@ -98,18 +100,12 @@ class ArticlePageState extends State<ArticlePage> {
 
   StreamSubscription<GlobalEvent>? globalEventSubscription;
 
-  void setParseVersion() async {
-    final value = await handler.parseVersion();
-    parseVersion = value;
-    setState(() {});
-  }
 
   @override
   void initState() {
     super.initState();
     initArticle();
-    setParseVersion();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   Map<String, dynamic> levelCountMap = {}; //level: count
@@ -196,7 +192,7 @@ class ArticlePageState extends State<ArticlePage> {
         buildInkWell(wordLink, 2, l, _updateKnownWords),
         const SizedBox(width: 6),
         buildInkWell(wordLink, 3, l, _updateKnownWords),
-       ];
+      ];
 
       items.add(Row(children: children));
       if (!showSentence) {
@@ -348,7 +344,8 @@ class ArticlePageState extends State<ArticlePage> {
     );
     final art = article;
     if (art == null) {
-      return Scaffold(
+      return getScaffold(
+        context,
         appBar: appBar,
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -384,7 +381,7 @@ class ArticlePageState extends State<ArticlePage> {
       const SizedBox(height: 5),
       Padding(
         padding: const EdgeInsets.only(left: 8, right: 8),
-        child: wordLevelRichText( ),
+        child: wordLevelRichText(),
       ),
       const Divider(),
     ];
@@ -408,8 +405,7 @@ class ArticlePageState extends State<ArticlePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
     );
-
-    return Scaffold(appBar: appBar, body: body);
+    return getScaffold(context, appBar: appBar, body: body);
   }
 }
 

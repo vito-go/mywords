@@ -6,7 +6,8 @@ import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 import 'package:mywords/widgets/word_list.dart';
-import '../common/global_event.dart';
+import 'package:mywords/common/global_event.dart';
+import 'package:mywords/util/get_scaffold.dart';
 
 class KnownWords extends StatefulWidget {
   const KnownWords({super.key});
@@ -119,7 +120,7 @@ class _State extends State<KnownWords> {
       ],
     );
 
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: Padding(
         padding: const EdgeInsets.all(8),

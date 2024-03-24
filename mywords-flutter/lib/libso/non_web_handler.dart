@@ -7,9 +7,9 @@ import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/line_chart.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../common/prefs/prefs.dart';
-import '../util/path.dart';
-import '../util/util.dart';
+import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/util/path.dart';
+import 'package:mywords/util/util.dart';
 import 'types.dart';
 import 'dart:io';
 

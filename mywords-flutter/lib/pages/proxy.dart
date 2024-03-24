@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
-import '../util/util.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/util.dart';
 
 class NetProxy extends StatefulWidget {
   const NetProxy({super.key});
@@ -180,7 +181,7 @@ class _State extends State<NetProxy> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("设置网络代理"),
     );
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: body,
     );
