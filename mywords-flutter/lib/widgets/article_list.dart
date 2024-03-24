@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/funcs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global_event.dart';
+import 'package:mywords/common/global_event.dart';
 
 enum ToEndSlide { archive, unarchive }
 
@@ -28,7 +30,7 @@ class ArticleListView extends StatefulWidget {
   final ToEndSlide toEndSlide;
   final int pageNo; // 页码，用来做监听事件区分，1, 2, 3
 
-  final RespData<List<FileInfo>> Function() getFileInfos;
+  final FutureOr<RespData<List<FileInfo>>> Function() getFileInfos;
 
   @override
   State<ArticleListView> createState() => _State();
@@ -49,7 +51,7 @@ class _State extends State<ArticleListView> {
   void slideToUnArchive(FileInfo item) {
     final fileName = item.fileName;
     final t = Timer(const Duration(milliseconds: 4000), () async {
-      final respData = unArchiveGobFile(fileName);
+      final respData = await handler.unArchiveGobFile(fileName);
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
@@ -74,7 +76,7 @@ class _State extends State<ArticleListView> {
   void slideToArchive(FileInfo item) {
     final fileName = item.fileName;
     final t = Timer(const Duration(milliseconds: 4000), () async {
-      final RespData respData = archiveGobFile(fileName);
+      final RespData respData = await handler.archiveGobFile(fileName);
       if (respData.code != 0) {
         if (!context.mounted) {
           return;
@@ -102,11 +104,9 @@ class _State extends State<ArticleListView> {
   void slideToDelete(FileInfo item) {
     final fileName = item.fileName;
     final t = Timer(const Duration(milliseconds: 4000), () async {
-      final RespData respData = deleteGobFile(fileName);
+      final RespData respData = await handler.deleteGobFile(fileName);
       if (respData.code != 0) {
-        if (!context.mounted) {
-          return;
-        }
+        if (!context.mounted) return;
         myToast(context, respData.message);
         return;
       }
@@ -189,7 +189,7 @@ class _State extends State<ArticleListView> {
   }
 
   Future<void> initFileInfos() async {
-    final respData = widget.getFileInfos();
+    final respData = await widget.getFileInfos();
     if (respData.code != 0) {
       myToast(context, respData.message);
       return;
@@ -234,7 +234,6 @@ class _State extends State<ArticleListView> {
         initFileInfos();
         break;
       case GlobalEventType.updateKnownWord:
-
         break;
       case GlobalEventType.articleListScrollToTop:
         if (widget.pageNo == event.param && fileInfos.isNotEmpty) {

@@ -1,8 +1,14 @@
 ## 项目概览
+
 本项目提供一个英语单词学习工具，专为英语学习者设计，通过阅读英文或双语文章来扩充词汇库。用户能够自动提取学习文章中的单词、统计词频、筛选过滤，同时跟踪和记录单词掌握程度。
 
+## 日志更新
+
+- 20040324: **重要**: v2.0.0 增加web版本，支持本地部署或云端部署。
+
 ## 功能特点
-- **单词提取与记录**：输入一个网址，工具自动检索网页文章并提取里面的所有单词和它们的语境句子。同时，会计算并展示文章的词汇量。
+
+- **单词提取与记录**：输入一个网址，工具自动检索网页文章并提取里面的**所有单词**和它们的语境**句子**。同时，会计算并展示文章的**词汇量**。
 - **智能管理与筛选**：避免重复学习您已知晓的单词，通过去重功能和排除掉您已掌握词汇选项以集中精力学习新词汇。
 - **学习进度跟踪**：单词可标记为不同认知等级，包括“0:陌生”，“1:了解”，“2:认识”，“3:熟悉”。这有助于定制化学习路径，同时加深记忆。
 - **筛选浏览功能**：过滤出特定认知等级的单词，例如选定标记“0”能显示所有您尚不了解的单词。
@@ -13,7 +19,6 @@
 该工具的开发考虑到跨平台兼容性和用户方便性，不仅采用了性能优良的`go`语言实核心逻辑，同时以flutter保证了良好的用户界面体验和跨平台的一致性。用户无论在何种设备上学习，都能确保学习进展无缝同步。
 
 立足于学习英语的需求，我们的目标是创建一个简洁、高效且用户友好的单词学习辅助工具。欢迎使用本工具加速您的语言学习旅程。
-
 
 ## 阅读与词汇量提升
 阅读英文文章被广泛认为是提高词汇量的有效手段。根据数据分析，每篇英文文章中约有50%至70%的有效词汇。请注意，已经自动剔除了文章中的标点符号、冠词、介词等简单词汇（例如a, in, on, the, I, than, you, he等）。我们建议你应该：
@@ -39,37 +44,58 @@
 利用这些资源，您不仅能够有针对性地扩充您的词汇，也可以深入了解不同的话题和背景知识，全方位提升英语能力。
 
 ## 开始使用指南
-想要开始使用这个英语单词学习工具，你需要根据你的使用平台选择正确的编译指令进行编译操作：
+
+请根据你的使用平台选择正确的编译指令进行编译操作，可以选择安卓、Linux、Windows或Web版本进行安装。
+
 - **编译前提**：
-  - 请确保你的设备上已经安装了`go`语言环境和`flutter`开发环境。
-  - 请确保你的设备上已经安装了`make`、`zip`等工具。
-  - Windows 环境下，需要对CGO进行支持
-    - 如果没有安装对应的 CGO 运行时环境、则在运行的时候会引发如下错误。
-      > exec: “gcc”: executable file not found in %PATH%
-        - Windows GO 语言 CGO 运行时环境配置
-            - https://www.expoli.tech/articles/2022/10/18/1666087321618
-        - Make for Windows
-            - https://gnuwin32.sourceforge.net/packages/make.htm
-            - Complete package, except sources
+    - 请确保你的设备上已经安装了`go`语言环境和`flutter`开发环境。
+    - 请确保你的设备上已经安装了`make`、`zip`等工具。
+    - Windows 环境下，需要对CGO进行支持
+        - 如果没有安装对应的 CGO 运行时环境、则在运行的时候会引发如下错误。
+          > exec: “gcc”: executable file not found in %PATH%
+            - Windows GO 语言 CGO 运行时环境配置
+                - https://www.expoli.tech/articles/2022/10/18/1666087321618
+            - Make for Windows
+                - https://gnuwin32.sourceforge.net/packages/make.htm
+                - Complete package, except sources
+
+### 1. 安卓、Linux、Windows版本编译指南
+
 - **安装指南**：
-  - 对于**安卓用户**：在终端执行 `make build-android`。
-  - 对于**Linux用户**：在终端执行 `make build-linux`。
-  - 对于**Windows用户**：在终端执行 `make build-windows`。
+    - 对于**安卓用户**：在终端执行 `make build-android`。
+    - 对于**Linux用户**：在终端执行 `make build-linux`。
+    - 对于**Windows用户**：在终端执行 `make build-windows`。
 
 - **安装包位置**：
   编译完成后，相应的安装包文件将会位于项目的"bin"文件夹内。按照标准流程安装到您的设备上后即可开始使用。
 
-按照上述步骤安装并启用本工具，你就可以便捷地在阅读英文文章时提取关键词汇，并加以跟踪和复习，以强化你的语言学习过程。
+### 2. web版本使用指南 (支持Linux、Windows、MacOS)
+
+- **web版本**：
+
+> web桌面版本是一个独立的web应用，可以在浏览器中运行，无需安装，只需在命令行中执行二进制文件，即可在浏览器中打开web应用。
+>
+> 支持在Linux、Windows、MacOS等平台上使用。您可以将web版本部署到您的本地计算机设备中使用，或者部署在云服务器上以便在任何设备上使用。
+
+- 在终端执行 `make build-web-platform`。
+- 在命令行中执行编译后的二进制文件，例如
+    - 在Linux下执行`./bin/mywords-web-linux`
+    - 在Windows下执行`./bin/mywords-web-windows.exe`
+    - 在MacOS下执行`./bin/mywords-web-macos`
+- 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960`或者您指定的其他端口号。
+- web版本的安装包文件将会位于项目的"bin"文件夹内。按照标准流程安装到您的设备上后即可开始使用。
+
+
 ## 项目结构
+
 ```
-├── bin                   # 编译后的项目文件目录，安卓为.apk，Linux为.deb，Windows为.zip
-├── mywords-go            # 用于编译SO库的go核心逻辑源代码目录
+├── bin                   # 编译后的项目文件目录，安卓为.apk，Linux为.deb，Windows为.zip，Web版本为二进制文件，例如mywords-web-linux, mywords-web-windows.exe, mywords-web-macos
+├── mywords-go            # 用于编译.so库的go核心逻辑源代码目录
 ├── mywords-flutter       # Flutter源代码目录，用于编译安装包
 ├── makefile              # 项目的Makefile文件
 ├── readme.md             # 项目的说明文档
 
 ```
-
 
 ## 预览
 
@@ -79,7 +105,6 @@
 <img src="images/drawer.png" style="width: 256px"> <img src="images/chart-daily.png" style="width: 256px">
 <img src="images/chart-accumulation.png" style="width: 256px"><img src="images/share.png" style="width: 256px">
 <img src="images/sync-data.png" style="width: 256px"><img src="images/my-known-words.png" style="width: 256px">
-
 
 ## 添加词典指南
 
@@ -92,7 +117,7 @@
 - 如果您在使用本工具或添加词典时遇到了问题，或者想要与我们分享您的学习经验和进度，请通过以下方式联系我们：
     - WeChat：`vitogo-chat`
     - Email：`liushihao888@gmail.com`
-- 您还可以加入我们的微信学习分享交流群，与其他学员一起分享英语学习心得，共同学习进步。扫描下面的二维码即可加入微信群：  
+- 您还可以加入我们的微信学习分享交流群，与其他学员一起分享英语学习心得，共同学习进步。扫描下面的二维码即可加入微信群：
     - <img src="images/wechat-group.png" style="width: 256px">
 
 3. **词典库格式说明**：
@@ -174,6 +199,7 @@
 ## TODO
 - 暗黑主题色
 - IOS、MacOS平台支持
+- web版本支持(已完成)，支持本地部署及云端部署
 
 ---
 

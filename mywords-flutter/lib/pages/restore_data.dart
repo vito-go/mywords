@@ -1,15 +1,20 @@
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:path_provider/path_provider.dart';
-import '../libso/funcs.dart';
-import '../libso/resp_data.dart';
-import '../util/path.dart';
-import '../util/util.dart';
-import '../widgets/private_ip.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/path.dart';
+import 'package:mywords/util/util.dart';
+import 'package:mywords/widgets/private_ip.dart';
+
+import '../environment.dart';
 
 class RestoreData extends StatefulWidget {
   const RestoreData({super.key});
@@ -87,8 +92,12 @@ class _RestoreDataState extends State<RestoreData> {
     });
     final port = int.parse(controllerPort.text);
     final code = int.parse(controllerCode.text);
-    final dir = await getTemporaryDirectory();
-    final tempDir = dir.path;
+    String tempDir = "";
+    if (!kIsWeb) {
+      final dir = await getTemporaryDirectory();
+      tempDir = dir.path;
+    }
+
     final respData = await compute(
         (message) => computeRestoreFromShareServer(message), <String, dynamic>{
       'ip': controllerIP.text,
@@ -98,7 +107,6 @@ class _RestoreDataState extends State<RestoreData> {
       'syncKnownWords': syncKnownWords,
       'syncToadyWordCount': syncToadyWordCount,
       "syncByRemoteArchived": syncByRemoteArchived,
-
     });
     setState(() {
       isSyncing = false;
@@ -114,7 +122,8 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.syncData,param: syncToadyWordCount));
+    addToGlobalEvent(GlobalEvent(
+        eventType: GlobalEventType.syncData, param: syncToadyWordCount));
     return 0;
   }
 
@@ -132,9 +141,9 @@ class _RestoreDataState extends State<RestoreData> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         initialDirectory: getDefaultDownloadDir(),
         allowMultiple: false,
-        withReadStream: true,
+        withReadStream: kIsWeb,
         type: FileType.custom,
-        allowedExtensions: ['zip']);
+        allowedExtensions: ["zip"]);
     if (result == null) {
       return;
     }
@@ -143,23 +152,46 @@ class _RestoreDataState extends State<RestoreData> {
       return;
     }
     final file = files[0];
-    if (file.path == null) {
+    final p = kIsWeb ? file.name : file.path;
+    if (p == null) {
       return;
     }
-    final respData = await compute(
-        (message) => computeRestoreFromBackUpData(message), <String, dynamic>{
-      "syncKnownWords": syncKnownWords,
-      "zipPath": file.path!,
-      "syncToadyWordCount": syncToadyWordCount,
-      "syncByRemoteArchived": syncByRemoteArchived,
+    setState(() {
+      isSyncing = true;
+    });
+
+    final RespData<void> respData;
+    if (!kIsWeb) {
+      if (file.readStream == null) {
+        myToast(context, 'null stream: $p');
+        return;
+      }
+      respData = await compute(
+          (message) => computeRestoreFromBackUpData(message), <String, dynamic>{
+        "syncKnownWords": syncKnownWords,
+        "zipPath": file.path!,
+        "syncToadyWordCount": syncToadyWordCount,
+        "syncByRemoteArchived": syncByRemoteArchived,
+      });
+    } else {
+      respData = await compute(
+          (message) => computeWebRestoreFromBackUpData(message),
+          <String, dynamic>{
+            "syncKnownWords": syncKnownWords,
+            "bytes": file.readStream,
+            "syncToadyWordCount": syncToadyWordCount,
+            "syncByRemoteArchived": syncByRemoteArchived,
+          });
+    }
+    setState(() {
+      isSyncing = false;
     });
     if (respData.code != 0) {
       myToast(context, "恢复失败!\n${respData.message}");
       return;
     }
-    myToast(context, "恢复成功");
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    myToast(context, "恢复完成");
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   Widget textFieldCode() {
@@ -238,7 +270,9 @@ class _RestoreDataState extends State<RestoreData> {
           setState(() {});
         },
         title: const Text("同步文章归档信息"),
-      ),
+      )
+    ];
+    children.add(
       ListTile(
         title: const Text("从本地同步"),
         leading: const Tooltip(
@@ -248,39 +282,39 @@ class _RestoreDataState extends State<RestoreData> {
         ),
         trailing: IconButton(
           onPressed: restoreFromFile,
-          icon: Icon(
-            Icons.file_open,
-            color: Theme.of(context).primaryColor,
-          ),
+          icon: Icon(Icons.file_open, color: Theme.of(context).primaryColor),
         ),
       ),
-      ListTile(title: textFieldIP()),
-      Row(
-        children: [
-          Flexible(child: ListTile(title: textFieldPort())),
-          Flexible(child: ListTile(title: textFieldCode())),
-        ],
+    );
+    children.add(ListTile(title: textFieldIP()));
+    children.add(Row(
+      children: [
+        Flexible(child: ListTile(title: textFieldPort())),
+        Flexible(child: ListTile(title: textFieldCode())),
+      ],
+    ));
+    children.add(ListTile(
+      trailing: syncShareDataBuild(),
+      title: isSyncing ? const LinearProgressIndicator() : null,
+      leading: const Tooltip(
+        message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
+        triggerMode: TooltipTriggerMode.tap,
+        showDuration: Duration(seconds: 15),
+        child: Icon(Icons.info),
       ),
-      ListTile(
-        trailing: syncShareDataBuild(),
-        title: isSyncing ? const LinearProgressIndicator() : null,
-        leading: const Tooltip(
-          message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info),
-        ),
-      ),
-    ];
+    ));
 
-    final col = Column(children: children);
+    final col =
+        ListView(children: children);
 
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("同步数据"),
     );
-    return Scaffold(
+    return getScaffold(
+      context,
       appBar: appBar,
-      body: SingleChildScrollView(child: col),
+      body:col,
     );
   }
 }
@@ -294,8 +328,8 @@ Future<RespData<void>> computeRestoreFromShareServer(
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
   final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-  return restoreFromShareServer(
-      ip, port, code, syncKnownWords, tempDir, syncToadyWordCount,syncByRemoteArchived);
+  return handler.restoreFromShareServer(ip, port, code, syncKnownWords, tempDir,
+      syncToadyWordCount, syncByRemoteArchived);
 }
 
 // bool syncKnownWords,
@@ -307,6 +341,39 @@ Future<RespData<void>> computeRestoreFromBackUpData(
   final syncToadyWordCount = param['syncToadyWordCount'] as bool;
   final syncKnownWords = param['syncKnownWords'] as bool;
   final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-  return restoreFromBackUpData(
+  return handler.restoreFromBackUpData(
       syncKnownWords, zipPath, syncToadyWordCount, syncByRemoteArchived);
+}
+
+Future<RespData<void>> computeWebRestoreFromBackUpData(
+    Map<String, dynamic> param) async {
+  Stream<List<int>> bytes = param['bytes']!;
+  final syncToadyWordCount = param['syncToadyWordCount'] as bool;
+  final syncKnownWords = param['syncKnownWords'] as bool;
+  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
+
+  final dio = Dio();
+  const www = "$debugHostOrigin/_webRestoreFromBackUpData";
+  try {
+    final Response<String> response = await dio.post(
+      www,
+      data: bytes,
+      queryParameters: {
+        "syncToadyWordCount": syncToadyWordCount,
+        "syncKnownWords": syncKnownWords,
+        "syncByRemoteArchived": syncByRemoteArchived,
+      },
+      options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (_) {
+            return true;
+          }),
+    );
+    if (response.statusCode != 200) {
+      return RespData.err(response.data ?? "");
+    }
+    return RespData.dataOK(null);
+  } catch (e) {
+    return RespData.err(e.toString());
+  }
 }

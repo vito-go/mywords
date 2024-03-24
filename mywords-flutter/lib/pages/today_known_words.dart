@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/widgets/word_list.dart';
-import '../common/global_event.dart';
-import '../libso/funcs.dart';
-import '../util/navigator.dart';
+import 'package:mywords/common/global_event.dart';
+
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/navigator.dart';
 
 class ToadyKnownWords extends StatefulWidget {
   const ToadyKnownWords({super.key});
@@ -21,12 +24,19 @@ class _State extends State<ToadyKnownWords> {
   int showLevel = prefs.showWordLevel;
 
   Map<int, List<String>> levelWordsMap = {};
+
   StreamSubscription<GlobalEvent>? globalEventSubscription;
+
+  void setLevelWordsMap() async {
+    final value = await handler.todayKnownWordMap();
+    levelWordsMap = value.data ?? {};
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
-    levelWordsMap = todayKnownWordMap().data ?? {};
+    setLevelWordsMap();
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
@@ -44,6 +54,7 @@ class _State extends State<ToadyKnownWords> {
 
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.updateKnownWord) {
+      setLevelWordsMap();
       setState(() {});
     }
   }
@@ -70,6 +81,37 @@ class _State extends State<ToadyKnownWords> {
 
   int get count3 => levelWordsLengthMap['3'] ?? 0;
 
+  Widget wordLevelRichText() {
+    return RichText(
+      text: TextSpan(
+          style: const TextStyle(color: Colors.black),
+          text: "",
+          children: [
+            const TextSpan(
+                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                style: TextStyle(color: Colors.blueGrey)),
+            const TextSpan(text: "1级: "),
+            TextSpan(
+                text: "$count1",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  2级: "),
+            TextSpan(
+                text: "$count2",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  3级: "),
+            TextSpan(
+                text: "$count3",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+          ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
@@ -81,16 +123,16 @@ class _State extends State<ToadyKnownWords> {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "词汇分级 (0:陌生, 1级:认识, 2级: 了解, 3级: 熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
-        ),
+        wordLevelRichText(),
         const Divider(),
         Expanded(
-            child: WordList(showLevel: showLevel, levelWordsMap: levelWordsMap))
+            child: WordList(
+                showLevel: showLevel,
+                getLevelWordsMap: handler.todayKnownWordMap))
       ],
     );
 
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: Padding(
         padding: const EdgeInsets.all(8),

@@ -1,8 +1,6 @@
-import 'dart:io';
-
- import 'package:flutter/material.dart';
-
-import '../libso/log.dart';
+import 'package:flutter/material.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 class PrivateIP extends StatefulWidget {
   const PrivateIP({super.key});
@@ -17,16 +15,8 @@ class PrivateIPState extends State {
   List<String> ips = [];
 
   void updateIP() async {
-    final networks =
-        await NetworkInterface.list(type: InternetAddressType.IPv4);
     ips.clear();
-    for (var ele in networks) {
-      for (var e in ele.addresses) {
-        ips.add(e.address);
-      }
-    }
-    println("local ip: $ips");
-    ips.sort((a, b) => a.length.compareTo(b.length));
+    ips = await handler.getIPv4s() ?? [];
     setState(() {});
   }
 
@@ -37,15 +27,7 @@ class PrivateIPState extends State {
   }
 
   Widget _buildListTileIP() {
-    Widget title;
-    if (ips.isEmpty) {
-      title = TextButton.icon(
-          onPressed: updateIP,
-          icon: const Icon(Icons.refresh),
-          label: const Text("No internet connection"));
-    } else {
-      title = const Text("本机IP");
-    }
+    const title = Text("本机IP");
     ListTile listTile = ListTile(
       title: title,
       onTap: () {
@@ -66,7 +48,8 @@ class PrivateIPState extends State {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: IconButton(onPressed: updateIP, icon: const Icon(Icons.refresh)),
+      trailing:
+          IconButton(onPressed: updateIP, icon: const Icon(Icons.refresh)),
     );
     return listTile;
   }

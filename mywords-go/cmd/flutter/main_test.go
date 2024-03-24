@@ -13,7 +13,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	initGlobal(filepath.Join(homeDir, ".local/share/com.example.mywords"), "")
+	initGlobal(filepath.Join(homeDir, ".local/share/com.example.mywords"))
 	GetChartDataAccumulate()
 	//initGlobal needs time to start
 	time.Sleep(time.Second * 3)

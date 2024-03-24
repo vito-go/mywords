@@ -1,11 +1,17 @@
-
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global_event.dart';
-import '../libso/funcs.dart';
-import '../util/path.dart';
-import '../util/util.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
+import 'package:mywords/environment.dart';
+import 'package:mywords/libso/debug_host_origin.dart';
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/path.dart';
+import 'package:mywords/util/util.dart';
 
 class ParseLocalFile extends StatefulWidget {
   const ParseLocalFile({super.key});
@@ -26,7 +32,7 @@ class _State extends State<ParseLocalFile> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         initialDirectory: getDefaultDownloadDir(),
         allowMultiple: true,
-        withReadStream: true,
+        withReadStream: kIsWeb,
         type: FileType.custom,
         allowedExtensions: ["html"]);
     if (result == null) {
@@ -38,28 +44,33 @@ class _State extends State<ParseLocalFile> {
     }
     filePaths.clear();
     for (final file in files) {
-      final p = file.path;
+      final p = kIsWeb ? file.name : file.path;
       if (p == null) {
         continue;
       }
       filePaths.add(p);
     }
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    defaultDownloadDir = getDefaultDownloadDir() ?? '';
-  }
-
-  Future<void> onTapParse() async {
     setState(() {
       isSyncing = true;
     });
-    for (final p in filePaths) {
-      final respData =
-          await compute((message) => parseAndSaveArticleFromFile(message), p);
+    for (final file in files) {
+      final p = kIsWeb ? file.name : file.path;
+      if (p == null) {
+        continue;
+      }
+      final RespData<void> respData;
+      if (kIsWeb) {
+        if (file.readStream == null) {
+          filePathMap[p] = 'null stream';
+          continue;
+        }
+        respData = await compute(
+            (message) => computeWebParseAndSaveArticleFromFile(message),
+            {"name": file.name, "bytes": file.readStream!});
+      } else {
+        respData = await compute(
+            (message) => computeParseAndSaveArticleFromFile(message), p);
+      }
       if (respData.code == 0) {
         filePathMap[p] = '';
       } else {
@@ -70,11 +81,15 @@ class _State extends State<ParseLocalFile> {
     setState(() {
       isSyncing = false;
     });
-
-    myToast(context, "解析成功!");
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    myToast(context, "解析完成!");
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
     return;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    defaultDownloadDir = getDefaultDownloadDir() ?? '';
   }
 
   @override
@@ -89,7 +104,8 @@ class _State extends State<ParseLocalFile> {
           final errMsg = filePathMap[p];
           Widget leading;
           if (errMsg == null) {
-            leading = Icon(Icons.access_time_rounded, color: Colors.amber);
+            leading =
+                const Icon(Icons.access_time_rounded, color: Colors.amber);
           } else if (errMsg == '') {
             leading = const Icon(
               Icons.done_all,
@@ -116,23 +132,14 @@ class _State extends State<ParseLocalFile> {
 
   bool isSyncing = false;
 
-  Widget syncShareDataBuild() {
-    return ElevatedButton.icon(
-      onPressed: isSyncing ? null : onTapParse,
-      icon: const Icon(Icons.group_work),
-      label: const Text("开始解析"),
-    );
-  }
-
   Future<void> computeParse(String path) async {
-    final respData = await compute(parseAndSaveArticleFromFile, path);
+    final respData = await compute(computeParseAndSaveArticleFromFile, path);
     if (respData.code != 0) {
       if (!context.mounted) return;
       myToast(context, respData.message);
       return;
     }
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   @override
@@ -141,7 +148,8 @@ class _State extends State<ParseLocalFile> {
       ListTile(
         title: const Text("选择文件"),
         leading: const Tooltip(
-          message: "从本地选择html格式文章进行解析。长按文件可以进行多选",
+          message: "从本地选择html格式文章进行解析，支持多选文件",
+          showDuration:Duration(seconds: 10),
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info_outline),
         ),
@@ -151,14 +159,9 @@ class _State extends State<ParseLocalFile> {
           color: Theme.of(context).primaryColor,
         ),
       ),
-      ListTile(
-        trailing: syncShareDataBuild(),
-        title: isSyncing ? const LinearProgressIndicator() : null,
-        leading: const Tooltip(
-          message: "暂仅支持html格式的文件。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info),
-        ),
+      SizedBox(
+        height: 5,
+        child: isSyncing ? const LinearProgressIndicator() : const Text(""),
       ),
     ];
     children.add(Expanded(child: buildFileList()));
@@ -168,9 +171,39 @@ class _State extends State<ParseLocalFile> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("解析本地文章"),
     );
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: col,
     );
+  }
+}
+
+Future<RespData<void>> computeParseAndSaveArticleFromFile(String path) async {
+  return handler.parseAndSaveArticleFromFile(path);
+}
+
+Future<RespData<void>> computeWebParseAndSaveArticleFromFile(
+    Map<String, dynamic> param) async {
+  String name = param['name']!;
+  Stream<List<int>> bytes = param['bytes']!;
+  final dio = Dio();
+  const www = "$debugHostOrigin/_webParseAndSaveArticleFromFile";
+  try {
+    final Response<String> response = await dio.post(
+      www,
+      data: bytes,
+      queryParameters: {"name": name},
+      options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (_) {
+            return true;
+          }),
+    );
+    if (response.statusCode != 200) {
+      return RespData.err(response.data ?? "");
+    }
+    return RespData.dataOK(null);
+  } catch (e) {
+    return RespData.err(e.toString());
   }
 }

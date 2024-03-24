@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/widgets/word_header_row.dart';
-
-import '../libso/funcs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 class WordDefaultMeaning extends StatefulWidget {
   const WordDefaultMeaning(
@@ -28,7 +28,6 @@ class _State extends State<WordDefaultMeaning> {
     meaning = widget.meaning;
   }
 
-  int get l => queryWordLevel(word);
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +48,12 @@ class _State extends State<WordDefaultMeaning> {
                   selection.textInside(textEditingValue.text).trim();
               if (!selectText.contains(" ")) {
                 buttonItems.add(ContextMenuButtonItem(
-                    onPressed: () {
+                    onPressed: () async {
                       String tempWord = selectText;
-                      String m = dictWordQuery(tempWord);
+                      String m = await handler.dictWordQuery(tempWord);
                       if (m == "") {
-                        tempWord = dictWordQueryLink(tempWord);
-                        m = dictWordQuery(tempWord);
+                        tempWord = await handler.dictWordQueryLink(tempWord);
+                        m = await handler.dictWordQuery(tempWord);
                       }
                       if (m == '') {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

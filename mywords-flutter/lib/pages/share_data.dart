@@ -2,15 +2,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/log.dart';
-import 'package:mywords/util/net.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/widgets/stream_log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import '../libso/funcs.dart';
-import '../util/path.dart';
-import '../util/util.dart';
-import '../widgets/private_ip.dart';
+import 'package:mywords/widgets/private_ip.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/util.dart';
+
+import 'package:mywords/environment.dart';
 
 class SyncData extends StatefulWidget {
   const SyncData({super.key});
@@ -27,24 +31,24 @@ class _SyncDataState extends State<SyncData> {
   TextEditingController controllerCode = TextEditingController();
   TextEditingController controllerBackUpZipName =
       TextEditingController(text: "mywords-backupdata");
-  String defaultDownloadDir = '';
 
   @override
   void initState() {
     super.initState();
-    defaultDownloadDir = getDefaultDownloadDir() ?? '';
+    updateLocalExampleIP();
     initController();
-    getIPv4s().then((value) {
-      if (value.isNotEmpty) {
-        setState(() {
-          localExampleIP = value.last;
-        });
-      }
-    });
   }
 
   final defaultPort = 18964;
   final defaultCode = 890604;
+
+  void updateLocalExampleIP() async {
+    final ips = await handler.getIPv4s();
+    if (ips == null) return;
+    if (ips.isEmpty) return;
+    localExampleIP = ips.last;
+    setState(() {});
+  }
 
   void initController() {
     final ss = prefs.shareOpenPortCode.split("/");
@@ -103,12 +107,20 @@ class _SyncDataState extends State<SyncData> {
                     if (controllerBackUpZipName.text.startsWith("/")) {
                       myToast(context, "文件名不能包含特殊字符/");
                     }
+
+                    if (kIsWeb) {
+                      Navigator.pop(context);
+                      downloadBackUpdate("${controllerBackUpZipName.text}.zip");
+                      return;
+                    }
+
                     final dirPath = await dataDirPath();
                     final respData = await compute(
-                        (message) => backUpData(message), <String, String>{
-                      "zipName": controllerBackUpZipName.text,
-                      "dataDirPath": dirPath,
-                    });
+                        (message) => computeBackUpData(message),
+                        <String, String>{
+                          "zipName": controllerBackUpZipName.text,
+                          "dataDirPath": dirPath,
+                        });
                     if (respData.code != 0) {
                       myToast(context, "备份失败!\n${respData.message}");
                       return;
@@ -130,19 +142,19 @@ class _SyncDataState extends State<SyncData> {
     }
   }
 
-  int doShareClose() {
-    final respData = shareClosed();
+  Future<int> doShareClose() async {
+    final respData = await handler.shareClosed();
     if (respData.code != 0) {
       myToast(context, respData.message);
       return -1;
     }
     prefs.shareOpenPortCode = '';
-    println("share server closed!");
+    handler.println("share server closed!");
 
     return 0;
   }
 
-  int doShareOpen() {
+  Future<int> doShareOpen() async {
     if (controllerPort.text == "") {
       myToast(context, "端口号不能为空");
       return -1;
@@ -153,7 +165,7 @@ class _SyncDataState extends State<SyncData> {
     }
     final port = int.parse(controllerPort.text);
     final code = int.parse(controllerCode.text);
-    final respData = shareOpen(port, code);
+    final respData = await handler.shareOpen(port, code);
     if (respData.code != 0) {
       myToast(context, respData.message);
       return -1;
@@ -165,12 +177,12 @@ class _SyncDataState extends State<SyncData> {
   Widget switchBuild() {
     return Switch(
         value: shareOpenOK,
-        onChanged: (v) {
+        onChanged: (v) async {
           int c;
           if (v) {
-            c = doShareOpen();
+            c = await doShareOpen();
           } else {
-            c = doShareClose();
+            c = await doShareClose();
           }
           if (c == 0) {
             shareOpenOK = v;
@@ -183,81 +195,90 @@ class _SyncDataState extends State<SyncData> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> children = [
-      const PrivateIP(),
-      ListTile(
-        title: const Text("备份数据"),
-        leading: Tooltip(
-          message: "备份文件将保存在: $defaultDownloadDir",
-          triggerMode: TooltipTriggerMode.tap,
-          child: const Icon(Icons.info_outline),
+    List<Widget> children = [const PrivateIP()];
+    children.add(ListTile(
+      title: const Text("备份数据"),
+      leading: const Tooltip(
+        message: "学习数据备份文件将保存在本地",
+        triggerMode: TooltipTriggerMode.tap,
+        child: Icon(Icons.info_outline),
+      ),
+      trailing: IconButton(
+        onPressed: _onTapBackUpData,
+        icon: Icon(
+          Icons.save_alt,
+          color: Theme.of(context).primaryColor,
         ),
-        trailing: IconButton(
-          onPressed: _onTapBackUpData,
-          icon: Icon(
-            Icons.save_alt,
-            color: Theme.of(context).primaryColor,
+      ),
+    ));
+    children.add(ListTile(
+      leading: Tooltip(
+        message:
+            "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${prefs.shareOpenPortCode == '' ? '$defaultPort/$defaultCode' : prefs.shareOpenPortCode}",
+        triggerMode: TooltipTriggerMode.tap,
+        child: const Icon(Icons.info_outline),
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controllerPort,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "端口",
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(5),
+                FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
+              ],
+            ),
           ),
-        ),
-      ),
-      ListTile(
-        leading: Tooltip(
-          message:
-              "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${prefs.shareOpenPortCode == '' ? '$defaultPort/$defaultCode' : prefs.shareOpenPortCode}",
-          triggerMode: TooltipTriggerMode.tap,
-          child: const Icon(Icons.info_outline),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controllerPort,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "端口",
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                inputFormatters: [
-                  LengthLimitingTextInputFormatter(5),
-                  FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
-                ],
+          const SizedBox(width: 20),
+          Expanded(
+            child: TextField(
+              keyboardType: TextInputType.number,
+              controller: controllerCode,
+              decoration: const InputDecoration(
+                labelText: "Code码",
+                border: OutlineInputBorder(),
+                isDense: true,
               ),
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(6),
+                FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
+              ],
             ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: TextField(
-                keyboardType: TextInputType.number,
-                controller: controllerCode,
-                decoration: const InputDecoration(
-                  labelText: "Code码",
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                inputFormatters: [
-                  LengthLimitingTextInputFormatter(6),
-                  FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
-                ],
-              ),
-            ),
-          ],
-        ),
-        trailing: switchBuild(),
+          ),
+        ],
       ),
-    ];
-
-    children.add(const Flexible(child: StreamLog(maxLines: 200)));
-    final body = Column(
-      children: children,
-    );
+      trailing: switchBuild(),
+    ));
+    if (!kIsWeb) {
+      children.add(const Flexible(child: StreamLog(maxLines: 200)));
+    }
+    final body = Column(children: children);
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("分享/备份数据"),
     );
 
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: Padding(padding: const EdgeInsets.all(10), child: body),
     );
   }
+}
+
+Future<RespData<String>> computeBackUpData(Map<String, String> param) async {
+  final String zipName = param['zipName']!;
+  final String dataDirPath = param['dataDirPath']!;
+  return handler.backUpData(zipName, dataDirPath);
+}
+
+void downloadBackUpdate(String zipFileName) async {
+  final www = "$debugHostOrigin/_downloadBackUpdate?name=$zipFileName";
+  launchUrlString(www);
+  return;
 }

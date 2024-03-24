@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
- bool platFormIsMobile() {
+import 'package:mywords/environment.dart';
+
+bool platFormIsMobile() {
   if (kIsWeb) {
     return false;
   }
@@ -12,36 +14,39 @@ import 'package:flutter/material.dart';
   return false;
 }
 
-Widget getScaffold(BuildContext context,
-    {required Widget body,
-    PreferredSizeWidget? appBar,
-    Widget? drawer,
-    double noMobileWidthRate = 0.35,
-     }) {
+Widget getScaffold(
+  BuildContext context, {
+  required Widget body,
+  final PreferredSizeWidget? appBar,
+  final Widget? drawer,
+  final Widget? bottomNavigationBar,
+  final bool drawerEnableOpenDragGesture = true,
+  final double noMobileWidthRate = 0.35,
+}) {
+  final Widget adjustedBody;
+  final webBodyWidthDouble = webBodyWidth.toDouble();
+  double mediaWidth = MediaQuery.of(context).size.width;
+
   if (platFormIsMobile()) {
-    return Scaffold(
-      body: body,
-      appBar: appBar,
-      drawer: drawer,
-    );
+    adjustedBody = body;
+  } else if (webBodyWidthDouble <= 0) {
+    adjustedBody = body;
+  } else if (mediaWidth > webBodyWidthDouble) {
+    double width = double.infinity;
+    width = mediaWidth * noMobileWidthRate;
+    if (width < webBodyWidthDouble) {
+      width = webBodyWidthDouble;
+    }
+    adjustedBody = Center(child: SizedBox(width: width, child: body));
+  } else {
+    adjustedBody = body;
   }
 
-  double mediaWidth = MediaQuery.of(context).size.width;
-  double width = double.infinity;
-  if (mediaWidth > 500) {
-    width = mediaWidth * noMobileWidthRate;
-    if (width < 500) {
-      width = 500;
-    }
-  }
   return Scaffold(
-    body: Center(
-      child: SizedBox(
-        width: width,
-        child: body,
-      ),
-    ),
+    body: adjustedBody,
     appBar: appBar,
+    bottomNavigationBar: bottomNavigationBar,
+    drawerEnableOpenDragGesture: drawerEnableOpenDragGesture,
     drawer: drawer,
   );
 }
