@@ -51,7 +51,9 @@ class _State extends State<WordHeaderRow> {
     }
     wordLevelMap![word] = level;
     setState(() {});
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
+    addToGlobalEvent(GlobalEvent(
+        eventType: GlobalEventType.updateKnownWord,
+        param: {"word": word, "level": level}));
   }
 
   void _updateWordLevelMap() async {

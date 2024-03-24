@@ -56,7 +56,9 @@ class _State extends State<WordList> {
     levelWordsMap[3]?.remove(word);
     levelWordsMap[level]?.add(word);
     myPrint(levelWordsMap);
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
+    addToGlobalEvent(GlobalEvent(
+        eventType: GlobalEventType.updateKnownWord,
+        param: {"word": word, "level": level}));
     setState(() {});
   }
 
