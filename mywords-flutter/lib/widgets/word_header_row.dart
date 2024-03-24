@@ -23,7 +23,7 @@ class _State extends State<WordHeaderRow> {
 
   Widget buildWordHeaderRow() {
     if (wordLevelMap == null) {
-      return const Center(child: LinearProgressIndicator());
+      return const Row(children: [Text("")]);
     }
     final le = wordLevelMap![word] ?? 0;
     List<Widget> children = [
