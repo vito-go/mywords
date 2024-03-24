@@ -3,12 +3,14 @@ package main
 import "C"
 import (
 	"encoding/json"
+	"fmt"
 	"mywords/artical"
 	"mywords/dict"
 	"mywords/mylog"
 	"mywords/server"
 	"mywords/util"
 	"net"
+	"sort"
 	"strings"
 )
 
@@ -312,7 +314,18 @@ func GetIPv4s() *C.char {
 			continue
 		}
 		ips = append(ips, ip.String())
-
 	}
+	sort.Slice(ips, func(i, j int) bool {
+		a := net.ParseIP(ips[i]).To4()
+		b := net.ParseIP(ips[j]).To4()
+		for k := 0; k < net.IPv4len; k++ {
+			if a[k] < b[k] {
+				return true
+			}
+		}
+
+		return false
+	})
+	fmt.Println(ips)
 	return CharOk(ips)
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mywords/util"
 	"net"
 	"net/http"
 	"os"
@@ -37,7 +38,9 @@ func main() {
 	initGlobal(*rootDataDir)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/call/", serverHTTPCallFunc)
-	mux.HandleFunc("/addDictWithFile", addDictWithFile)
+	mux.HandleFunc("/_addDictWithFile", addDictWithFile)
+	mux.HandleFunc("/_downloadBackUpdate", downloadBackUpdate)
+	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
 	log.Println("server start", *port)
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
@@ -148,18 +151,48 @@ func call(function any, args []interface{}) (response []reflect.Value, err error
 	return f.Call(argValues), nil
 }
 
-func addDictWithFile(w http.ResponseWriter, r *http.Request) {
-
-	//defer mylog.Ctx(r.Context()).WithFields("remoteAddr", r.RemoteAddr, "method", r.Method, "path", path).Info("====")
-	// app端暂不需考虑支持跨域
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "*")
-	if r.Method == http.MethodOptions {
-		w.Header().Set("Access-Control-Max-Age", strconv.FormatInt(int64(time.Second*60*60*24*3), 10))
+func webParseAndSaveArticleFromFile(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) {
 		return
 	}
-	// 通过反射调用flutter的API post 请求 /call/functionName= body: []interface{}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	defer r.Body.Close()
+	name := r.URL.Query().Get("name")
+	if name == "" {
+		http.Error(w, "Please send a name", http.StatusBadRequest)
+		return
+
+	}
+	tempFile := filepath.Join(os.TempDir(), name)
+	f, err := os.Create(tempFile)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+	_, err = io.Copy(f, r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// 保存文件
+	f.Close()
+	// delete file
+	defer os.Remove(tempFile)
+	_, err = serverGlobal.ParseAndSaveArticleFromFile(tempFile)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func addDictWithFile(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) {
+		return
+	}
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -195,25 +228,60 @@ func addDictWithFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
-	//defer mylog.Ctx(r.Context()).WithFields("remoteAddr", r.RemoteAddr, "method", r.Method, "path", path).Info("====")
-	// app端暂不需考虑支持跨域
+
+// cors 通用的跨域处理
+func cors(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "*")
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Max-Age", strconv.FormatInt(int64(time.Second*60*60*24*3), 10))
+		return true
+	}
+	return false
+}
+
+func downloadBackUpdate(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) {
 		return
 	}
 	// 通过反射调用flutter的API post 请求 /call/functionName= body: []interface{}
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	fileName := r.URL.Query().Get("name") // e.g. "backupdate.zip"
+	// can not include ".." and "/"
+	if strings.Contains(fileName, "..") || strings.Contains(fileName, "/") {
+		http.Error(w, "Invalid file name", http.StatusBadRequest)
+		return
+	}
+	srcDataPath := serverGlobal.ZipDataDir()
+	// download header
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
+	// zip
+	err := util.ZipToWriter(w, srcDataPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 
+func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
+	//defer mylog.Ctx(r.Context()).WithFields("remoteAddr", r.RemoteAddr, "method", r.Method, "path", path).Info("====")
+	// app端暂不需考虑支持跨域
+	if cors(w, r) {
+		return
+	}
+	// 通过反射调用flutter的API post 请求 /call/functionName= body: []interface{}
+	//if r.Method != http.MethodPost {
+	//	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	//	return
+	//}
 	defer r.Body.Close()
 	var args []interface{}
-	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil && err != io.EOF {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

@@ -144,7 +144,16 @@ func NewServer(rootDataDir string) (*Server, error) {
 	return s, nil
 }
 
-// proxy it can be nil if no proxy
+// RootDataDir . root data dir
+func (s *Server) RootDataDir() string {
+	return s.rootDataDir
+}
+
+// ZipDataDir .
+func (s *Server) ZipDataDir() string {
+	return filepath.Join(s.rootDataDir, dataDir)
+}
+
 func (s *Server) proxy() *url.URL {
 	if s.cfg.ProxyUrl == "" {
 		return nil
