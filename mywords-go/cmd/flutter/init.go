@@ -16,13 +16,13 @@ func init() {
 var once sync.Once
 
 //export Init
-func Init(rootDataDir *C.char, proxyUrl *C.char) {
+func Init(rootDataDir *C.char) {
 	once.Do(func() {
-		initGlobal(C.GoString(rootDataDir), C.GoString(proxyUrl))
+		initGlobal(C.GoString(rootDataDir))
 	})
 }
-func initGlobal(rootDataDir string, proxyUrl string) {
-	srv, err := server.NewServer(rootDataDir, proxyUrl)
+func initGlobal(rootDataDir string) {
+	srv, err := server.NewServer(rootDataDir)
 	if err != nil {
 		panic(err)
 	}

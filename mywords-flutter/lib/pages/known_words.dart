@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/dict.dart';
-import 'package:mywords/util/util.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
 import 'package:mywords/widgets/word_list.dart';
-import '../common/global_event.dart';
-import '../libso/funcs.dart';
+import 'package:mywords/common/global_event.dart';
+import 'package:mywords/util/get_scaffold.dart';
 
 class KnownWords extends StatefulWidget {
   const KnownWords({super.key});
@@ -23,10 +24,16 @@ class _State extends State<KnownWords> {
   Map<int, List<String>> levelWordsMap = {};
   StreamSubscription<GlobalEvent>? globalEventSubscription;
 
+  void setAllKnownWordMap() async {
+    final value = await handler.allKnownWordMap();
+    levelWordsMap = value.data ?? {};
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
-    levelWordsMap = allKnownWordMap().data ?? {};
+    setAllKnownWordMap();
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
@@ -56,19 +63,6 @@ class _State extends State<KnownWords> {
 
   List<Widget> actions() {
     return [];
-    return [
-      IconButton(
-          onPressed: () {
-            final respData = fixMyKnownWords();
-            if (respData.code != 0) {
-              myToast(context, respData.message);
-              return;
-            }
-            myToast(context, "Successfully");
-            setState(() {});
-          },
-          icon: const Icon(Icons.refresh))
-    ];
   }
 
   @override
@@ -76,7 +70,36 @@ class _State extends State<KnownWords> {
     super.dispose();
     globalEventSubscription?.cancel();
   }
-
+  Widget wordLevelRichText() {
+    return RichText(
+      text: TextSpan(
+          style: const TextStyle(color: Colors.black),
+          text: "",
+          children: [
+            const TextSpan(
+                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                style: TextStyle(color: Colors.blueGrey)),
+            const TextSpan(text: "1级: "),
+            TextSpan(
+                text: "$count1",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  2级: "),
+            TextSpan(
+                text: "$count2",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  3级: "),
+            TextSpan(
+                text: "$count3",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+          ]),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
@@ -88,16 +111,16 @@ class _State extends State<KnownWords> {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
-        ),
+        wordLevelRichText(),
         const Divider(),
         Expanded(
-            child: WordList(showLevel: showLevel, levelWordsMap: levelWordsMap))
+            child: WordList(
+                showLevel: showLevel,
+                getLevelWordsMap: handler.allKnownWordMap))
       ],
     );
 
-    return Scaffold(
+    return getScaffold(context,
       appBar: appBar,
       body: Padding(
         padding: const EdgeInsets.all(8),

@@ -50,3 +50,9 @@ build-android:
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
 build-la: build-android build-linux
+
+build-web-platform:
+	cd $(GO_DIR) && make build-web-platform
+	cp -r $(GO_DIR)/bin/ ./
+	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
+	@echo "--------$$ ls -lha bin --------"

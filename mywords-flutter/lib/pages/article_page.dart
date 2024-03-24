@@ -1,19 +1,19 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:mywords/common/global_event.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../libso/funcs.dart';
-import '../widgets/word_list.dart';
+import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/widgets/word_list.dart';
 
 class ArticlePage extends StatefulWidget {
   final String fileName;
@@ -34,20 +34,26 @@ class ArticlePageState extends State<ArticlePage> {
   Article? article;
   bool preview = false;
   bool showSentence = true;
+  Map<String, int> artWordLevelMap = {};
 
-  void initArticle() {
-    compute((message) => computeArticleFromGobFile3(message), fileName)
-        .then((respData) {
+  void initArticle() async {
+    compute((message) => computeArticleFromGobFile(message), fileName)
+        .then((respData) async {
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
       }
       article = respData.data!;
-      if (article!.version != parseVersion()) {
+      parseVersion = await handler.parseVersion();
+
+      if (article!.version != parseVersion) {
         reParseArticle(false);
         return;
       }
-      levelCountMap = _levelDistribute();
+      List<String> allWordLink = List<String>.generate(
+          wordInfos.length, (index) => wordInfos[index].wordLink);
+      artWordLevelMap = await handler.queryWordsLevel(allWordLink);
+      levelCountMap = await _levelDistribute();
       setState(() {});
     });
   }
@@ -64,12 +70,12 @@ class ArticlePageState extends State<ArticlePage> {
       lastModified = art.lastModified;
     }
     compute(
-        (message) => parseAndSaveArticleFromSourceUrlAndContent(message),
+        (message) => computeParseAndSaveArticleFromSourceUrlAndContent(message),
         <String, dynamic>{
           "www": art.sourceUrl,
           "lastModified": lastModified,
           "htmlContent": art.htmlContent,
-        }).then((respData) {
+        }).then((respData) async {
       if (respData.code != 0) {
         if (!context.mounted) return;
         myToast(context, respData.message);
@@ -78,7 +84,7 @@ class ArticlePageState extends State<ArticlePage> {
       addToGlobalEvent(
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
-      levelCountMap = _levelDistribute();
+      levelCountMap = await _levelDistribute();
       if (!context.mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
@@ -118,7 +124,7 @@ class ArticlePageState extends State<ArticlePage> {
 
   int get count3 => levelCountMap['3'] ?? 0;
 
-  Map<String, dynamic> _levelDistribute() {
+  Future<Map<String, dynamic>> _levelDistribute() async {
     final art = article;
     if (art == null) return {};
     final words = List<String>.generate(
@@ -126,12 +132,7 @@ class ArticlePageState extends State<ArticlePage> {
         (index) => art.wordInfos[index].wordLink == ""
             ? art.wordInfos[index].text
             : art.wordInfos[index].wordLink);
-    final c = jsonEncode(words).toNativeUtf8();
-    final resultC = levelDistribute(c);
-    final respData = RespData.fromJson(jsonDecode(resultC.toDartString()),
-        (json) => json as Map<String, dynamic>);
-    malloc.free(c);
-    malloc.free(resultC);
+    final respData = await handler.levelDistribute(words);
     if (respData.code != 0) {
       myToast(context, respData.message);
       return {};
@@ -139,14 +140,17 @@ class ArticlePageState extends State<ArticlePage> {
     return respData.data ?? {};
   }
 
-  void _updateKnownWords(int level, String word) {
-    final respData = updateKnownWords(level, word);
+  void _updateKnownWords(int level, String word) async {
+    final respData = await handler.updateKnownWords(level, word);
     if (respData.code != 0) {
       myToast(context, respData.message);
       return;
     }
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateKnownWord));
-    levelCountMap = _levelDistribute();
+    artWordLevelMap[word] = level;
+    addToGlobalEvent(GlobalEvent(
+        eventType: GlobalEventType.updateKnownWord,
+        param: <String, dynamic>{"word": word, "level": level}));
+    levelCountMap = await _levelDistribute();
     setState(() {});
   }
 
@@ -160,8 +164,8 @@ class ArticlePageState extends State<ArticlePage> {
     List<Widget> items = [];
     for (int i = 0; i < infos.length; i++) {
       final info = infos[i];
-      final wordLink = dictWordQueryLink(info.wordLink);
-      final int l = queryWordLevel(wordLink);
+      final wordLink = info.wordLink;
+      final int l = artWordLevelMap[wordLink] ?? 0;
       if (l != showLevel) {
         continue;
       }
@@ -188,13 +192,13 @@ class ArticlePageState extends State<ArticlePage> {
         buildInkWell(wordLink, 2, l, _updateKnownWords),
         const SizedBox(width: 6),
         buildInkWell(wordLink, 3, l, _updateKnownWords),
-        const SizedBox(width: 16),
       ];
 
       items.add(Row(children: children));
       if (!showSentence) {
         continue;
       }
+      items.add(const SizedBox(height: 5));
       // 前面带的空格是为了避免中间行单词粘在一起
       items.add(highlightTextSplitBySpace(
           context, info.sentence.join(' \n\n'), [info.text], contextMenuBuilder:
@@ -237,39 +241,43 @@ class ArticlePageState extends State<ArticlePage> {
     globalEventSubscription?.cancel();
   }
 
-  Widget wordLevelRichText(Article art) {
+  Widget wordLevelRichText() {
     return RichText(
-      text:
-          TextSpan(style: TextStyle(color: Colors.black), text: "", children: [
-        const TextSpan(
-            text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
-            style: TextStyle(color: Colors.blueGrey)),
-        const TextSpan(text: "0级: "),
-        TextSpan(
-            text: "$count0 ($count0VsNet)",
-            style: const TextStyle(
-                color: Colors.red, fontWeight: FontWeight.bold)),
-        const TextSpan(text: "  1级: "),
-        TextSpan(
-            text: "$count1",
-            style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.normal)),
-        const TextSpan(text: "  2级: "),
-        TextSpan(
-            text: "$count2",
-            style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.normal)),
-        const TextSpan(text: "  3级: "),
-        TextSpan(
-            text: "$count3",
-            style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.normal)),
-      ]),
+      text: TextSpan(
+          style: const TextStyle(color: Colors.black),
+          text: "",
+          children: [
+            const TextSpan(
+                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                style: TextStyle(color: Colors.blueGrey)),
+            const TextSpan(text: "0级: "),
+            TextSpan(
+                text: "$count0 ($count0VsNet)",
+                style: const TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.bold)),
+            const TextSpan(text: "  1级: "),
+            TextSpan(
+                text: "$count1",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  2级: "),
+            TextSpan(
+                text: "$count2",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  3级: "),
+            TextSpan(
+                text: "$count3",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+          ]),
     );
   }
+
+  String parseVersion = "";
 
   Widget get getHeaderRow => Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -277,7 +285,7 @@ class ArticlePageState extends State<ArticlePage> {
           Tooltip(
             showDuration: const Duration(seconds: 30),
             message:
-                "解析器版本: ${parseVersion()}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
+                "解析器版本: $parseVersion\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第9个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
             triggerMode: TooltipTriggerMode.tap,
             child: const Icon(Icons.info),
           ),
@@ -336,7 +344,8 @@ class ArticlePageState extends State<ArticlePage> {
     );
     final art = article;
     if (art == null) {
-      return Scaffold(
+      return getScaffold(
+        context,
         appBar: appBar,
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -372,7 +381,7 @@ class ArticlePageState extends State<ArticlePage> {
       const SizedBox(height: 5),
       Padding(
         padding: const EdgeInsets.only(left: 8, right: 8),
-        child: wordLevelRichText(art),
+        child: wordLevelRichText(),
       ),
       const Divider(),
     ];
@@ -396,7 +405,40 @@ class ArticlePageState extends State<ArticlePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
     );
-
-    return Scaffold(appBar: appBar, body: body);
+    return getScaffold(context, appBar: appBar, body: body);
   }
+}
+
+Future<RespData<Article>> computeParseAndSaveArticleFromSourceUrlAndContent(
+    Map<String, dynamic> param) async {
+  final www = param["www"].toString();
+  final lastModified = param["lastModified"] ?? 0;
+  final htmlContent = param["htmlContent"].toString();
+  return handler.parseAndSaveArticleFromSourceUrlAndContent(
+      www, htmlContent, lastModified);
+}
+
+Future<RespData<Article>> computeArticleFromGobFile(String fileName) async {
+  return handler.articleFromGobFile(fileName);
+}
+
+Widget contextMenuBuilder(
+    BuildContext context, EditableTextState editableTextState) {
+  final textEditingValue = editableTextState.textEditingValue;
+  final TextSelection selection = textEditingValue.selection;
+  final buttonItems = editableTextState.contextMenuButtonItems;
+  if (!selection.isCollapsed) {
+    final selectText = selection.textInside(textEditingValue.text).trim();
+    if (!selectText.contains(" ")) {
+      buttonItems.add(ContextMenuButtonItem(
+          onPressed: () {
+            showWord(context, selectText);
+          },
+          label: "Lookup"));
+    }
+  }
+  return AdaptiveTextSelectionToolbar.buttonItems(
+    buttonItems: buttonItems,
+    anchors: editableTextState.contextMenuAnchors,
+  );
 }

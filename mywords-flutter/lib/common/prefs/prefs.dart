@@ -20,6 +20,9 @@ class _Prefs {
 
   String get _defaultHomeIndex => "mywords:_defaultHomeIndex";
 
+  String get _tipHideWithLevel =>
+      "mywords:_tipHideWithLevel:"; //-1 累计，0 all, 1 ,2 ,3
+
   String get _syncToadyWordCount => "mywords:_syncToadyWordCount";
 
   String get _syncByRemoteArchived => "mywords:_syncByRemoteArchived";
@@ -128,5 +131,15 @@ class _Prefs {
 
   set defaultHomeIndex(int value) {
     _globalPrefs.setInt(_defaultHomeIndex, value);
+  }
+
+  bool getTipHideWithLevel(String tip) {
+    final key = "$_tipHideWithLevel$tip";
+    return _globalPrefs.getBool(key) ?? false;
+  }
+
+  setTipHideWithLevel(String tip,bool hide) {
+    final key = "$_tipHideWithLevel$tip";
+    return _globalPrefs.setBool(key, hide);
   }
 }

@@ -1,19 +1,19 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/funcs.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/pages/statistic_chart.dart';
-import 'package:mywords/libso/types.dart';
 import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global_event.dart';
-import '../widgets/article_list.dart';
+import 'package:mywords/common/global_event.dart';
+import 'package:mywords/widgets/article_list.dart';
 
 class ArticleListPage extends StatefulWidget {
   const ArticleListPage({super.key});
@@ -38,25 +38,27 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.syncData && event.param == true) {
-      valueNotifierChart.value = UniqueKey();
+      updateTodayCountMap().then((value) {
+        valueNotifierChart.value = UniqueKey();
+      });
     }
     if (event.eventType == GlobalEventType.updateKnownWord) {
-      valueNotifierChart.value = UniqueKey();
+      updateTodayCountMap().then((value) {
+        valueNotifierChart.value = UniqueKey();
+      });
     }
   }
 
   @override
   void initState() {
     super.initState();
+    updateTodayCountMap().then((value) {
+      setState(() {});
+    });
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
-  List<FileInfo> get fileInfos => showFileInfoList().data ?? [];
-
   void search() async {
-    if (valueNotifier.value) {
-      return;
-    }
     if (controller.text == "") {
       myToast(context, "网址不能为空");
       return;
@@ -67,16 +69,15 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     }
     if (indexStart == -1) {
       myToast(context, "网址有误，请检查");
+      return;
     }
-    final String www=controller.text.substring(indexStart).trim();
+    final String www = controller.text.substring(indexStart).trim();
+    if (www != controller.text) {
+      controller.text = www;
+    }
+    final fileName = await handler.getFileNameBySourceUrl(www);
 
-    myPrint(www);
-    if (www!=controller.text){
-      controller.text=www;
-    }
-    final idx = fileInfos.indexWhere((element) => element.sourceUrl == www);
-    if (idx != -1) {
-      final fileName = fileInfos[idx].fileName;
+    if (fileName != "") {
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -118,7 +119,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void computeParse(String www) async {
     valueNotifier.value = true;
-    final respData = await compute(parseAndSaveArticleFromSourceUrl, www);
+    final respData =
+        await compute(handler.parseAndSaveArticleFromSourceUrl, www);
     valueNotifier.value = false;
     if (respData.code != 0) {
       if (!context.mounted) return;
@@ -236,9 +238,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
             }
             return const SizedBox(height: 5);
           }),
-      const Expanded(
+      Expanded(
           child: ArticleListView(
-        getFileInfos: showFileInfoList,
+        getFileInfos: handler.showFileInfoList,
         toEndSlide: ToEndSlide.archive,
         leftLabel: '归档',
         leftIconData: Icons.archive,
@@ -250,15 +252,15 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   }
 
   ValueNotifier<Key> valueNotifierChart = ValueNotifier(UniqueKey());
+  Map<String, dynamic> todayCountMap = {};
 
-  Map<String, dynamic> get todayCountMap {
-    final respData = getToadyChartDateLevelCountMap();
+  Future<void> updateTodayCountMap() async {
+    final respData = await handler.getToadyChartDateLevelCountMap();
     if (respData.code != 0) {
       myToast(context, respData.message);
-      return {};
+      return;
     }
-    final data = respData.data ?? {};
-    return data;
+    todayCountMap = respData.data ?? {};
   }
 
   @override

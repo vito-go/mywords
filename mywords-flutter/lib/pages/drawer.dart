@@ -1,10 +1,8 @@
-import 'dart:convert';
-
-import 'package:ffi/ffi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/libso/resp_data.dart';
+import 'package:mywords/libso/handler_for_native.dart'
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/pages/article_archived_list.dart';
 import 'package:mywords/pages/known_words.dart';
 import 'package:mywords/pages/parse_local_file.dart';
@@ -14,8 +12,7 @@ import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global_event.dart';
-import '../libso/funcs.dart';
+import 'package:mywords/common/global_event.dart';
 import 'dict_database.dart';
 import 'restore_data.dart';
 import 'share_data.dart';
@@ -53,19 +50,11 @@ class MyDrawerState extends State<MyDrawer> {
     return "1级: $count1  2级: $count2  3级: $count3";
   }
 
-  void initLevelMap() {
+  void initLevelMap() async {
     // map[server.WordKnownLevel]int
-    final resultC = knownWordsCountMap();
-    final RespData<Map<String, dynamic>> respData = RespData.fromJson(
-        jsonDecode(resultC.toDartString()) ?? {},
-        (json) => json as Map<String, dynamic>);
-    myPrint(resultC.toDartString());
-    malloc.free(resultC);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
-    levelCountMap = respData.data ?? {};
+    final data = await handler.knownWordsCountMap();
+    levelCountMap = data;
+    setState(() {});
   }
 
   @override
@@ -81,38 +70,6 @@ class MyDrawerState extends State<MyDrawer> {
   void dispose() {
     super.dispose();
     controller.dispose();
-  }
-
-  void parseLocalFiles() async {
-    // todo
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-        initialDirectory: getDefaultDownloadDir(),
-        allowMultiple: false,
-        withReadStream: true,
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'PDF', 'txt', 'TXT']);
-    if (result == null) {
-      return;
-    }
-    final files = result.files;
-    if (files.isEmpty) {
-      return;
-    }
-    final file = files[0];
-    if (file.path == null) {
-      return;
-    }
-
-    final respData = await compute(
-        (message) => computeRestoreFromBackUpData(message),
-        <String, dynamic>{});
-    if (respData.code != 0) {
-      myToast(context, "恢复失败!\n${respData.message}");
-      return;
-    }
-    myToast(context, "恢复成功");
-    addToGlobalEvent(
-        GlobalEvent(eventType: GlobalEventType.updateArticleList));
   }
 
   @override

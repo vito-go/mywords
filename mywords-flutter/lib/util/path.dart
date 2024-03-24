@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 String? getHomeDir() {
@@ -15,6 +16,7 @@ String? getHomeDir() {
 }
 
 String? getDefaultDownloadDir() {
+  if (kIsWeb)return null;
   if (Platform.isAndroid) {
     return "/storage/emulated/0/Download/";
   }

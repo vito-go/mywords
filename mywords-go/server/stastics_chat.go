@@ -175,7 +175,7 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 }
 
 func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string) {
-	l, ok := s.QueryWordLevel(word)
+	l, ok := s.queryWordLevel(word)
 	if ok && level <= l {
 		// only update level to higher
 		return

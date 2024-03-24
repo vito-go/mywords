@@ -34,8 +34,8 @@ func (w WordKnownLevel) Name() string {
 
 type Server struct {
 	rootDataDir string
-	xpathExpr   string   //must can compile
-	proxy       *url.URL // it can be nil if no proxy
+	xpathExpr   string  //must can compile
+	cfg         *config // include proxyUrl, etc
 	//
 	knownWordsMap       map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	fileInfoMap         map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
@@ -49,17 +49,25 @@ type Server struct {
 	chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
 }
 
+type config struct {
+	ProxyUrl string `json:"proxyUrl"`
+}
+
 const (
 	dataDir           = `data`                     // 存放背单词的目录
-	gobFileDir        = "gob_gz_files"             // a.txt.gob, b.txt.gob, c.txt.gob ...
 	knownWordsFile    = "known_words.json"         // all known words
 	fileInfoFile      = "file_infos.json"          // file_infos.json index file
 	chartDataJsonFile = "daily_chart_data.json"    // daily_chart_data.json daily chart data
-	gobGzFileSuffix   = ".gob.gz"                  // file_infos.json index file
 	fileInfosArchived = "file_infos_archived.json" // file_infos_archived.json index file
 )
 
-func NewServer(rootDataDir string, proxyUrl string) (*Server, error) {
+const (
+	gobFileDir      = "gob_gz_files" // a.txt.gob, b.txt.gob, c.txt.gob ...
+	gobGzFileSuffix = ".gob.gz"      // file_infos.json index file
+	configFile      = "config.json"  // config.json
+)
+
+func NewServer(rootDataDir string) (*Server, error) {
 	rootDataDir = filepath.ToSlash(rootDataDir)
 	if err := os.MkdirAll(rootDataDir, 0755); err != nil {
 		return nil, err
@@ -101,9 +109,14 @@ func NewServer(rootDataDir string, proxyUrl string) (*Server, error) {
 			return nil, err
 		}
 	}
-	var proxy *url.URL
-	if proxyUrl != "" {
-		proxy, err = url.Parse(proxyUrl)
+
+	b, err = os.ReadFile(filepath.Join(rootDataDir, configFile))
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	var cfg config
+	if len(b) > 0 {
+		err = json.Unmarshal(b, &cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -123,12 +136,33 @@ func NewServer(rootDataDir string, proxyUrl string) (*Server, error) {
 	s := &Server{rootDataDir: rootDataDir,
 		knownWordsMap:          knownWordsMap,
 		fileInfoMap:            fileInfoMap,
-		proxy:                  proxy,
 		xpathExpr:              artical.DefaultXpathExpr,
 		chartDateLevelCountMap: chartDateLevelCountMap,
 		fileInfoArchivedMap:    fileInfoArchivedMap,
+		cfg:                    &cfg,
 	}
 	return s, nil
+}
+
+// RootDataDir . root data dir
+func (s *Server) RootDataDir() string {
+	return s.rootDataDir
+}
+
+// ZipDataDir .
+func (s *Server) ZipDataDir() string {
+	return filepath.Join(s.rootDataDir, dataDir)
+}
+
+func (s *Server) proxy() *url.URL {
+	if s.cfg.ProxyUrl == "" {
+		return nil
+	}
+	u, err := url.Parse(s.cfg.ProxyUrl)
+	if err != nil {
+		return u
+	}
+	return u
 }
 
 // restoreFromBackUpDataFromAZipFile delete gob file and update fileInfoMap
@@ -385,17 +419,18 @@ func (s *Server) FixMyKnownWords() error {
 }
 
 // SetProxyUrl .
-func (s *Server) SetProxyUrl(proxyUrl string) (err error) {
+func (s *Server) SetProxyUrl(proxyUrl string) error {
 	if proxyUrl == "" {
-		s.proxy = nil
-		return nil
+		s.cfg.ProxyUrl = ""
+		return s.saveConfig()
+
 	}
-	proxy, err := url.Parse(proxyUrl)
+	_, err := url.Parse(proxyUrl)
 	if err != nil {
 		return err
 	}
-	s.proxy = proxy
-	return nil
+	s.cfg.ProxyUrl = proxyUrl
+	return s.saveConfig()
 }
 
 // SetXpathExpr . usually for debug
@@ -475,7 +510,7 @@ func (s *Server) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, ht
 	return art, nil
 }
 func (s *Server) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Article, error) {
-	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.proxy)
+	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.proxy())
 	if err != nil {
 		return nil, err
 	}
@@ -567,6 +602,21 @@ func (s *Server) ShowFileInfoList() []FileInfo {
 	})
 	return items
 }
+func (s *Server) GetFileNameBySourceUrl(sourceUrl string) (string, bool) {
+	for _, info := range s.fileInfoMap {
+		if info.SourceUrl == sourceUrl {
+			return info.FileName, true
+
+		}
+	}
+	for _, info := range s.fileInfoArchivedMap {
+		if info.SourceUrl == sourceUrl {
+			return info.FileName, true
+		}
+	}
+	return "", false
+}
+
 func (s *Server) GetArchivedFileInfoList() []FileInfo {
 	var items = make([]FileInfo, 0, len(s.fileInfoMap))
 	for _, v := range s.fileInfoArchivedMap {
@@ -580,6 +630,9 @@ func (s *Server) GetArchivedFileInfoList() []FileInfo {
 }
 
 func (s *Server) QueryWordLevel(word string) (WordKnownLevel, bool) {
+	return s.queryWordLevel(word)
+}
+func (s *Server) queryWordLevel(word string) (WordKnownLevel, bool) {
 	// check level
 	if len(word) == 0 {
 		return 0, false
@@ -592,6 +645,20 @@ func (s *Server) QueryWordLevel(word string) (WordKnownLevel, bool) {
 	}
 	return 0, false
 }
+func (s *Server) QueryWordsLevel(words ...string) map[string]WordKnownLevel {
+	if len(words) == 0 {
+		return map[string]WordKnownLevel{}
+	}
+	resultMap := make(map[string]WordKnownLevel, len(words))
+	for _, word := range words {
+		firstLetter := strings.ToLower(word[:1])
+		if wordLevelMap, ok := s.knownWordsMap[firstLetter]; ok {
+			resultMap[word] = wordLevelMap[word]
+		}
+	}
+	return resultMap
+}
+
 func (s *Server) LevelDistribute(words []string) map[WordKnownLevel]int {
 	var m = make(map[WordKnownLevel]int, 3)
 	for _, text := range words {
@@ -752,6 +819,17 @@ func (s *Server) saveFileInfoMap() error {
 func (s *Server) saveChartDataFile() error {
 	path := filepath.Join(s.rootDataDir, dataDir, chartDataJsonFile)
 	b, _ := json.MarshalIndent(s.chartDateLevelCountMap, "", "  ")
+	err := os.WriteFile(path, b, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// saveConfig .
+func (s *Server) saveConfig() error {
+	path := filepath.Join(s.rootDataDir, configFile)
+	b, _ := json.MarshalIndent(s.cfg, "", "  ")
 	err := os.WriteFile(path, b, 0644)
 	if err != nil {
 		return err

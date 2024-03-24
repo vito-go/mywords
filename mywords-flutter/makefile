@@ -29,3 +29,5 @@ build-windows:
 	- mkdir bin
 	rm -rf bin/mywords-windows
 	cp -r build/windows/x64/runner/Release bin/mywords-windows
+build-web:
+	flutter build web -v

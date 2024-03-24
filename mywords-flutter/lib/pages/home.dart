@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import '../common/global_event.dart';
+import 'package:mywords/common/global_event.dart';
+import 'package:mywords/util/get_scaffold.dart';
 import 'drawer.dart';
-import '../widgets/restart_app.dart';
+import 'package:mywords/widgets/restart_app.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
 
@@ -13,7 +14,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _State();
 }
 
-const appVersion = "1.0.2";
+const appVersion = "2.0.0";
 
 class _State extends State<Home> {
   final PageController _pageController =
@@ -140,7 +141,7 @@ class _State extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return getScaffold(context,
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -168,9 +169,6 @@ class _State extends State<Home> {
       drawer: const MyDrawer(),
       bottomNavigationBar: bottomBar,
       drawerEnableOpenDragGesture: true,
-      onDrawerChanged: (t) {
-        if (t) {}
-      },
     );
   }
 }

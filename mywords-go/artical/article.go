@@ -39,7 +39,8 @@ type WordInfo struct {
 }
 
 func ParseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (*Article, error) {
-	return parseContent(sourceUrl, expr, respBody, lastModified)
+
+	return parseContent(sourceUrl, filepath.Base(sourceUrl), expr, respBody, lastModified)
 }
 
 // //div/p//text()[not(ancestor::style or ancestor::a)]
@@ -52,7 +53,7 @@ func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article,
 	if err != nil {
 		return nil, err
 	}
-	art, err := parseContent(sourceUrl, expr, respBody, time.Now().UnixMilli())
+	art, err := parseContent(sourceUrl, filepath.Base(sourceUrl), expr, respBody, time.Now().UnixMilli())
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +103,7 @@ func ParseLocalFile(path string) (*Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseContent(sourceUrl, DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
+	return parseContent(sourceUrl, filepath.Base(path), DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
 	// TODO: the other file format to be supported, how to preview txt file?
 	var content string
 	if strings.ToLower(ext) == ".txt" {
@@ -133,7 +134,7 @@ const minLen = 3
 // 1 统计英文单词数量
 // 2.可以筛选长度
 // 3 带三个例句
-func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (*Article, error) {
+func parseContent(sourceUrl, defaultTitle, expr string, respBody []byte, lastModified int64) (*Article, error) {
 	if lastModified <= 0 {
 		lastModified = time.Now().UnixMilli()
 	}
@@ -169,7 +170,7 @@ func parseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 		title = htmlquery.InnerText(titleNode)
 	}
 	if title == "" {
-		title = sourceUrl
+		title = defaultTitle
 	}
 	//sentences := strings.SplitAfter(content, ". ")
 	// The U.S.
