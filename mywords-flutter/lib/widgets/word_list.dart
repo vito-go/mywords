@@ -58,7 +58,7 @@ class _State extends State<WordList> {
     myPrint(levelWordsMap);
     addToGlobalEvent(GlobalEvent(
         eventType: GlobalEventType.updateKnownWord,
-        param: {"word": word, "level": level}));
+        param: <String, dynamic>{"word": word, "level": level}));
     setState(() {});
   }
 

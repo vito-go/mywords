@@ -53,7 +53,7 @@ class _State extends State<WordHeaderRow> {
     setState(() {});
     addToGlobalEvent(GlobalEvent(
         eventType: GlobalEventType.updateKnownWord,
-        param: {"word": word, "level": level}));
+        param: <String,dynamic> {"word": word, "level": level}));
   }
 
   void _updateWordLevelMap() async {
