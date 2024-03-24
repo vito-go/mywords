@@ -83,7 +83,6 @@
     - 在Windows下执行`./bin/mywords-web-windows.exe`
     - 在MacOS下执行`./bin/mywords-web-macos`
 - 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960`或者您指定的其他端口号。
-- web版本的安装包文件将会位于项目的"bin"文件夹内。按照标准流程安装到您的设备上后即可开始使用。
 
 
 ## 项目结构
