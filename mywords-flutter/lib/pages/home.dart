@@ -13,7 +13,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _State();
 }
 
-const appVersion = "1.0.1";
+const appVersion = "1.0.2";
 
 class _State extends State<Home> {
   final PageController _pageController =
