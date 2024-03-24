@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:mywords/libso/debug_host_origin.dart';
 import 'package:mywords/libso/interface.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
@@ -56,10 +58,10 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<RespData<void>> delDict(String basePath) async{
+  Future<RespData<void>> delDict(String basePath) async {
     final result = await call("DelDict", [basePath]);
     final RespData<void> respData =
-    RespData.fromJson(jsonDecode(result), (json) {});
+        RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
   }
 
@@ -439,7 +441,7 @@ class HTTPHandler implements Interface {
 
 Future<String> call(String funcName, List<dynamic> args) async {
   final dio = Dio();
-  final www = "http://127.0.0.1:18960/call/$funcName";
+  final www = "$debugHostOrigin/call/$funcName";
   try {
     final Response<String> response = await dio.post(
       www,

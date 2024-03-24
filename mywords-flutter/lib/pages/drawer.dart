@@ -162,7 +162,7 @@ class MyDrawerState extends State<MyDrawer> {
           },
         ),
         ListTile(
-          title: const Text(kIsWeb ? "分享数据" : "分享/备份数据"),
+          title: const Text("分享/备份数据"),
           leading: const Icon(Icons.share),
           trailing: const Icon(Icons.navigate_next),
           onTap: () {

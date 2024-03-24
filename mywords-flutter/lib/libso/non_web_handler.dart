@@ -842,6 +842,7 @@ class NonWebHandler implements Interface {
         ips.add(s.address);
       }
     }
+    ips.sort((a, b) => a.length.compareTo(b.length));
     return ips;
   }
 }

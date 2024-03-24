@@ -69,7 +69,36 @@ class _State extends State<KnownWords> {
     super.dispose();
     globalEventSubscription?.cancel();
   }
-
+  Widget wordLevelRichText() {
+    return RichText(
+      text: TextSpan(
+          style: const TextStyle(color: Colors.black),
+          text: "",
+          children: [
+            const TextSpan(
+                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                style: TextStyle(color: Colors.blueGrey)),
+            const TextSpan(text: "1级: "),
+            TextSpan(
+                text: "$count1",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  2级: "),
+            TextSpan(
+                text: "$count2",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  3级: "),
+            TextSpan(
+                text: "$count3",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+          ]),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
@@ -81,9 +110,7 @@ class _State extends State<KnownWords> {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n总数量:$totalCount, 1级: $count1  2级: $count2  3级: $count3",
-        ),
+        wordLevelRichText(),
         const Divider(),
         Expanded(
             child: WordList(

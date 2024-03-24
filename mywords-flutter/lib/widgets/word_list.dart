@@ -87,7 +87,7 @@ class _State extends State<WordList> {
       buildInkWell(word, 2, realLevel, _updateKnownWordsSetState),
       const SizedBox(width: 6),
       buildInkWell(word, 3, realLevel, _updateKnownWordsSetState),
-      const SizedBox(width: 16),
+      const SizedBox(width: 10),
     ];
     return Row(children: children);
   }
@@ -123,12 +123,12 @@ class _State extends State<WordList> {
         break;
     }
     return ListView.separated(
-        itemBuilder: (BuildContext context, int index) {
-          return buildWordLevelRow(
-              index, items[index].word, items[index].level);
-        },
-        separatorBuilder: (BuildContext context, int index) => const Divider(),
-        itemCount: items.length);
+      itemBuilder: (BuildContext context, int index) {
+        return buildWordLevelRow(index, items[index].word, items[index].level);
+      },
+      separatorBuilder: (BuildContext context, int index) => const Divider(),
+      itemCount: items.length,
+    );
   }
 
   @override

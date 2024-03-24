@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +9,9 @@ import 'package:mywords/widgets/stream_log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
+import '../libso/debug_host_origin.dart';
 import '../libso/resp_data.dart';
 import '../util/path.dart';
 import '../util/util.dart';
@@ -28,12 +31,10 @@ class _SyncDataState extends State<SyncData> {
   TextEditingController controllerCode = TextEditingController();
   TextEditingController controllerBackUpZipName =
       TextEditingController(text: "mywords-backupdata");
-  String defaultDownloadDir = '';
 
   @override
   void initState() {
     super.initState();
-    defaultDownloadDir = getDefaultDownloadDir() ?? '';
     updateLocalExampleIP();
     initController();
   }
@@ -106,6 +107,13 @@ class _SyncDataState extends State<SyncData> {
                     if (controllerBackUpZipName.text.startsWith("/")) {
                       myToast(context, "文件名不能包含特殊字符/");
                     }
+
+                    if (kIsWeb) {
+                      Navigator.pop(context);
+                      downloadBackUpdate("${controllerBackUpZipName.text}.zip");
+                      return;
+                    }
+
                     final dirPath = await dataDirPath();
                     final respData = await compute(
                         (message) => computeBackUpData(message),
@@ -188,23 +196,21 @@ class _SyncDataState extends State<SyncData> {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [const PrivateIP()];
-    if (!kIsWeb) {
-      children.add(ListTile(
-        title: const Text("备份数据"),
-        leading: Tooltip(
-          message: "备份文件将保存在: $defaultDownloadDir",
-          triggerMode: TooltipTriggerMode.tap,
-          child: const Icon(Icons.info_outline),
+    children.add(ListTile(
+      title: const Text("备份数据"),
+      leading: const Tooltip(
+        message: "学习数据备份文件将保存在本地",
+        triggerMode: TooltipTriggerMode.tap,
+        child: Icon(Icons.info_outline),
+      ),
+      trailing: IconButton(
+        onPressed: _onTapBackUpData,
+        icon: Icon(
+          Icons.save_alt,
+          color: Theme.of(context).primaryColor,
         ),
-        trailing: IconButton(
-          onPressed: _onTapBackUpData,
-          icon: Icon(
-            Icons.save_alt,
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-      ));
-    }
+      ),
+    ));
     children.add(ListTile(
       leading: Tooltip(
         message:
@@ -255,7 +261,7 @@ class _SyncDataState extends State<SyncData> {
     final body = Column(children: children);
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: const Text(kIsWeb ? "分享数据" : "分享/备份数据"),
+      title: const Text("分享/备份数据"),
     );
 
     return Scaffold(
@@ -269,4 +275,10 @@ Future<RespData<String>> computeBackUpData(Map<String, String> param) async {
   final String zipName = param['zipName']!;
   final String dataDirPath = param['dataDirPath']!;
   return handler.backUpData(zipName, dataDirPath);
+}
+
+void downloadBackUpdate(String zipFileName) async {
+  final www = "$debugHostOrigin/_downloadBackUpdate?name=$zipFileName";
+  launchUrlString(www);
+  return;
 }

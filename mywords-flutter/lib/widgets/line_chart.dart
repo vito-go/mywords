@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/prefs/prefs.dart';
 
 class LineValue {
   late final String tip; //图例提示文字
@@ -72,8 +73,6 @@ class LineChartSampleState extends State<LineChartSample> {
     super.initState();
   }
 
-  Map<String, bool> tipHideMap = {};
-
   Widget buildLegend({
     required Color color,
     required tip,
@@ -81,7 +80,7 @@ class LineChartSampleState extends State<LineChartSample> {
     double size = 16,
     Color textColor = Colors.white,
   }) {
-    final tipShow = tipHideMap[tip] == null;
+    final tipHide = prefs.getTipHideWithLevel(tip);
     List<Widget> children = <Widget>[
       Container(
         width: size,
@@ -98,8 +97,8 @@ class LineChartSampleState extends State<LineChartSample> {
         tip,
         style: TextStyle(
           fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: tipShow ? textColor : Colors.grey,
+          fontWeight: tipHide ? FontWeight.normal : FontWeight.bold,
+          color: tipHide ? Colors.grey : textColor,
         ),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -115,11 +114,7 @@ class LineChartSampleState extends State<LineChartSample> {
           children: children,
         ),
         onTap: () {
-          if (tipHideMap[tip] == null) {
-            tipHideMap[tip] = true;
-          } else {
-            tipHideMap.remove(tip);
-          }
+          prefs.setTipHideWithLevel(tip, !prefs.getTipHideWithLevel(tip));
           setState(() {});
         });
   }
@@ -135,7 +130,7 @@ class LineChartSampleState extends State<LineChartSample> {
       }
       final w = buildLegend(
           color: lineColors[i],
-           tip: chartLineData.lineValues[i].tip,
+          tip: chartLineData.lineValues[i].tip,
           isSquare: true);
       children.add(w);
     }
@@ -188,9 +183,9 @@ class LineChartSampleState extends State<LineChartSample> {
       child: Padding(
         padding: const EdgeInsets.only(right: 48, left: 6, bottom: 10, top: 26),
         child: _LineChart(
-            data: chartLineData,
-            isCurved: widget.isCurved,
-            tipHideMap: tipHideMap),
+          data: chartLineData,
+          isCurved: widget.isCurved,
+        ),
       ),
     ));
     return DecoratedBox(
@@ -275,10 +270,8 @@ class Indicator extends StatelessWidget {
 class _LineChart extends StatelessWidget {
   final ChartLineData data;
   final bool isCurved;
-  final Map<String, bool> tipHideMap;
 
-  const _LineChart(
-      {required this.data, required this.isCurved, required this.tipHideMap});
+  const _LineChart({required this.data, required this.isCurved});
 
   final double barWidth = 1; // 根据lines 动态调整
 
@@ -387,7 +380,7 @@ class _LineChart extends StatelessWidget {
         barWidth: data.lineValues[i].barWidth,
         spots: data.lineValues[i].flSpots,
         isCurved: isCurved,
-        show: tipHideMap[data.lineValues[i].tip] == null,
+        show: !prefs.getTipHideWithLevel(data.lineValues[i].tip),
       ));
     }
     return result;

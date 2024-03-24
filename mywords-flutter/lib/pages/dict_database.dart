@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import '../libso/debug_host_origin.dart';
 import '../libso/resp_data.dart';
 import '../util/path.dart';
 import '../util/util.dart';
@@ -285,7 +286,7 @@ Future<RespData<void>> computeAddDictWithFile(
   String name = param['name']!;
   Stream<List<int>> bytes = param['bytes']!;
   final dio = Dio();
-  const www = "http://127.0.0.1:18960/addDictWithFile";
+  const www = "$debugHostOrigin/_addDictWithFile";
 
   try {
     final Response<String> response = await dio.post(

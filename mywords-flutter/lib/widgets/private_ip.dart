@@ -17,7 +17,6 @@ class PrivateIPState extends State {
   void updateIP() async {
     ips.clear();
     ips = await handler.getIPv4s() ?? [];
-    ips.sort((a, b) => a.length.compareTo(b.length));
     setState(() {});
   }
 

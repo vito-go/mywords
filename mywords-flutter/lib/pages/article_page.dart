@@ -196,13 +196,13 @@ class ArticlePageState extends State<ArticlePage> {
         buildInkWell(wordLink, 2, l, _updateKnownWords),
         const SizedBox(width: 6),
         buildInkWell(wordLink, 3, l, _updateKnownWords),
-        const SizedBox(width: 16),
-      ];
+       ];
 
       items.add(Row(children: children));
       if (!showSentence) {
         continue;
       }
+      items.add(const SizedBox(height: 5));
       // 前面带的空格是为了避免中间行单词粘在一起
       items.add(highlightTextSplitBySpace(
           context, info.sentence.join(' \n\n'), [info.text], contextMenuBuilder:
@@ -245,7 +245,7 @@ class ArticlePageState extends State<ArticlePage> {
     globalEventSubscription?.cancel();
   }
 
-  Widget wordLevelRichText(Article art) {
+  Widget wordLevelRichText() {
     return RichText(
       text: TextSpan(
           style: const TextStyle(color: Colors.black),
@@ -384,7 +384,7 @@ class ArticlePageState extends State<ArticlePage> {
       const SizedBox(height: 5),
       Padding(
         padding: const EdgeInsets.only(left: 8, right: 8),
-        child: wordLevelRichText(art),
+        child: wordLevelRichText( ),
       ),
       const Divider(),
     ];
@@ -425,7 +425,6 @@ Future<RespData<Article>> computeParseAndSaveArticleFromSourceUrlAndContent(
 Future<RespData<Article>> computeArticleFromGobFile(String fileName) async {
   return handler.articleFromGobFile(fileName);
 }
-
 
 Widget contextMenuBuilder(
     BuildContext context, EditableTextState editableTextState) {
