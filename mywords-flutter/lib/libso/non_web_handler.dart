@@ -689,18 +689,6 @@ class NonWebHandler implements Interface {
     return respData;
   }
 
-  final _getBaseUrl = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('GetBaseUrl');
-
-  RespData<String> getBaseUrl() {
-    final resultC = _getBaseUrl();
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData;
-  }
-
   final _getDefaultDict = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetDefaultDict');
 

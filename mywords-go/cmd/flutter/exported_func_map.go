@@ -27,7 +27,6 @@ var exportedFuncMap = map[string]any{
 	"FinalHtmlBasePathWithOutHtml":     FinalHtmlBasePathWithOutHtml,
 	"FixMyKnownWords":                  FixMyKnownWords,
 	"GetArchivedFileInfoList":          GetArchivedFileInfoList,
-	"GetBaseUrl":                       GetBaseUrl,
 	"GetChartData":                     GetChartData,
 	"GetChartDataAccumulate":           GetChartDataAccumulate,
 	"GetDefaultDict":                   GetDefaultDict,

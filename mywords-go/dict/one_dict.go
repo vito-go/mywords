@@ -2,7 +2,6 @@ package dict
 
 import (
 	"archive/zip"
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,29 +10,23 @@ import (
 	"golang.org/x/net/html"
 	"io"
 	"mywords/mylog"
-	"net"
-	"net/http"
 	"net/url"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 )
 
-type DictZip struct {
+type OneDict struct {
 	zipFile            string
 	zipFileMap         map[string]*zip.File
 	allWordHtmlFileMap map[string]string // word:htmlPath htmlPath不带html后缀
-	lis                net.Listener
-	port               int
 	zipReadCloser      *zip.ReadCloser
-
-	jsCssCache sync.Map // key:htmlBasePath, value:htmlContent string:[]byte
+	jsCssCache         sync.Map // key:htmlBasePath, value:htmlContent string:[]byte
 }
 
-func (d *DictZip) getZipFile(path string) (*zip.File, bool) {
+func (d *OneDict) getZipFile(path string) (*zip.File, bool) {
 	path = filepath.ToSlash(path)
 	// windows 系统的路径分隔符是\
 	f, ok := d.zipFileMap[path]
@@ -61,7 +54,7 @@ func getAllWordHtmlFileMap(file *zip.File) (map[string]string, error) {
 	return allWordHtmlFileMap, nil
 
 }
-func NewDictZip(zipFile string) (*DictZip, error) {
+func NewDictZip(zipFile string) (*OneDict, error) {
 	z, err := zip.OpenReader(zipFile)
 	if err != nil {
 		return nil, err
@@ -84,19 +77,17 @@ func NewDictZip(zipFile string) (*DictZip, error) {
 	if len(allWordHtmlFileMap) == 0 {
 		return nil, fmt.Errorf("file empty: %s", wordHtmlMapJsonName)
 	}
-	return &DictZip{
+	return &OneDict{
 		zipFile:            zipFile,
 		zipFileMap:         zipFileMap,
 		allWordHtmlFileMap: allWordHtmlFileMap,
-		lis:                nil,
-		port:               0,
 		zipReadCloser:      z,
 	}, nil
 }
-func (d *DictZip) FinalHtmlBasePathWithOutHtml(word string) (string, bool) {
+func (d *OneDict) FinalHtmlBasePathWithOutHtml(word string) (string, bool) {
 	return d.finalHtmlBasePathWithOutHtml(word)
 }
-func (d *DictZip) finalHtmlBasePathWithOutHtml(word string) (string, bool) {
+func (d *OneDict) finalHtmlBasePathWithOutHtml(word string) (string, bool) {
 	p, ok := d.allWordHtmlFileMap[word]
 	if !ok {
 		p, ok = d.allWordHtmlFileMap[strings.ToLower(word)]
@@ -104,37 +95,19 @@ func (d *DictZip) finalHtmlBasePathWithOutHtml(word string) (string, bool) {
 	return p, ok
 }
 
-func (d *DictZip) Close() {
+func (d *OneDict) Close() {
+	if d == nil {
+		return
+	}
 	d.zipFileMap = nil
 	d.allWordHtmlFileMap = nil
-	if lis := d.lis; lis != nil {
-		lis.Close()
-	}
 	if z := d.zipReadCloser; z != nil {
 		z.Close()
 	}
 	runtime.GC()
 }
-func (d *DictZip) start() error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", d.serverHTTPIndex)
-	mux.HandleFunc("/_sound/", d.serveSound)
-	mux.HandleFunc("/_entry/", d.serveEntry)
-	srv := &http.Server{Addr: ":0", Handler: mux}
-	lis, err := net.Listen("tcp", ":0")
-	if err != nil {
-		return err
-	}
-	tcpAddr, err := net.ResolveTCPAddr("tcp", lis.Addr().String())
-	if err != nil {
-		return err
-	}
-	d.lis = lis
-	d.port = tcpAddr.Port
-	return srv.Serve(lis)
-}
 
-func (d *DictZip) originalContentByBasePath(basePath string) (result []byte, err error) {
+func (d *OneDict) originalContentByBasePath(basePath string) (result []byte, err error) {
 	var path string
 	if strings.HasSuffix(basePath, ".html") {
 		path = filepath.Join(htmlDir, basePath)
@@ -176,7 +149,7 @@ func (d *DictZip) originalContentByBasePath(basePath string) (result []byte, err
 	return b, nil
 }
 
-func (d *DictZip) replaceCSS(htmlNode *html.Node, allCssNames []string) {
+func (d *OneDict) replaceCSS(htmlNode *html.Node, allCssNames []string) {
 	styleNode := htmlquery.FindOne(htmlNode, "//style")
 
 	if styleNode == nil {
@@ -198,7 +171,7 @@ func (d *DictZip) replaceCSS(htmlNode *html.Node, allCssNames []string) {
 		// set png href with base64
 	}
 }
-func (d *DictZip) replaceJS(htmlNode *html.Node) {
+func (d *OneDict) replaceJS(htmlNode *html.Node) {
 	headNode := htmlquery.FindOne(htmlNode, "//body")
 	if headNode == nil {
 		return
@@ -229,7 +202,7 @@ func (d *DictZip) replaceJS(htmlNode *html.Node) {
 		}
 	}
 }
-func (d *DictZip) replaceMP3(htmlNode *html.Node) {
+func (d *OneDict) replaceMP3(htmlNode *html.Node) {
 	headNode := htmlquery.FindOne(htmlNode, "//head")
 	if headNode == nil {
 		return
@@ -268,7 +241,7 @@ func (d *DictZip) replaceMP3(htmlNode *html.Node) {
 		}
 	}
 }
-func (d *DictZip) replacePng(htmlNode *html.Node) {
+func (d *OneDict) replacePng(htmlNode *html.Node) {
 	pngs := htmlquery.Find(htmlNode, "//img[contains(@src,'.png')]")
 	for _, ele := range pngs {
 		for i := 0; i < len(ele.Attr); i++ {
@@ -287,7 +260,7 @@ func (d *DictZip) replacePng(htmlNode *html.Node) {
 	}
 }
 
-func (d *DictZip) replaceHTMLContent(htmlContent string) (string, error) {
+func (d *OneDict) replaceHTMLContent(htmlContent string) (string, error) {
 	// 查找正则表达式去除所有的含有css的标签, 因为过滤后的文本的link标签可能在body中，所以需要用正则表达式来解析并替换
 	//cssExpr := `<link.*?href="(.*\.css)".*?>`
 	cssExpr := `<link[^>]*?href="(.*?\.css)"[^>]*?>`
@@ -326,7 +299,7 @@ func (d *DictZip) replaceHTMLContent(htmlContent string) (string, error) {
 	return htmlquery.OutputHTML(htmlNode, true), nil
 }
 
-func (d *DictZip) GetHTMLRenderContentByWord(word string) (string, error) {
+func (d *OneDict) GetHTMLRenderContentByWord(word string) (string, error) {
 	basePath, ok := d.finalHtmlBasePathWithOutHtml(word)
 	if !ok {
 		return "", DataNotFound
@@ -355,7 +328,7 @@ func completeHtml(word, htmlOriginalContent string) (string, bool) {
 }
 
 // getContentByHtmlBasePath htmlBasePath 带html后缀
-func (d *DictZip) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, error) {
+func (d *OneDict) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, error) {
 	f, ok := d.getZipFile(filepath.Join(htmlDir, htmlBasePath))
 	if !ok {
 		return nil, DataNotFound
@@ -384,7 +357,7 @@ func (d *DictZip) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, e
 	// <img src="images/2.png" alt="2.png" />
 	return []byte(htmlContent), nil
 }
-func (d *DictZip) addOnClickMp3(htmlNode *html.Node) {
+func (d *OneDict) addOnClickMp3(htmlNode *html.Node) {
 	mp3s := htmlquery.Find(htmlNode, "//a[contains(@href,'.mp3')]")
 	for _, mp3 := range mp3s {
 		for i := 0; i < len(mp3.Attr); i++ {
@@ -401,7 +374,7 @@ func (d *DictZip) addOnClickMp3(htmlNode *html.Node) {
 		}
 	}
 }
-func (d *DictZip) changeEntreHref(htmlNode *html.Node) {
+func (d *OneDict) changeEntreHref(htmlNode *html.Node) {
 	mp3s := htmlquery.Find(htmlNode, "//a[contains(@href,'entry://')]")
 	for _, mp3 := range mp3s {
 		for i := 0; i < len(mp3.Attr); i++ {
@@ -414,100 +387,4 @@ func (d *DictZip) changeEntreHref(htmlNode *html.Node) {
 			}
 		}
 	}
-}
-
-// baseHTMLPath with .html
-func (d *DictZip) writeByWordBaseHTMLPath(w http.ResponseWriter, word, baseHTMLPath string) {
-	content, err := d.getContentByHtmlBasePath(word, baseHTMLPath)
-	if err != nil {
-		if errors.Is(err, DataNotFound) {
-			http.Error(w, "404 page not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	//content = bytes.ReplaceAll(content, []byte("entry://"), []byte("/_entry/"))
-	htmlNode, err := htmlquery.Parse(bytes.NewReader(content))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	d.addOnClickMp3(htmlNode)
-	d.changeEntreHref(htmlNode)
-	html.Render(w, htmlNode)
-	return
-}
-
-func (d *DictZip) serverHTTPHtml(w http.ResponseWriter, r *http.Request) {
-	urlPath := strings.TrimPrefix(r.URL.Path, "/")
-	word := r.URL.Query().Get("word")
-	d.writeByWordBaseHTMLPath(w, word, urlPath)
-}
-
-func (d *DictZip) serverAssetsExceptHtml(w http.ResponseWriter, r *http.Request) {
-	urlPath := strings.TrimPrefix(r.URL.Path, "/")
-	if strings.HasSuffix(urlPath, ".js") {
-		w.Header().Set("Content-Type", "text/javascript")
-	} else if strings.HasSuffix(urlPath, ".css") {
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-	} else {
-		urlPath = filepath.Join(dictAssetDataDir, urlPath)
-	}
-	f, ok := d.getZipFile(urlPath)
-	if !ok {
-		http.NotFound(w, r)
-		return
-	}
-	fr, err := f.Open()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer fr.Close()
-
-	b, err := io.ReadAll(fr)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	http.ServeContent(w, r, f.Name, f.Modified, bytes.NewReader(b))
-}
-
-func (d *DictZip) serveSound(w http.ResponseWriter, r *http.Request) {
-	// /_sound/
-	name := strings.TrimPrefix(r.URL.Path, "/_sound/")
-	mp3, err := d.originalContentByBasePath(name)
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	http.ServeContent(w, r, name, time.Now(), bytes.NewReader(mp3))
-}
-
-func (d *DictZip) serveEntry(w http.ResponseWriter, r *http.Request) {
-	// /_sound/
-	word := strings.TrimPrefix(r.URL.Path, "/_entry/")
-	basePath, ok := d.finalHtmlBasePathWithOutHtml(word)
-	if !ok {
-		http.NotFound(w, r)
-		return
-	}
-	//d.writeByWordBaseHTMLPath(w, basePath+".html")
-	//return
-	// 还是得跳转，否则由于二级路径无法加载js和ｃｓｓ文件
-	u := fmt.Sprintf("/%s.html", basePath)
-	http.Redirect(w, r, u, http.StatusMovedPermanently)
-}
-
-func (d *DictZip) serverHTTPIndex(w http.ResponseWriter, r *http.Request) {
-	// html
-	urlPath := strings.TrimPrefix(r.URL.Path, "/")
-	mylog.Info("serverHTTPIndex", "path", r.URL.Path, "isHtml", strings.HasSuffix(urlPath, ".html"))
-	if strings.HasSuffix(urlPath, ".html") {
-		d.serverHTTPHtml(w, r)
-		return
-	}
-	d.serverAssetsExceptHtml(w, r)
 }
