@@ -415,7 +415,7 @@ class _LineChart extends StatelessWidget {
   AxisTitles get bottomTitles => AxisTitles(
           sideTitles: SideTitles(
         showTitles: true,
-        reservedSize: 64,
+        reservedSize: 72,
         interval: 2,
         getTitlesWidget: bottomTitleWidgets,
       ));

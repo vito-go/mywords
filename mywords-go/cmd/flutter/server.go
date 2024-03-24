@@ -3,7 +3,6 @@ package main
 import "C"
 import (
 	"encoding/json"
-	"fmt"
 	"mywords/artical"
 	"mywords/dict"
 	"mywords/mylog"
@@ -326,6 +325,5 @@ func GetIPv4s() *C.char {
 
 		return false
 	})
-	fmt.Println(ips)
 	return CharOk(ips)
 }

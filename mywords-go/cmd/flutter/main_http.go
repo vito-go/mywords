@@ -5,22 +5,28 @@ package main
 //#include <stdlib.h>
 import "C"
 import (
+	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"log"
+	"mywords/mylog"
 	"mywords/util"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 	"unsafe"
 )
+
+// 请把flutter build web的文件放到web目录下 否则编译不通过 pattern web/*: no matching files found
+//
+//go:embed web/*
+var webEmbed embed.FS
 
 func main() {
 	homeDir, err := os.UserHomeDir()
@@ -29,6 +35,7 @@ func main() {
 	}
 	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
 	port := flag.Int("port", 18960, "http server port")
+	embeded := flag.Bool("embed", true, "embedded web")
 	rootDataDir := flag.String("rootDataDir", defaultRootDir, "root data dir")
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -42,114 +49,25 @@ func main() {
 	mux.HandleFunc("/_downloadBackUpdate", downloadBackUpdate)
 	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
 	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)
-	log.Println("server start", *port)
+
+	if *embeded {
+		// 请把flutter build web的文件放到web目录下
+		mux.Handle("/", http.FileServer(http.FS(&webEmbedHandler{webEmbed: webEmbed})))
+	} else {
+		// 本地开发时，使用flutter web的文件, 请不要在生产环境使用，以防build/web目录被删除, 例如flutter clean
+		_, file, _, ok := runtime.Caller(0)
+		if ok {
+			dir := filepath.Join(filepath.Dir(file), "../../../mywords-flutter/build/web")
+			mylog.Info("embedded false", "dir", dir)
+			mux.Handle("/", http.FileServer(http.Dir(dir)))
+		} else {
+			panic("runtime.Caller failed")
+		}
+	}
+	mylog.Info("server start", "port", *port, "rootDataDir", *rootDataDir)
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
 	}
-}
-
-// 通过反射调用flutter的API funcName: 方法名  args: 参数
-// function: 要调用的函数,参数类型支持float64，int，int64, string, bool,C*char 类型
-// args: 调用函数的参数，参数类型支持float64，int，int64, string, bool类型
-func call(function any, args []interface{}) (response []reflect.Value, err error) {
-	//defer func() {
-	//	if e := recover(); e != nil {
-	//		response = nil
-	//		err = fmt.Errorf("%v", e)
-	//	}
-	//}()
-	f := reflect.ValueOf(function)
-	if f.Kind() != reflect.Func {
-		return nil, fmt.Errorf("not a function")
-	}
-	numIn := f.Type().NumIn()
-	if len(args) != numIn {
-		return nil, fmt.Errorf("args length not match, expect %d, but got %d", numIn, len(args))
-	}
-	argValues := make([]reflect.Value, numIn)
-	for i, arg := range args {
-		var newValue reflect.Value
-		k := f.Type().In(i).Kind()
-		switch v := arg.(type) {
-		case int, int32, int64, float64:
-			// 改写为switch
-			switch k {
-			case reflect.Float64:
-				switch v.(type) {
-				case int:
-					newValue = reflect.ValueOf(float64(v.(int)))
-				case int32:
-					newValue = reflect.ValueOf(float64(v.(int32)))
-				case int64:
-					newValue = reflect.ValueOf(float64(v.(int64)))
-				case float64:
-					newValue = reflect.ValueOf(v.(float64))
-				}
-			case reflect.Int:
-				switch v.(type) {
-				case int:
-					newValue = reflect.ValueOf(v.(int))
-				case int32:
-					newValue = reflect.ValueOf(int(v.(int32)))
-				case int64:
-					newValue = reflect.ValueOf(int(v.(int64)))
-				case float64:
-					newValue = reflect.ValueOf(int(v.(float64)))
-				}
-
-			case reflect.Int64:
-				switch v.(type) {
-				case int:
-					newValue = reflect.ValueOf(int64(v.(int)))
-				case int32:
-					newValue = reflect.ValueOf(int64(v.(int32)))
-				case int64:
-					newValue = reflect.ValueOf(v.(int64))
-				case float64:
-					newValue = reflect.ValueOf(int64(v.(float64)))
-				}
-			default:
-				return nil, fmt.Errorf("args type not match,[%d] expect %v, but got %v", i, k, reflect.Float64)
-			}
-		case string:
-			// 改写为switch
-			switch k {
-			case reflect.String:
-				newValue = reflect.ValueOf(v)
-			case reflect.Ptr:
-				argC := C.CString(v)
-				defer C.free(unsafe.Pointer(argC))
-				newValue = reflect.ValueOf(argC)
-			default:
-				return nil, fmt.Errorf("args type not match,[%d] expect %v, but got %v", i, k, reflect.String)
-			}
-
-		case []interface{}, map[string]interface{}:
-			b, _ := json.Marshal(v)
-			s := string(b)
-			// 改写为switch
-			switch k {
-			case reflect.String:
-				newValue = reflect.ValueOf(s)
-			case reflect.Ptr:
-				argC := C.CString(s)
-				defer C.free(unsafe.Pointer(argC))
-				newValue = reflect.ValueOf(argC)
-			default:
-				return nil, fmt.Errorf("args type not match,[%d] expect %v, but got %v", i, k, reflect.String)
-			}
-		case bool:
-			if k != reflect.Bool {
-				return nil, fmt.Errorf("args type not match,[%d] expect %v, but got %v", i, k, reflect.Bool)
-			}
-			newValue = reflect.ValueOf(v)
-		default:
-			return nil, fmt.Errorf("args type not support [%d] %v", i, k)
-		}
-
-		argValues[i] = newValue
-	}
-	return f.Call(argValues), nil
 }
 
 func webRestoreFromBackUpData(w http.ResponseWriter, r *http.Request) {
@@ -327,8 +245,7 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please send a functionName", http.StatusBadRequest)
 		return
 	}
-	log.Println(r.RemoteAddr, r.Method, funcName)
-
+	mylog.Info("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
 	fn, ok := exportedFuncMap[funcName]
 	if !ok {
 		http.Error(w, "Function not found: "+funcName, http.StatusNotFound)
