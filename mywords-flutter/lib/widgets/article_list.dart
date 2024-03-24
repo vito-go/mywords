@@ -107,11 +107,11 @@ class _State extends State<ArticleListView> {
         if (!context.mounted) {
           return;
         }
-        addToGlobalEvent(
-            GlobalEvent(eventType: GlobalEventType.updateArticleList));
         myToast(context, respData.message);
         return;
       }
+      addToGlobalEvent(
+          GlobalEvent(eventType: GlobalEventType.updateArticleList));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
