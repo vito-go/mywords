@@ -7,7 +7,6 @@ import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 import 'package:mywords/environment.dart';
-import 'package:mywords/libso/debug_host_origin.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/path.dart';

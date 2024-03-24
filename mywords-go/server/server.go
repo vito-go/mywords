@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 	"unicode"
 )
@@ -34,8 +35,8 @@ func (w WordKnownLevel) Name() string {
 
 type Server struct {
 	rootDataDir string
-	xpathExpr   string  //must can compile
-	cfg         *config // include proxyUrl, etc
+	xpathExpr   string                  //must can compile
+	cfg         *atomic.Pointer[config] // include proxyUrl, etc
 	//
 	knownWordsMap       map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	fileInfoMap         map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
@@ -133,13 +134,15 @@ func NewServer(rootDataDir string) (*Server, error) {
 			return nil, err
 		}
 	}
+	cfgAtomic := new(atomic.Pointer[config])
+	cfgAtomic.Store(&cfg)
 	s := &Server{rootDataDir: rootDataDir,
 		knownWordsMap:          knownWordsMap,
 		fileInfoMap:            fileInfoMap,
 		xpathExpr:              artical.DefaultXpathExpr,
 		chartDateLevelCountMap: chartDateLevelCountMap,
 		fileInfoArchivedMap:    fileInfoArchivedMap,
-		cfg:                    &cfg,
+		cfg:                    cfgAtomic,
 	}
 	return s, nil
 }
@@ -154,15 +157,20 @@ func (s *Server) ZipDataDir() string {
 	return filepath.Join(s.rootDataDir, dataDir)
 }
 
-func (s *Server) proxy() *url.URL {
-	if s.cfg.ProxyUrl == "" {
+func (s *Server) netProxy() *url.URL {
+	proxyUrl := s.cfg.Load().ProxyUrl
+	if proxyUrl == "" {
 		return nil
 	}
-	u, err := url.Parse(s.cfg.ProxyUrl)
+	u, err := url.Parse(proxyUrl)
 	if err != nil {
 		return u
 	}
 	return u
+}
+
+func (s *Server) ProxyURL() string {
+	return s.cfg.Load().ProxyUrl
 }
 
 // restoreFromBackUpDataFromAZipFile delete gob file and update fileInfoMap
@@ -420,16 +428,20 @@ func (s *Server) FixMyKnownWords() error {
 
 // SetProxyUrl .
 func (s *Server) SetProxyUrl(proxyUrl string) error {
+	cfg := s.cfg.Load()
+	cfgNew := new(config)
+	*cfgNew = *cfg
 	if proxyUrl == "" {
-		s.cfg.ProxyUrl = ""
+		cfgNew.ProxyUrl = ""
+		s.cfg.Store(cfgNew)
 		return s.saveConfig()
-
 	}
 	_, err := url.Parse(proxyUrl)
 	if err != nil {
 		return err
 	}
-	s.cfg.ProxyUrl = proxyUrl
+	cfgNew.ProxyUrl = proxyUrl
+	s.cfg.Store(cfgNew)
 	return s.saveConfig()
 }
 
@@ -510,7 +522,7 @@ func (s *Server) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, ht
 	return art, nil
 }
 func (s *Server) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Article, error) {
-	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.proxy())
+	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.netProxy())
 	if err != nil {
 		return nil, err
 	}
@@ -829,7 +841,7 @@ func (s *Server) saveChartDataFile() error {
 // saveConfig .
 func (s *Server) saveConfig() error {
 	path := filepath.Join(s.rootDataDir, configFile)
-	b, _ := json.MarshalIndent(s.cfg, "", "  ")
+	b, _ := json.MarshalIndent(s.cfg.Load(), "", "  ")
 	err := os.WriteFile(path, b, 0644)
 	if err != nil {
 		return err

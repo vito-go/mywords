@@ -6,7 +6,7 @@ import "encoding/json"
 type CBody[T any] struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Data    T      `json:"data,omitempty"`
+	Data    T      `json:"data"`
 }
 
 func CharErr(errMsg string) *C.char {

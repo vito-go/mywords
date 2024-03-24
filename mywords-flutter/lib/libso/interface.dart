@@ -62,6 +62,7 @@ abstract class Interface {
       String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
+  FutureOr<String> proxyURL();
 
   FutureOr<RespData<void>> shareClosed();
 

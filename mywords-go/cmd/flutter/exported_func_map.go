@@ -41,6 +41,7 @@ var exportedFuncMap = map[string]any{
 	"ParseAndSaveArticleFromSourceUrl": ParseAndSaveArticleFromSourceUrl,
 	"ParseAndSaveArticleFromSourceUrlAndContent": ParseAndSaveArticleFromSourceUrlAndContent,
 	"ParseVersion":               ParseVersion,
+	"ProxyURL":                   ProxyURL,
 	"PrintError":                 PrintError,
 	"PrintInfo":                  PrintInfo,
 	"PrintWarn":                  PrintWarn,

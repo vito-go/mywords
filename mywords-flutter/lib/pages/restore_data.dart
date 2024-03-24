@@ -14,7 +14,7 @@ import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/private_ip.dart';
 
-import '../environment.dart';
+import 'package:mywords/environment.dart';
 
 class RestoreData extends StatefulWidget {
   const RestoreData({super.key});
