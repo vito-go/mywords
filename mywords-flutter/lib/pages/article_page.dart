@@ -44,7 +44,9 @@ class ArticlePageState extends State<ArticlePage> {
         return;
       }
       article = respData.data!;
-      if (article!.version != await handler.parseVersion()) {
+      parseVersion = await handler.parseVersion();
+
+      if (article!.version != parseVersion) {
         reParseArticle(false);
         return;
       }
@@ -52,7 +54,6 @@ class ArticlePageState extends State<ArticlePage> {
           wordInfos.length, (index) => wordInfos[index].wordLink);
       artWordLevelMap = await handler.queryWordsLevel(allWordLink);
       levelCountMap = await _levelDistribute();
-      parseVersion= await handler.parseVersion();
       setState(() {});
     });
   }
@@ -100,12 +101,11 @@ class ArticlePageState extends State<ArticlePage> {
 
   StreamSubscription<GlobalEvent>? globalEventSubscription;
 
-
   @override
   void initState() {
     super.initState();
     initArticle();
-     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   Map<String, dynamic> levelCountMap = {}; //level: count

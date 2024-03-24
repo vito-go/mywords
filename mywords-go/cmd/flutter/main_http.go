@@ -41,6 +41,7 @@ func main() {
 	mux.HandleFunc("/_addDictWithFile", addDictWithFile)
 	mux.HandleFunc("/_downloadBackUpdate", downloadBackUpdate)
 	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
+	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)
 	log.Println("server start", *port)
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
@@ -151,6 +152,42 @@ func call(function any, args []interface{}) (response []reflect.Value, err error
 	return f.Call(argValues), nil
 }
 
+func webRestoreFromBackUpData(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	defer r.Body.Close()
+	syncKnownWords := r.URL.Query().Get("syncKnownWords") == "true"
+	syncToadyWordCount := r.URL.Query().Get("syncToadyWordCount") == "true"
+	syncByRemoteArchived := r.URL.Query().Get("syncByRemoteArchived") == "true"
+	name := "mywords-backupdate.zip"
+	tempFile := filepath.Join(os.TempDir(), name)
+	f, err := os.Create(tempFile)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+	size, err := io.Copy(f, r.Body)
+	_ = size
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// 保存文件
+	f.Close()
+	// delete file
+	defer os.Remove(tempFile)
+	err = serverGlobal.RestoreFromBackUpData(syncKnownWords, tempFile, syncToadyWordCount, syncByRemoteArchived)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 func webParseAndSaveArticleFromFile(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return

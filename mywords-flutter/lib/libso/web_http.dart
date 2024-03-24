@@ -9,6 +9,8 @@ import 'package:mywords/widgets/line_chart.dart';
 
 import 'package:mywords/environment.dart';
 
+import '../util/local_cache.dart';
+
 final Interface handler = HTTPHandler();
 
 class HTTPHandler implements Interface {
@@ -59,6 +61,7 @@ class HTTPHandler implements Interface {
 
   @override
   Future<RespData<void>> delDict(String basePath) async {
+    LocalCache.defaultDictBasePath = null;
     final result = await call("DelDict", [basePath]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
@@ -279,6 +282,7 @@ class HTTPHandler implements Interface {
 
   @override
   Future<RespData<void>> setDefaultDict(String basePath) async {
+    LocalCache.defaultDictBasePath = null;
     final result = await call("SetDefaultDict", [basePath]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});

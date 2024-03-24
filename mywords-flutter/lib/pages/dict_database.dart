@@ -12,6 +12,8 @@ import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
+import '../util/local_cache.dart';
+
 class _DictDirName {
 //   	type t struct {
 // 		Path string `json:"Path,omitempty"`
@@ -272,7 +274,8 @@ class _State extends State<DictDatabase> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("设置词典数据库"),
     );
-    return getScaffold(context,
+    return getScaffold(
+      context,
       appBar: appBar,
       body: body,
     );

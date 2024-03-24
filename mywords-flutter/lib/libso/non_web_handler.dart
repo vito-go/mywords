@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
+import '../util/local_cache.dart';
 import 'types.dart';
 import 'dart:io';
 
@@ -612,6 +613,7 @@ class NonWebHandler implements Interface {
 
   @override
   RespData<void> setDefaultDict(String basePath) {
+    LocalCache.defaultDictBasePath = null;
     final basePathC = basePath.toNativeUtf8();
     final resultC = _setDefaultDict(basePathC);
     malloc.free(basePathC);
@@ -661,6 +663,7 @@ class NonWebHandler implements Interface {
 
   @override
   RespData<void> delDict(String basePath) {
+    LocalCache.defaultDictBasePath = null;
     final basePathC = basePath.toNativeUtf8();
     final resultC = _delDict(basePathC);
     malloc.free(basePathC);

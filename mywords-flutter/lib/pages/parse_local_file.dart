@@ -32,7 +32,7 @@ class _State extends State<ParseLocalFile> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         initialDirectory: getDefaultDownloadDir(),
         allowMultiple: true,
-        withReadStream: true,
+        withReadStream: kIsWeb,
         type: FileType.custom,
         allowedExtensions: ["html"]);
     if (result == null) {

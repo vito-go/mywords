@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/util/local_cache.dart';
 import 'package:mywords/widgets/word_default_meaning.dart';
 import 'package:mywords/widgets/word_html.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -96,8 +97,9 @@ void showWordWithDefault(BuildContext context, String word) async {
 }
 
 void showWord(BuildContext context, String word) async {
-  final defaultDict = (await handler.getDefaultDict()).data ?? '';
-  if (defaultDict == '') {
+  LocalCache.defaultDictBasePath ??=
+      ((await handler.getDefaultDict()).data ?? '');
+  if (LocalCache.defaultDictBasePath == "") {
     return showWordWithDefault(context, word);
   }
   queryWordInDict(context, word);
