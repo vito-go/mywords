@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -65,6 +66,10 @@ func main() {
 		}
 	}
 	mylog.Info("server start", "port", *port, "rootDataDir", *rootDataDir)
+	go func() {
+		time.Sleep(time.Second)
+		openBrowser(fmt.Sprintf("http://127.0.0.1:%d", *port))
+	}()
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
 	}
@@ -281,4 +286,17 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, fmt.Sprintf("Function return type not support: %T", v), http.StatusInternalServerError)
 	}
+}
+func openBrowser(url string) {
+	var cmd string
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd /c start"
+	case "darwin":
+		cmd = "open"
+	default:
+		cmd = "xdg-open"
+	}
+	_ = exec.Command(cmd, url).Run()
+	fmt.Printf("open %s\n", url)
 }
