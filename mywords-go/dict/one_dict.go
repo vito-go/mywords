@@ -63,19 +63,18 @@ func NewDictZip(zipFile string) (*OneDict, error) {
 	zipFileMap := make(map[string]*zip.File)
 	for _, file := range z.File {
 		name := filepath.ToSlash(file.Name)
-		if strings.HasPrefix(name, "html") {
-
-		}
 		zipFileMap[name] = file
 		if name == wordHtmlMapJsonName {
 			allWordHtmlFileMap, err = getAllWordHtmlFileMap(file)
 			if err != nil {
+				_ = z.Close()
 				return nil, err
 			}
 		}
 	}
 	if len(allWordHtmlFileMap) == 0 {
-		return nil, fmt.Errorf("file empty: %s", wordHtmlMapJsonName)
+		_ = z.Close()
+		return nil, fmt.Errorf("字典文件中没有找到 %s", wordHtmlMapJsonName)
 	}
 	return &OneDict{
 		zipFile:            zipFile,

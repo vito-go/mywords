@@ -99,7 +99,7 @@ class _RestoreDataState extends State<RestoreData> {
     }
 
     final respData = await compute(
-        (message) => computeRestoreFromShareServer(message), <String, dynamic>{
+        computeRestoreFromShareServer, <String, dynamic>{
       'ip': controllerIP.text,
       'port': port,
       'code': code,
@@ -167,7 +167,7 @@ class _RestoreDataState extends State<RestoreData> {
         return;
       }
       respData = await compute(
-          (message) => computeRestoreFromBackUpData(message), <String, dynamic>{
+          computeRestoreFromBackUpData, <String, dynamic>{
         "syncKnownWords": syncKnownWords,
         "zipPath": file.path!,
         "syncToadyWordCount": syncToadyWordCount,
@@ -175,7 +175,7 @@ class _RestoreDataState extends State<RestoreData> {
       });
     } else {
       respData = await compute(
-          (message) => computeWebRestoreFromBackUpData(message),
+          computeWebRestoreFromBackUpData,
           <String, dynamic>{
             "syncKnownWords": syncKnownWords,
             "bytes": file.readStream,

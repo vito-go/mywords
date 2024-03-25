@@ -11,7 +11,6 @@ import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
-
 class _DictDirName {
 //   	type t struct {
 // 		Path string `json:"Path,omitempty"`
@@ -61,7 +60,6 @@ Future<void> blockShowDialog(BuildContext context, Future<void> future) {
                       Navigator.of(context).pop();
                     }
                   });
-                  myPrint("done ------------");
                   return const Text("");
               }
             });
@@ -73,30 +71,42 @@ class _State extends State<DictDatabase> {
 
   String defaultDictBasePath = '';
 
+  _addDict(String basePath) {
+    blockShowDialog(context, () async {
+      final respData = await compute(computeSetDefaultDict, basePath);
+      if (respData.code != 0) {
+        myToast(context, respData.message);
+        return;
+      }
+      initDictDirNames();
+      defaultDictBasePath = basePath;
+      setState(() {});
+    }());
+    return;
+  }
+
   Widget buildDictDirNames() {
     return ListView.separated(
         itemBuilder: (context, index) {
           final s = dictDirNames[index];
+          final basePath = s.basePath;
           bool isDefault = s.basePath == defaultDictBasePath;
           return ListTile(
-            title: Text(s.title),
+            title: Text(
+              isDefault ? "${s.title} (默认)" : s.title,
+              style: isDefault
+                  ? TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor)
+                  : null,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
             onTap: isDefault
                 ? null
                 : () {
-                    blockShowDialog(context, () async {
-                      final respData = await compute(
-                          (message) => computeSetDefaultDict(message),
-                          s.basePath);
-                      if (respData.code != 0) {
-                        return;
-                      }
-                      initDictDirNames();
-                      defaultDictBasePath = s.basePath;
-                      setState(() {});
-                    }());
-                    return;
+                    _addDict(basePath);
                   },
-            subtitle: Text(isDefault ? "${s.basePath} (默认)" : s.basePath),
             trailing: IconButton(
                 onPressed: () {
                   setState(() {
@@ -141,8 +151,7 @@ class _State extends State<DictDatabase> {
   }
 
   void initDefaultDictBasePath() async {
-    final value = await handler.getDefaultDict();
-    defaultDictBasePath = value.data ?? "";
+    defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
     setState(() {});
   }
 
@@ -161,7 +170,7 @@ class _State extends State<DictDatabase> {
   bool isSyncing = false;
   bool selectZipFileDone = false;
 
-  Widget systemDictButton() {
+  Widget get systemDictButton {
     return ElevatedButton.icon(
       onPressed: defaultDictBasePath == ""
           ? null
@@ -207,24 +216,24 @@ class _State extends State<DictDatabase> {
     });
     final RespData<void> respData;
     if (kIsWeb) {
-      respData = await compute((message) => computeAddDictWithFile(message),
+      respData = await compute(computeAddDictWithFile,
           {"bytes": file.readStream!, "name": file.name});
     } else {
-      respData =
-          await compute((message) => computeAddDict(message), file.path!);
+      respData = await compute(computeAddDict, file.path!);
     }
     setState(() {
       isSyncing = false;
     });
     if (respData.code != 0) {
       if (!context.mounted) return;
-      myToast(context, "解析失败!\n${respData.message}");
+      myToast(context, "解析失败! ${respData.message}");
       return;
     }
     if (!context.mounted) return;
     myToast(context, "解析成功");
     initDictDirNames();
     zipFilePath = '';
+    defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
     setState(() {});
   }
 
@@ -240,22 +249,21 @@ class _State extends State<DictDatabase> {
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info),
         ),
-        onTap: selectZipFilePath,
+        onTap: isSyncing ? null : selectZipFilePath,
         subtitle: selectZipFileDone
             ? const LinearProgressIndicator()
             : Text(zipFilePath),
-        trailing: Icon(
-          Icons.file_open,
-          color: Theme.of(context).primaryColor,
-        ),
+        trailing: isSyncing
+            ? const Icon(Icons.access_time_rounded)
+            : Icon(Icons.file_open, color: Theme.of(context).primaryColor),
       ),
       SizedBox(
         height: 5,
         child: isSyncing ? const LinearProgressIndicator() : const Text(""),
       ),
       ListTile(
-        trailing: systemDictButton(),
-        title: const Text("内置词典(简洁版本)"),
+        trailing: systemDictButton,
+        title: const Text("内置词典(精简版)"),
         subtitle: Text(defaultDictBasePath == "" ? "(默认)" : ""),
         leading: const Tooltip(
           message: "内置词典",

@@ -64,11 +64,11 @@ class _State extends State<ParseLocalFile> {
           continue;
         }
         respData = await compute(
-            (message) => computeWebParseAndSaveArticleFromFile(message),
+            computeWebParseAndSaveArticleFromFile,
             {"name": file.name, "bytes": file.readStream!});
       } else {
         respData = await compute(
-            (message) => computeParseAndSaveArticleFromFile(message), p);
+            computeParseAndSaveArticleFromFile, p);
       }
       if (respData.code == 0) {
         filePathMap[p] = '';

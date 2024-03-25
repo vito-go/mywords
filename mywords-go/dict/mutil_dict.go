@@ -164,6 +164,7 @@ func NewMultiDictZip(rootDir string, host string, runPort int) (*MultiDict, erro
 		return nil, err
 	}
 	var info dictIndexInfo
+	info.DictBasePathTitleMap = make(map[string]string)
 	b, err := os.ReadFile(filepath.Join(rootDir, appDictDir, dictInfoJson))
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
@@ -344,8 +345,13 @@ func (m *MultiDict) AddDict(originalZipPath string) error {
 	if ok {
 		return fmt.Errorf("该字典已加载: %s", dictBasePath)
 	}
+	d, err := NewDictZip(originalZipPath)
+	if err != nil {
+		return err
+	}
+	d.Close()
 	zipFile := filepath.Join(m.rootDataDir, appDictDir, dictBasePath)
-	err := copyFile(zipFile, originalZipPath)
+	err = copyFile(zipFile, originalZipPath)
 	if err != nil {
 		return err
 	}

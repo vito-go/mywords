@@ -116,7 +116,7 @@ class _SyncDataState extends State<SyncData> {
 
                     final dirPath = await dataDirPath();
                     final respData = await compute(
-                        (message) => computeBackUpData(message),
+                        computeBackUpData,
                         <String, String>{
                           "zipName": controllerBackUpZipName.text,
                           "dataDirPath": dirPath,

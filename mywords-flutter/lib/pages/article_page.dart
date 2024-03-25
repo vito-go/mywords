@@ -37,8 +37,7 @@ class ArticlePageState extends State<ArticlePage> {
   Map<String, int> artWordLevelMap = {};
 
   void initArticle() async {
-    compute((message) => computeArticleFromGobFile(message), fileName)
-        .then((respData) async {
+    compute(computeArticleFromGobFile, fileName).then((respData) async {
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
@@ -70,12 +69,11 @@ class ArticlePageState extends State<ArticlePage> {
       lastModified = art.lastModified;
     }
     compute(
-        (message) => computeParseAndSaveArticleFromSourceUrlAndContent(message),
-        <String, dynamic>{
-          "www": art.sourceUrl,
-          "lastModified": lastModified,
-          "htmlContent": art.htmlContent,
-        }).then((respData) async {
+        computeParseAndSaveArticleFromSourceUrlAndContent, <String, dynamic>{
+      "www": art.sourceUrl,
+      "lastModified": lastModified,
+      "htmlContent": art.htmlContent,
+    }).then((respData) async {
       if (respData.code != 0) {
         if (!context.mounted) return;
         myToast(context, respData.message);
