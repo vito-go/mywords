@@ -22,37 +22,39 @@ endif
 FLUTTER_DIR='mywords-flutter'
 GO_DIR='mywords-go'
 
+bin:
+	@mkdir -p bin
 clean:
 	rm -rf bin/
 	cd $(FLUTTER_DIR) && make clean
 	@echo "clean done"
 
-build-linux:
+build-linux:bin
 	cd $(GO_DIR) && make build-so-linux
 	cd $(FLUTTER_DIR) && make build-linux
-	cp -r $(FLUTTER_DIR)/bin/ ./
+	mv $(FLUTTER_DIR)/bin/* ./bin/
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-windows:
+build-windows:bin
 	cd $(GO_DIR) && make build-so-windows
 	cd $(FLUTTER_DIR) && make build-windows
-	cp -r $(FLUTTER_DIR)/bin/ ./
+	mv $(FLUTTER_DIR)/bin/* ./bin/
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
 
-build-android:
+build-android:bin
 	cd $(GO_DIR) && make build-so-android
 	cd $(FLUTTER_DIR) && make build-apk
-	cp -r $(FLUTTER_DIR)/bin/ ./
+	mv $(FLUTTER_DIR)/bin/* ./bin/
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
 build-la: build-android build-linux
 
-build-web-platform:
+build-web-platform:bin
 	cd $(GO_DIR) && make build-web-platform
-	cp -r $(GO_DIR)/bin/ ./
+	mv $(GO_DIR)/bin/* ./bin/
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
