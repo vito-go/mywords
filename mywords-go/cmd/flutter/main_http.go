@@ -60,7 +60,7 @@ func main() {
 		// 本地开发时，使用flutter web的文件, 请不要在生产环境使用，以防build/web目录被删除, 例如flutter clean
 		_, file, _, ok := runtime.Caller(0)
 		if ok {
-			dir := filepath.Join(filepath.Dir(file), "../../../mywords-flutter/build/web")
+			dir := filepath.ToSlash(filepath.Join(filepath.Dir(file), "../../../mywords-flutter/build/web"))
 			mylog.Info("embedded false", "dir", dir)
 			mux.Handle("/", http.FileServer(http.Dir(dir)))
 		} else {
@@ -70,7 +70,7 @@ func main() {
 	mylog.Info("server start", "port", *port, "rootDir", *rootDir)
 	go func() {
 		time.Sleep(time.Second)
-		openBrowser(fmt.Sprintf("http://127.0.0.1:%d", *port))
+		openBrowser(fmt.Sprintf("http://%s:%d", *dictHost, *port))
 	}()
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
@@ -290,15 +290,17 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func openBrowser(url string) {
-	var cmd string
+	var err error
 	switch runtime.GOOS {
 	case "windows":
-		cmd = "cmd /c start"
+		err = exec.Command("cmd", "/c start "+url).Run()
 	case "darwin":
-		cmd = "open"
+		err = exec.Command("open", url).Run()
 	default:
-		cmd = "xdg-open"
+		err = exec.Command("xdg-open", url).Run()
 	}
-	_ = exec.Command(cmd, url).Run()
-	fmt.Printf("open %s\n", url)
+	if err != nil {
+		fmt.Printf("open url error: %s\n", url)
+	}
+	fmt.Printf("open %s\n in your browser", url)
 }
