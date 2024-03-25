@@ -235,11 +235,13 @@ class NonWebHandler implements Interface {
       Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
 
   @override
-  RespData<Map<String, dynamic>> levelDistribute(List<String> words) {
+  RespData<Map<int, int>> levelDistribute(List<String> words) {
     final c = jsonEncode(words).toNativeUtf8();
     final resultC = _levelDistribute(c);
-    final respData = RespData.fromJson(jsonDecode(resultC.toDartString()),
-        (json) => json as Map<String, dynamic>);
+    final respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()),
+        (json) => (json as Map<String, dynamic>).map(
+            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
     malloc.free(c);
     malloc.free(resultC);
     return respData;

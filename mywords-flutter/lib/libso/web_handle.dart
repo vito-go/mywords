@@ -375,12 +375,14 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<RespData<Map<String, dynamic>>> levelDistribute(
+  Future<RespData<Map<int, int>>> levelDistribute(
       List<String> words) async {
     final result = await call("LevelDistribute", [words]);
 
     final respData = RespData.fromJson(
-        jsonDecode(result), (json) => json as Map<String, dynamic>);
+        jsonDecode(result),
+        (json) => (json as Map<String, dynamic>)
+            .map((key, value) => MapEntry(int.parse(key.toString()), value as int)));
 
     return respData;
   }
@@ -446,7 +448,7 @@ class HTTPHandler implements Interface {
     final result = await call("ProxyURL", []);
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data??"";
+    return respData.data ?? "";
   }
 }
 

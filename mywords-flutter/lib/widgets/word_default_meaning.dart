@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:mywords/widgets/word_header_row.dart';
+import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/libso/handler_for_native.dart'
-if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 class WordDefaultMeaning extends StatefulWidget {
   const WordDefaultMeaning(
-      {super.key, required this.word, required this.meaning});
+      {super.key,
+      required this.word,
+      required this.meaning,
+      required this.realLevel});
 
   final String word;
 
   final String meaning;
+  final int realLevel;
 
   @override
   State<StatefulWidget> createState() {
@@ -20,20 +24,40 @@ class WordDefaultMeaning extends StatefulWidget {
 class _State extends State<WordDefaultMeaning> {
   String word = "";
   String meaning = "";
+  int realLevel = -1;
 
   @override
   void initState() {
     super.initState();
     word = widget.word;
     meaning = widget.meaning;
+    realLevel = widget.realLevel;
   }
 
+  Widget get buildWordHeaderRow {
+    List<Widget> children = [
+      Expanded(
+          child: Text(word, maxLines: 2, style: const TextStyle(fontSize: 20))),
+    ];
+    if (!word.contains("_") && !word.contains(" ") && !word.contains(",")) {
+      children.addAll([
+        buildInkWell(context, word, 0, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, word, 1, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, word, 2, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, word, 3, realLevel),
+      ]);
+    }
+    return Row(children: children);
+  }
 
   @override
   Widget build(BuildContext context) {
     final col = Column(
       children: [
-        WordHeaderRow(word: word, key: UniqueKey()),
+        buildWordHeaderRow,
         Flexible(
             child: SingleChildScrollView(
                 child: SelectableText(

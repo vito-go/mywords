@@ -13,6 +13,9 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'dart:io';
 
+import '../common/global_event.dart';
+import '../util/util.dart';
+
 void _queryWordInDictWithMobile(BuildContext context, String word) async {
   String htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
   if (htmlBasePath == '') {
@@ -83,6 +86,7 @@ void showWordWithDefault(BuildContext context, String word) async {
     ));
     return;
   }
+  final realLevel = await handler.queryWordLevel(word);
   meaning = fixDefaultMeaning(meaning);
   showModalBottomSheet(
       context: context,
@@ -91,7 +95,8 @@ void showWordWithDefault(BuildContext context, String word) async {
         return ConstrainedBox(
           constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.75),
-          child: WordDefaultMeaning(word: word, meaning: meaning),
+          child: WordDefaultMeaning(
+              word: word, meaning: meaning, realLevel: realLevel),
         );
       });
 }
@@ -245,4 +250,37 @@ Widget highlightTextSplitByToken(String text, List<String> tokens,
     textSpan,
     contextMenuBuilder: contextMenuBuilder,
   );
+}
+
+InkWell buildInkWell(
+    BuildContext context, String word, int showLevel, int realLevel) {
+  if (showLevel == realLevel) {
+    return InkWell(
+      child: SizedBox(
+          height: 32,
+          width: 32,
+          child: CircleAvatar(
+            backgroundColor: Colors.orange,
+            child: Text(showLevel.toString()),
+          )),
+    );
+  }
+  return InkWell(
+      child: SizedBox(
+          height: 32,
+          width: 32,
+          child: CircleAvatar(
+            backgroundColor: null,
+            child: Text(showLevel.toString()),
+          )),
+      onTap: () async {
+        final respData = await handler.updateKnownWords(showLevel, word);
+        if (respData.code != 0) {
+          myToast(context, respData.message);
+          return;
+        }
+        addToGlobalEvent(GlobalEvent(
+            eventType: GlobalEventType.updateKnownWord,
+            param: <String, dynamic>{"word": word, "level": showLevel}));
+      });
 }

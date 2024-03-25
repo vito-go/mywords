@@ -1,11 +1,11 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/util/util.dart';
-import 'package:mywords/widgets/word_header_row.dart';
+import 'package:mywords/widgets/word_common.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mywords/libso/handler_for_native.dart'
-if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
@@ -20,6 +20,7 @@ class WordWebView extends StatefulWidget {
 
 class _State extends State<WordWebView> {
   String word = '';
+  int realLevel = 0;
 
   @override
   void dispose() {
@@ -36,12 +37,32 @@ class _State extends State<WordWebView> {
     if (ss.isEmpty) return;
     final w = Uri.decodeComponent(ss[0]);
     word = w;
+    realLevel = await handler.queryWordLevel(word);
     setState(() {});
     _loadHtmlStringByWord(word);
     return;
   }
 
   bool loading = false;
+
+  Widget get buildWordHeaderRow {
+    List<Widget> children = [
+      Expanded(
+          child: Text(word, maxLines: 2, style: const TextStyle(fontSize: 20))),
+    ];
+    if (!word.contains("_") && !word.contains(" ") && !word.contains(",")) {
+      children.addAll([
+        buildInkWell(context, word, 0, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, word, 1, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, word, 2, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, word, 3, realLevel),
+      ]);
+    }
+    return Row(children: children);
+  }
 
   void initControllerSet() {
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
@@ -78,15 +99,18 @@ class _State extends State<WordWebView> {
     );
   }
 
-  void _loadHtmlStringByWord(String word)async {
-    final htmlContent = (await handler.getHTMLRenderContentByWord(word)).data ?? '';
+  void _loadHtmlStringByWord(String word) async {
+    final htmlContent =
+        (await handler.getHTMLRenderContentByWord(word)).data ?? '';
     if (htmlContent == "") return;
     controller.loadHtmlString(htmlContent, baseUrl: word);
   }
 
-  void initOpenWithHtmlFilePath() {
-    initControllerSet();
+  void initOpenWithHtmlFilePath() async {
     word = widget.word;
+    realLevel = await handler.queryWordLevel(word);
+    setState(() {});
+    initControllerSet();
     _loadHtmlStringByWord(word);
   }
 
@@ -106,7 +130,7 @@ class _State extends State<WordWebView> {
   Widget build(BuildContext context) {
     final col = Column(
       children: [
-        ListTile(title: WordHeaderRow(word: word, key: UniqueKey())),
+        ListTile(title: buildWordHeaderRow),
         Expanded(child: content),
       ],
     );

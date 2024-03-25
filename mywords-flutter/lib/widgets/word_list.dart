@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
 import 'package:mywords/widgets/word_common.dart';
 
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/resp_data.dart';
-import 'package:mywords/util/util.dart';
 
 class _WordLevel {
   String word;
@@ -39,33 +37,35 @@ class _State extends State<WordList> {
   Map<int, List<String>> levelWordsMap = {}; // level: [word1,word2]
   late int showLevel = widget.showLevel;
 
+  void globalEventHandler(GlobalEvent event) {
+    if (event.eventType == GlobalEventType.updateKnownWord) {
+      if (event.param is Map) {
+        if (event.param["word"] != null && event.param["level"] != null) {
+          final word = event.param["word"].toString();
+          final level = event.param["level"] as int;
+          levelWordsMap[1]?.remove(word);
+          levelWordsMap[2]?.remove(word);
+          levelWordsMap[3]?.remove(word);
+          // no need to add when 0
+          levelWordsMap[level]?.add(word);
+          setState(() {});
+        }
+      }
+    }
+  }
+
+  StreamSubscription<GlobalEvent>? globalEventSubscription;
+
   @override
   void initState() {
     super.initState();
+    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
     _updateLevelWordsMap();
-  }
-
-  _updateKnownWordsSetState(int level, String word) async {
-    final respData = await handler.updateKnownWords(level, word);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
-    levelWordsMap[1]?.remove(word);
-    levelWordsMap[2]?.remove(word);
-    levelWordsMap[3]?.remove(word);
-    levelWordsMap[level]?.add(word);
-    myPrint(levelWordsMap);
-    addToGlobalEvent(GlobalEvent(
-        eventType: GlobalEventType.updateKnownWord,
-        param: <String, dynamic>{"word": word, "level": level}));
-    setState(() {});
   }
 
   void _updateLevelWordsMap() async {
     final value = await getLevelWordsMap();
     levelWordsMap = value.data ?? {};
-    myPrint(levelWordsMap.length);
     setState(() {});
   }
 
@@ -76,19 +76,15 @@ class _State extends State<WordList> {
           onPressed: () {
             showWord(context, word);
           },
-          child: Text(
-            word,
-            maxLines: 2,
-            style: const TextStyle(fontSize: 16),
-          )),
+          child: Text(word, maxLines: 2, style: const TextStyle(fontSize: 18))),
       const Expanded(child: Text('')),
-      buildInkWell(word, 0, realLevel, _updateKnownWordsSetState),
+      buildInkWell(context, word, 0, realLevel),
       const SizedBox(width: 6),
-      buildInkWell(word, 1, realLevel, _updateKnownWordsSetState),
+      buildInkWell(context, word, 1, realLevel),
       const SizedBox(width: 6),
-      buildInkWell(word, 2, realLevel, _updateKnownWordsSetState),
+      buildInkWell(context, word, 2, realLevel),
       const SizedBox(width: 6),
-      buildInkWell(word, 3, realLevel, _updateKnownWordsSetState),
+      buildInkWell(context, word, 3, realLevel),
       const SizedBox(width: 10),
     ];
     return Row(children: children);
@@ -134,6 +130,12 @@ class _State extends State<WordList> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    globalEventSubscription?.cancel();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
@@ -169,32 +171,6 @@ class _State extends State<WordList> {
       ],
     );
   }
-}
-
-InkWell buildInkWell(String word, int showLevel, int realLevel,
-    void Function(int level, String word) onTap) {
-  if (showLevel == realLevel) {
-    return InkWell(
-      child: SizedBox(
-          height: 32,
-          width: 32,
-          child: CircleAvatar(
-            backgroundColor: Colors.orange,
-            child: Text(showLevel.toString()),
-          )),
-    );
-  }
-  return InkWell(
-      child: SizedBox(
-          height: 32,
-          width: 32,
-          child: CircleAvatar(
-            backgroundColor: null,
-            child: Text(showLevel.toString()),
-          )),
-      onTap: () {
-        onTap(showLevel, word);
-      });
 }
 
 Widget buildShowLevel(int level,
