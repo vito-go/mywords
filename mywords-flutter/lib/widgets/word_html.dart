@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/util/util.dart';
@@ -6,6 +8,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+
+import 'package:mywords/common/global_event.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
@@ -26,6 +30,7 @@ class _State extends State<WordWebView> {
   void dispose() {
     super.dispose();
     player.dispose();
+    globalEventSubscription?.cancel();
   }
 
   final player = AudioPlayer();
@@ -43,6 +48,22 @@ class _State extends State<WordWebView> {
     return;
   }
 
+  void globalEventHandler(GlobalEvent event) {
+    if (event.eventType == GlobalEventType.updateKnownWord) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      if (event.param is Map) {
+        if (event.param["word"] != null && event.param["level"] != null) {
+          if (word == event.param["word"].toString()) {
+            final level = event.param["level"] as int;
+            realLevel = level;
+            setState(() {});
+          }
+        }
+      }
+    }
+  }
+
+  StreamSubscription<GlobalEvent>? globalEventSubscription;
   bool loading = false;
 
   Widget get buildWordHeaderRow {
@@ -118,6 +139,7 @@ class _State extends State<WordWebView> {
   void initState() {
     super.initState();
     initOpenWithHtmlFilePath();
+    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
   final controller = WebViewController();
