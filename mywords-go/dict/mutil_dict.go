@@ -165,7 +165,7 @@ func NewMultiDictZip(rootDir string, host string, runPort int) (*MultiDict, erro
 	}
 	var info dictIndexInfo
 	b, err := os.ReadFile(filepath.Join(rootDir, appDictDir, dictInfoJson))
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 	if len(b) > 0 {
