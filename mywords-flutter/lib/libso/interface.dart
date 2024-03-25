@@ -50,7 +50,7 @@ abstract class Interface {
 
   FutureOr<String> dictWordQuery(String word);
 
-  FutureOr<RespData<Map<String, dynamic>>> levelDistribute(List<String> words);
+  FutureOr<RespData<Map<int, int>>> levelDistribute(List<String> words);
 
   FutureOr<String> dictWordQueryLink(String word);
 
@@ -62,6 +62,7 @@ abstract class Interface {
       String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
+  FutureOr<String> proxyURL();
 
   FutureOr<RespData<void>> shareClosed();
 

@@ -16,7 +16,6 @@ Future<void> initGlobalPrefs() async {
 final prefs = _Prefs();
 
 class _Prefs {
-  String get _netProxy => "mywords:_netProxy";
 
   String get _defaultHomeIndex => "mywords:_defaultHomeIndex";
 
@@ -72,11 +71,7 @@ class _Prefs {
     }
   }
 
-  String get netProxy => _globalPrefs.getString(_netProxy) ?? '';
 
-  set netProxy(String s) {
-    _globalPrefs.setString(_netProxy, s);
-  }
 
   // port_code
   String get shareOpenPortCode =>

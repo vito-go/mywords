@@ -9,7 +9,7 @@ import 'package:mywords/widgets/line_chart.dart';
 
 import 'package:mywords/environment.dart';
 
-import '../util/local_cache.dart';
+import 'package:mywords/util/local_cache.dart';
 
 final Interface handler = HTTPHandler();
 
@@ -202,7 +202,6 @@ class HTTPHandler implements Interface {
   @override
   Future<String> parseVersion() async {
     final result = await call("ParseVersion", []);
-
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data!;
@@ -376,12 +375,13 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<RespData<Map<String, dynamic>>> levelDistribute(
-      List<String> words) async {
+  Future<RespData<Map<int, int>>> levelDistribute(List<String> words) async {
     final result = await call("LevelDistribute", [words]);
 
     final respData = RespData.fromJson(
-        jsonDecode(result), (json) => json as Map<String, dynamic>);
+        jsonDecode(result),
+        (json) => (json as Map<String, dynamic>).map(
+            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
 
     return respData;
   }
@@ -440,6 +440,14 @@ class HTTPHandler implements Interface {
       return (json as List<dynamic>).map((e) => e as String).toList();
     });
     return respData.data;
+  }
+
+  @override
+  FutureOr<String> proxyURL() async {
+    final result = await call("ProxyURL", []);
+    final RespData<String> respData =
+        RespData.fromJson(jsonDecode(result), (json) => json as String);
+    return respData.data ?? "";
   }
 }
 

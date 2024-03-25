@@ -1,5 +1,3 @@
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
@@ -9,10 +7,7 @@ import 'package:mywords/pages/parse_local_file.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
-import 'package:mywords/util/path.dart';
-import 'package:mywords/util/util.dart';
 
-import 'package:mywords/common/global_event.dart';
 import 'dict_database.dart';
 import 'restore_data.dart';
 import 'share_data.dart';
@@ -62,14 +57,9 @@ class MyDrawerState extends State<MyDrawer> {
     super.initState();
     initLevelMap();
   }
-
-  TextEditingController controller =
-      TextEditingController(text: "mywords-backupdata");
-
   @override
   void dispose() {
     super.dispose();
-    controller.dispose();
   }
 
   @override

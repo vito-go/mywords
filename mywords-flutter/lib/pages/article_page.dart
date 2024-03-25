@@ -37,8 +37,7 @@ class ArticlePageState extends State<ArticlePage> {
   Map<String, int> artWordLevelMap = {};
 
   void initArticle() async {
-    compute((message) => computeArticleFromGobFile(message), fileName)
-        .then((respData) async {
+    compute(computeArticleFromGobFile, fileName).then((respData) async {
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
@@ -70,12 +69,11 @@ class ArticlePageState extends State<ArticlePage> {
       lastModified = art.lastModified;
     }
     compute(
-        (message) => computeParseAndSaveArticleFromSourceUrlAndContent(message),
-        <String, dynamic>{
-          "www": art.sourceUrl,
-          "lastModified": lastModified,
-          "htmlContent": art.htmlContent,
-        }).then((respData) async {
+        computeParseAndSaveArticleFromSourceUrlAndContent, <String, dynamic>{
+      "www": art.sourceUrl,
+      "lastModified": lastModified,
+      "htmlContent": art.htmlContent,
+    }).then((respData) async {
       if (respData.code != 0) {
         if (!context.mounted) return;
         myToast(context, respData.message);
@@ -85,7 +83,7 @@ class ArticlePageState extends State<ArticlePage> {
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
       levelCountMap = await _levelDistribute();
-      if (!context.mounted) return;
+      if (!mounted)return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       setState(() {});
@@ -95,7 +93,17 @@ class ArticlePageState extends State<ArticlePage> {
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
-      setState(() {});
+      if (event.param is Map) {
+        if (event.param["word"] != null && event.param["level"] != null) {
+          final word = event.param["word"].toString();
+          final level = event.param["level"] as int;
+          final oldLevel = artWordLevelMap[word] ?? 0;
+          final oldCount = levelCountMap[oldLevel] ?? 0;
+          artWordLevelMap[word] = level;
+          levelCountMap[oldLevel] = oldCount - 1;
+          setState(() {});
+        }
+      }
     }
   }
 
@@ -108,10 +116,10 @@ class ArticlePageState extends State<ArticlePage> {
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
-  Map<String, dynamic> levelCountMap = {}; //level: count
-  int get count0 => levelCountMap['0'] ?? 0;
+  Map<int, int> levelCountMap = {}; //level: count
+  int get count0 => levelCountMap[0] ?? 0;
 
-  int get count1 => levelCountMap['1'] ?? 0;
+  int get count1 => levelCountMap[1] ?? 0;
 
   String get count0VsNet {
     if (count0 == 0) return "0%";
@@ -120,11 +128,11 @@ class ArticlePageState extends State<ArticlePage> {
     return "${(count0 / netCount * 100).toInt()}%";
   }
 
-  int get count2 => levelCountMap['2'] ?? 0;
+  int get count2 => levelCountMap[2] ?? 0;
 
-  int get count3 => levelCountMap['3'] ?? 0;
+  int get count3 => levelCountMap[3] ?? 0;
 
-  Future<Map<String, dynamic>> _levelDistribute() async {
+  Future<Map<int, int>> _levelDistribute() async {
     final art = article;
     if (art == null) return {};
     final words = List<String>.generate(
@@ -140,20 +148,6 @@ class ArticlePageState extends State<ArticlePage> {
     return respData.data ?? {};
   }
 
-  void _updateKnownWords(int level, String word) async {
-    final respData = await handler.updateKnownWords(level, word);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
-    artWordLevelMap[word] = level;
-    addToGlobalEvent(GlobalEvent(
-        eventType: GlobalEventType.updateKnownWord,
-        param: <String, dynamic>{"word": word, "level": level}));
-    levelCountMap = await _levelDistribute();
-    setState(() {});
-  }
-
   List<WordInfo> get wordInfos {
     final art = article;
     if (art == null) return [];
@@ -165,8 +159,8 @@ class ArticlePageState extends State<ArticlePage> {
     for (int i = 0; i < infos.length; i++) {
       final info = infos[i];
       final wordLink = info.wordLink;
-      final int l = artWordLevelMap[wordLink] ?? 0;
-      if (l != showLevel) {
+      final int realLevel = artWordLevelMap[wordLink] ?? 0;
+      if (realLevel != showLevel) {
         continue;
       }
       List<Widget> children = [
@@ -185,13 +179,13 @@ class ArticlePageState extends State<ArticlePage> {
                     fontSize: 20, color: Theme.of(context).primaryColor),
               )),
         ),
-        buildInkWell(wordLink, 0, l, _updateKnownWords),
-        const SizedBox(width: 6),
-        buildInkWell(wordLink, 1, l, _updateKnownWords),
-        const SizedBox(width: 6),
-        buildInkWell(wordLink, 2, l, _updateKnownWords),
-        const SizedBox(width: 6),
-        buildInkWell(wordLink, 3, l, _updateKnownWords),
+        buildInkWell(context, wordLink, 0, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, wordLink, 1, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, wordLink, 2, realLevel),
+        const SizedBox(width: 5),
+        buildInkWell(context, wordLink, 3, realLevel),
       ];
 
       items.add(Row(children: children));

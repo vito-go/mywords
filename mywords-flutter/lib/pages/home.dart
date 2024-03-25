@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import '../util/util.dart';
 import 'drawer.dart';
 import 'package:mywords/widgets/restart_app.dart';
 import 'article_list_page.dart';
@@ -114,6 +115,17 @@ class _State extends State<Home> {
 
   List<Widget> get actions {
     return [
+      IconButton(
+          onPressed: () {
+            addToGlobalEvent(
+                GlobalEvent(eventType: GlobalEventType.updateLineChart));
+            addToGlobalEvent(
+                GlobalEvent(eventType: GlobalEventType.updateArticleList));
+            addToGlobalEvent(GlobalEvent(
+                eventType: GlobalEventType.articleListScrollToTop, param: 1));
+            myToast(context, "Successfully!");
+          },
+          icon: const Icon(Icons.refresh)),
       IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
       // IconButton(onPressed: changeTheme, icon: const Icon(Icons.sunny)),
     ];
@@ -141,7 +153,8 @@ class _State extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return getScaffold(context,
+    return getScaffold(
+      context,
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.

@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-var multiDictGlobal *dict.MultiDictZip
+var multiDictGlobal *dict.MultiDict
 
 //export GetUrlByWord
 func GetUrlByWord(wordC *C.char) *C.char {
@@ -29,12 +29,6 @@ func GetDefaultDict() *C.char {
 //export DelDict
 func DelDict(basePath *C.char) *C.char {
 	u := multiDictGlobal.DelDict(C.GoString(basePath))
-	return CharOk(u)
-}
-
-//export GetBaseUrl
-func GetBaseUrl() *C.char {
-	u := multiDictGlobal.GetBaseUrl()
 	return CharOk(u)
 }
 

@@ -46,6 +46,7 @@ dependencies:
   webview_flutter: ^4.4.4
   audioplayers: ^5.2.1
   dio: ^5.4.1
+  path: ^1.9.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

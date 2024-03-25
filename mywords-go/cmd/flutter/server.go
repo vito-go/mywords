@@ -168,6 +168,11 @@ func ParseVersion() *C.char {
 	return CharOk(artical.ParseVersion)
 }
 
+//export ProxyURL
+func ProxyURL() *C.char {
+	return CharOk(serverGlobal.ProxyURL())
+}
+
 //export ShowFileInfoList
 func ShowFileInfoList() *C.char {
 	return CharOk(serverGlobal.ShowFileInfoList())
