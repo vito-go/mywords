@@ -12,10 +12,6 @@ import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
 class _DictDirName {
-//   	type t struct {
-// 		Path string `json:"Path,omitempty"`
-// 		Name    string `json:"name,omitempty"`
-// 	}
   String basePath = '';
   String title = '';
 
@@ -112,10 +108,11 @@ class _State extends State<DictDatabase> {
                   setState(() {
                     dictDirNames.removeAt(index);
                   });
-                  final t = Timer(const Duration(milliseconds: 4000), () async {
+                  final t = Timer(const Duration(milliseconds: 3500), () async {
                     final respData = await handler.delDict(s.basePath);
                     if (respData.code != 0) {
                       myToast(context, respData.message);
+                      return;
                     }
                   });
                   // Then show a snackbar.
@@ -225,11 +222,9 @@ class _State extends State<DictDatabase> {
       isSyncing = false;
     });
     if (respData.code != 0) {
-      if (!context.mounted) return;
       myToast(context, "解析失败! ${respData.message}");
       return;
     }
-    if (!context.mounted) return;
     myToast(context, "解析成功");
     initDictDirNames();
     zipFilePath = '';

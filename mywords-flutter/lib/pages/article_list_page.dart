@@ -77,6 +77,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     final fileName = await handler.getFileNameBySourceUrl(www);
 
     if (fileName != "") {
+      if (!mounted)return;
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -122,7 +123,6 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
         await compute(computeParseAndSaveArticleFromSourceUrl, www);
     valueNotifier.value = false;
     if (respData.code != 0) {
-      if (!context.mounted) return;
       myToast(context, respData.message);
       return;
     }

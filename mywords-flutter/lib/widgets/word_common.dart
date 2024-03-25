@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
@@ -23,12 +22,14 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
     htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (htmlBasePath == '') {
+    if (!context.mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
     ));
     return;
   }
+  if (!context.mounted)return;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -50,6 +51,7 @@ void _queryWordInDictNotMobile(BuildContext context, String word) async {
     url = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (url.isEmpty) {
+    if (!context.mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
@@ -80,6 +82,7 @@ void showWordWithDefault(BuildContext context, String word) async {
     meaning = await handler.dictWordQuery(word);
   }
   if (meaning == '') {
+    if (!context.mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
@@ -88,6 +91,7 @@ void showWordWithDefault(BuildContext context, String word) async {
   }
   final realLevel = await handler.queryWordLevel(word);
   meaning = fixDefaultMeaning(meaning);
+  if (!context.mounted)return;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -104,6 +108,7 @@ void showWordWithDefault(BuildContext context, String word) async {
 void showWord(BuildContext context, String word) async {
   LocalCache.defaultDictBasePath ??=
       ((await handler.getDefaultDict()).data ?? '');
+  if (!context.mounted)return;
   if (LocalCache.defaultDictBasePath == "") {
     return showWordWithDefault(context, word);
   }

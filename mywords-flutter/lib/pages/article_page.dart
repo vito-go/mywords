@@ -83,7 +83,7 @@ class ArticlePageState extends State<ArticlePage> {
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
       levelCountMap = await _levelDistribute();
-      if (!context.mounted) return;
+      if (!mounted)return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       setState(() {});

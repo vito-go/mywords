@@ -30,7 +30,7 @@ class _SyncDataState extends State<SyncData> {
   TextEditingController controllerPort = TextEditingController();
   TextEditingController controllerCode = TextEditingController();
   TextEditingController controllerBackUpZipName =
-      TextEditingController(text: "mywords-backupdata");
+      TextEditingController(text: "mywords-backup-data");
 
   @override
   void initState() {

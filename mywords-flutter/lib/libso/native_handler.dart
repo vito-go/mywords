@@ -454,6 +454,7 @@ class NonWebHandler implements Interface {
   }
 
 // compute must be top level function
+  @override
   RespData<void> parseAndSaveArticleFromFile(String path) {
     final pathC = path.toNativeUtf8();
     final resultC = _parseAndSaveArticleFromFile(pathC);

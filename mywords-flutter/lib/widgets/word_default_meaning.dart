@@ -80,6 +80,7 @@ class _State extends State<WordDefaultMeaning> {
                         m = await handler.dictWordQuery(tempWord);
                       }
                       if (m == '') {
+                        if (!context.mounted)return;
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text('无结果: $word',
                               maxLines: 1, overflow: TextOverflow.ellipsis),

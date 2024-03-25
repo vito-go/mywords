@@ -57,14 +57,9 @@ class MyDrawerState extends State<MyDrawer> {
     super.initState();
     initLevelMap();
   }
-
-  TextEditingController controller =
-      TextEditingController(text: "mywords-backupdata");
-
   @override
   void dispose() {
     super.dispose();
-    controller.dispose();
   }
 
   @override

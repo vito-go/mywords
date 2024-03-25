@@ -63,12 +63,10 @@ class _State extends State<ParseLocalFile> {
           filePathMap[p] = 'null stream';
           continue;
         }
-        respData = await compute(
-            computeWebParseAndSaveArticleFromFile,
+        respData = await compute(computeWebParseAndSaveArticleFromFile,
             {"name": file.name, "bytes": file.readStream!});
       } else {
-        respData = await compute(
-            computeParseAndSaveArticleFromFile, p);
+        respData = await compute(computeParseAndSaveArticleFromFile, p);
       }
       if (respData.code == 0) {
         filePathMap[p] = '';
@@ -134,7 +132,6 @@ class _State extends State<ParseLocalFile> {
   Future<void> computeParse(String path) async {
     final respData = await compute(computeParseAndSaveArticleFromFile, path);
     if (respData.code != 0) {
-      if (!context.mounted) return;
       myToast(context, respData.message);
       return;
     }
@@ -148,7 +145,7 @@ class _State extends State<ParseLocalFile> {
         title: const Text("选择文件"),
         leading: const Tooltip(
           message: "从本地选择html格式文章进行解析，支持多选文件",
-          showDuration:Duration(seconds: 10),
+          showDuration: Duration(seconds: 10),
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info_outline),
         ),
@@ -170,7 +167,8 @@ class _State extends State<ParseLocalFile> {
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("解析本地文章"),
     );
-    return getScaffold(context,
+    return getScaffold(
+      context,
       appBar: appBar,
       body: col,
     );

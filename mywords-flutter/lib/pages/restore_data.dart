@@ -29,8 +29,7 @@ class _RestoreDataState extends State<RestoreData> {
   TextEditingController controllerPort = TextEditingController();
   TextEditingController controllerIP = TextEditingController();
   TextEditingController controllerCode = TextEditingController();
-  TextEditingController controllerBackUpZipName =
-      TextEditingController(text: "mywords-backupdata");
+
   String defaultDownloadDir = '';
 
   @override
@@ -71,8 +70,7 @@ class _RestoreDataState extends State<RestoreData> {
     controllerPort.dispose();
     controllerCode.dispose();
     controllerIP.dispose();
-    controllerBackUpZipName.dispose();
-  }
+   }
 
   Future<int> syncShareData() async {
     if (controllerIP.text == "") {
