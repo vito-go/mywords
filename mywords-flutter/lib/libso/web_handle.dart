@@ -375,14 +375,13 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<RespData<Map<int, int>>> levelDistribute(
-      List<String> words) async {
+  Future<RespData<Map<int, int>>> levelDistribute(List<String> words) async {
     final result = await call("LevelDistribute", [words]);
 
     final respData = RespData.fromJson(
         jsonDecode(result),
-        (json) => (json as Map<String, dynamic>)
-            .map((key, value) => MapEntry(int.parse(key.toString()), value as int)));
+        (json) => (json as Map<String, dynamic>).map(
+            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
 
     return respData;
   }
