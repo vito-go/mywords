@@ -182,6 +182,7 @@ class _State extends State<ArticleListView> {
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
         onRefresh: () async {
+          addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateLineChart));
           await initFileInfos();
           if (!context.mounted) return;
           myToast(context, "Successfully!");
@@ -241,6 +242,8 @@ class _State extends State<ArticleListView> {
               duration: const Duration(milliseconds: 150),
               curve: Curves.linear);
         }
+      case GlobalEventType.updateLineChart:
+      // TODO: Handle this case.
     }
   }
 

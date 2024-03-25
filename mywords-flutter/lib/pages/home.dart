@@ -114,6 +114,14 @@ class _State extends State<Home> {
 
   List<Widget> get actions {
     return [
+      IconButton(
+          onPressed: () {
+            addToGlobalEvent(
+                GlobalEvent(eventType: GlobalEventType.updateLineChart));
+            addToGlobalEvent(
+                GlobalEvent(eventType: GlobalEventType.updateArticleList));
+          },
+          icon: const Icon(Icons.refresh)),
       IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
       // IconButton(onPressed: changeTheme, icon: const Icon(Icons.sunny)),
     ];
@@ -141,7 +149,8 @@ class _State extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return getScaffold(context,
+    return getScaffold(
+      context,
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.

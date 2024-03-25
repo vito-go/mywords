@@ -38,23 +38,20 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.syncData && event.param == true) {
-      updateTodayCountMap().then((value) {
-        valueNotifierChart.value = UniqueKey();
-      });
+      updateTodayCountMap();
     }
     if (event.eventType == GlobalEventType.updateKnownWord) {
-      updateTodayCountMap().then((value) {
-        valueNotifierChart.value = UniqueKey();
-      });
+      updateTodayCountMap();
+    }
+    if (event.eventType == GlobalEventType.updateLineChart) {
+      updateTodayCountMap();
     }
   }
 
   @override
   void initState() {
     super.initState();
-    updateTodayCountMap().then((value) {
-      setState(() {});
-    });
+    updateTodayCountMap();
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
@@ -261,6 +258,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       return;
     }
     todayCountMap = respData.data ?? {};
+    valueNotifierChart.value = UniqueKey();
+    setState(() {});
   }
 
   @override
