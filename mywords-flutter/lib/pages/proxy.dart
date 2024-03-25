@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/util/get_scaffold.dart';
@@ -16,10 +15,8 @@ class NetProxy extends StatefulWidget {
 }
 
 class _State extends State<NetProxy> {
-  TextEditingController controllerPort = TextEditingController();
-  TextEditingController controllerIP = TextEditingController();
-
-  String netProxy = prefs.netProxy;
+  TextEditingController controllerPort = TextEditingController(text: " ");
+  TextEditingController controllerIP = TextEditingController(text: " ");
 
   String scheme = 'http';
 
@@ -32,12 +29,13 @@ class _State extends State<NetProxy> {
   final defaultPort = 18964;
   final defaultCode = 890604;
 
-  void initController() {
-    final netProxy = prefs.netProxy;
-    if (netProxy == '') return;
-    final uri = Uri.tryParse(netProxy);
+  void initController() async {
+    final proxyURL = await handler.proxyURL();
+    if (proxyURL == '') return;
+    final uri = Uri.tryParse(proxyURL);
     if (uri == null) {
-      prefs.netProxy = '';
+      // impossible wrong
+      await handler.setProxyUrl("");
       return;
     }
     controllerIP.text = uri.host;
@@ -54,7 +52,7 @@ class _State extends State<NetProxy> {
 
   final schemeList = <String>["http", "socks5"];
 
-  Widget dropButton() {
+  Widget get dropButton {
     return DropdownButton(
         value: scheme,
         items: const [
@@ -74,17 +72,40 @@ class _State extends State<NetProxy> {
         });
   }
 
-  Widget syncShareDataBuild() {
+  Widget get saveProxyButton {
     return ElevatedButton.icon(
-      onPressed: setNetProxy,
+      onPressed: () async {
+        final host = controllerIP.text.trim();
+        if (host.isEmpty) {
+          myToast(context, "ip/域名不能为空");
+          return;
+        }
+        final port = controllerPort.text.trim();
+        if (port.isEmpty) {
+          myToast(context, "端口号不能为空");
+          return;
+        }
+        final netProxy = "$scheme://$host:$port";
+        final respData = await handler.setProxyUrl(netProxy);
+        if (respData.code != 0) {
+          myToast(context, respData.message);
+          return;
+        }
+        myToast(context, "设置代理成功！\n$netProxy");
+      },
       icon: const Icon(Icons.save),
       label: const Text("保存"),
     );
   }
 
-  Widget clearProxyButton() {
+  Widget get delProxyButton {
     return ElevatedButton.icon(
-      onPressed: delNetProxy,
+      onPressed: () async {
+        await handler.setProxyUrl("");
+        controllerIP.text = '';
+        controllerPort.text = '';
+        myToast(context, "删除代理");
+      },
       icon: const Icon(
         Icons.clear,
         color: Colors.red,
@@ -112,33 +133,8 @@ class _State extends State<NetProxy> {
     return TextField(
       controller: controllerIP,
       keyboardType: TextInputType.url,
-      decoration: const InputDecoration(
-        labelText: "IP/域名",
-        // border: OutlineInputBorder(),
-        isDense: true,
-      ),
+      decoration: const InputDecoration(labelText: "IP/域名"),
     );
-  }
-
-  delNetProxy() async {
-    await handler.setProxyUrl("");
-    controllerIP.text = '';
-    controllerPort.text = '';
-    prefs.netProxy = '';
-    myToast(context, "删除代理");
-  }
-
-  setNetProxy() async {
-    final netProxy =
-        "$scheme://${controllerIP.text.trim()}:${controllerPort.text}";
-    final respData = await handler.setProxyUrl(netProxy);
-
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return;
-    }
-    prefs.netProxy = netProxy;
-    myToast(context, "设置代理成功！\n$netProxy");
   }
 
   @override
@@ -148,40 +144,30 @@ class _State extends State<NetProxy> {
           title: Row(
         children: [
           const Text("请选择协议"),
-          const SizedBox(
-            width: 20,
-          ),
-          dropButton(),
+          const SizedBox(width: 20),
+          dropButton,
         ],
       )),
-      ListTile(
-        title: textFieldIP(),
-      ),
-      ListTile(
-        title: textFieldPort(),
-      ),
-      const SizedBox(
-        height: 20,
-      ),
+      ListTile(title: textFieldIP()),
+      ListTile(title: textFieldPort()),
+      const SizedBox(height: 20),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          syncShareDataBuild(),
-          const SizedBox(
-            width: 20,
-          ),
-          clearProxyButton(),
+          saveProxyButton,
+          const SizedBox(width: 20),
+          delProxyButton,
         ],
       )
     ];
 
-    final body = Column(children: children);
-
+    final body = ListView(children: children);
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       title: const Text("设置网络代理"),
     );
-    return getScaffold(context,
+    return getScaffold(
+      context,
       appBar: appBar,
       body: body,
     );

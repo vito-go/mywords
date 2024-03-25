@@ -8,6 +8,7 @@ enum GlobalEventType {
   updateKnownWord,
   updateArticleList,
   articleListScrollToTop,
+  updateLineChart,
 }
 
 void addToGlobalEvent(GlobalEvent event) {

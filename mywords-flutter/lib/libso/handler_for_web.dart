@@ -1,4 +1,4 @@
-import 'package:mywords/libso/web_http.dart';
+import 'web_handle.dart';
 
 import 'interface.dart';
 

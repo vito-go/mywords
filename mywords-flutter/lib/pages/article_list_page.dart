@@ -15,6 +15,8 @@ import 'package:mywords/util/util.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/widgets/article_list.dart';
 
+import '../libso/resp_data.dart';
+
 class ArticleListPage extends StatefulWidget {
   const ArticleListPage({super.key});
 
@@ -38,23 +40,20 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void globalEventHandler(GlobalEvent event) {
     if (event.eventType == GlobalEventType.syncData && event.param == true) {
-      updateTodayCountMap().then((value) {
-        valueNotifierChart.value = UniqueKey();
-      });
+      updateTodayCountMap();
     }
     if (event.eventType == GlobalEventType.updateKnownWord) {
-      updateTodayCountMap().then((value) {
-        valueNotifierChart.value = UniqueKey();
-      });
+      updateTodayCountMap();
+    }
+    if (event.eventType == GlobalEventType.updateLineChart) {
+      updateTodayCountMap();
     }
   }
 
   @override
   void initState() {
     super.initState();
-    updateTodayCountMap().then((value) {
-      setState(() {});
-    });
+    updateTodayCountMap();
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
@@ -78,6 +77,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     final fileName = await handler.getFileNameBySourceUrl(www);
 
     if (fileName != "") {
+      if (!mounted)return;
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -120,10 +120,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   void computeParse(String www) async {
     valueNotifier.value = true;
     final respData =
-        await compute(handler.parseAndSaveArticleFromSourceUrl, www);
+        await compute(computeParseAndSaveArticleFromSourceUrl, www);
     valueNotifier.value = false;
     if (respData.code != 0) {
-      if (!context.mounted) return;
       myToast(context, respData.message);
       return;
     }
@@ -261,6 +260,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       return;
     }
     todayCountMap = respData.data ?? {};
+    valueNotifierChart.value = UniqueKey();
+    setState(() {});
   }
 
   @override
@@ -271,4 +272,10 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   @override
   bool get wantKeepAlive => true;
+}
+
+Future<RespData<void>> computeParseAndSaveArticleFromSourceUrl(
+    String www) async {
+  final respData = await handler.parseAndSaveArticleFromSourceUrl(www);
+  return respData;
 }

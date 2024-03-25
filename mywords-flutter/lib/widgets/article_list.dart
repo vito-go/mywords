@@ -50,7 +50,7 @@ class _State extends State<ArticleListView> {
 
   void slideToUnArchive(FileInfo item) {
     final fileName = item.fileName;
-    final t = Timer(const Duration(milliseconds: 4000), () async {
+    final t = Timer(const Duration(milliseconds: 3500), () async {
       final respData = await handler.unArchiveGobFile(fileName);
       if (respData.code != 0) {
         myToast(context, respData.message);
@@ -75,10 +75,10 @@ class _State extends State<ArticleListView> {
 
   void slideToArchive(FileInfo item) {
     final fileName = item.fileName;
-    final t = Timer(const Duration(milliseconds: 4000), () async {
+    final t = Timer(const Duration(milliseconds: 3500), () async {
       final RespData respData = await handler.archiveGobFile(fileName);
       if (respData.code != 0) {
-        if (!context.mounted) {
+        if (!mounted) {
           return;
         }
         myToast(context, respData.message);
@@ -103,10 +103,10 @@ class _State extends State<ArticleListView> {
 
   void slideToDelete(FileInfo item) {
     final fileName = item.fileName;
-    final t = Timer(const Duration(milliseconds: 4000), () async {
+    final t = Timer(const Duration(milliseconds: 3500), () async {
       final RespData respData = await handler.deleteGobFile(fileName);
       if (respData.code != 0) {
-        if (!context.mounted) return;
+        if (!mounted) return;
         myToast(context, respData.message);
         return;
       }
@@ -182,8 +182,9 @@ class _State extends State<ArticleListView> {
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
         onRefresh: () async {
+          addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateLineChart));
           await initFileInfos();
-          if (!context.mounted) return;
+          if (!mounted) return;
           myToast(context, "Successfully!");
         });
   }
@@ -191,6 +192,7 @@ class _State extends State<ArticleListView> {
   Future<void> initFileInfos() async {
     final respData = await widget.getFileInfos();
     if (respData.code != 0) {
+      if (!mounted)return;
       myToast(context, respData.message);
       return;
     }
@@ -241,6 +243,8 @@ class _State extends State<ArticleListView> {
               duration: const Duration(milliseconds: 150),
               curve: Curves.linear);
         }
+      case GlobalEventType.updateLineChart:
+      // TODO: Handle this case.
     }
   }
 

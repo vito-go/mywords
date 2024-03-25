@@ -7,7 +7,6 @@ import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/line_chart.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 import '../util/local_cache.dart';
@@ -236,11 +235,13 @@ class NonWebHandler implements Interface {
       Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
 
   @override
-  RespData<Map<String, dynamic>> levelDistribute(List<String> words) {
+  RespData<Map<int, int>> levelDistribute(List<String> words) {
     final c = jsonEncode(words).toNativeUtf8();
     final resultC = _levelDistribute(c);
-    final respData = RespData.fromJson(jsonDecode(resultC.toDartString()),
-        (json) => json as Map<String, dynamic>);
+    final respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()),
+        (json) => (json as Map<String, dynamic>).map(
+            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
     malloc.free(c);
     malloc.free(resultC);
     return respData;
@@ -328,7 +329,6 @@ class NonWebHandler implements Interface {
     final RespData<Map<String, dynamic>> respData = RespData.fromJson(
         jsonDecode(resultC.toDartString()) ?? {},
         (json) => json as Map<String, dynamic>);
-    myPrint(resultC.toDartString());
     malloc.free(resultC);
     return respData.data ?? {};
   }
@@ -454,6 +454,7 @@ class NonWebHandler implements Interface {
   }
 
 // compute must be top level function
+  @override
   RespData<void> parseAndSaveArticleFromFile(String path) {
     final pathC = path.toNativeUtf8();
     final resultC = _parseAndSaveArticleFromFile(pathC);
@@ -691,18 +692,6 @@ class NonWebHandler implements Interface {
     return respData;
   }
 
-  final _getBaseUrl = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('GetBaseUrl');
-
-  RespData<String> getBaseUrl() {
-    final resultC = _getBaseUrl();
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData;
-  }
-
   final _getDefaultDict = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetDefaultDict');
 
@@ -847,5 +836,17 @@ class NonWebHandler implements Interface {
     }
     ips.sort((a, b) => a.length.compareTo(b.length));
     return ips;
+  }
+
+  final _proxyURL = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('ProxyURL');
+
+  @override
+  String proxyURL() {
+    final resultC = _proxyURL();
+    final RespData<String> respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()), (json) => json as String);
+    malloc.free(resultC);
+    return respData.data ?? "";
   }
 }

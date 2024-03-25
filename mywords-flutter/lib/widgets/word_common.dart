@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
@@ -13,6 +12,9 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'dart:io';
 
+import '../common/global_event.dart';
+import '../util/util.dart';
+
 void _queryWordInDictWithMobile(BuildContext context, String word) async {
   String htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
   if (htmlBasePath == '') {
@@ -20,12 +22,14 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
     htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (htmlBasePath == '') {
+    if (!context.mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
     ));
     return;
   }
+  if (!context.mounted)return;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -47,6 +51,7 @@ void _queryWordInDictNotMobile(BuildContext context, String word) async {
     url = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (url.isEmpty) {
+    if (!context.mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
@@ -77,13 +82,16 @@ void showWordWithDefault(BuildContext context, String word) async {
     meaning = await handler.dictWordQuery(word);
   }
   if (meaning == '') {
+    if (!context.mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
     ));
     return;
   }
+  final realLevel = await handler.queryWordLevel(word);
   meaning = fixDefaultMeaning(meaning);
+  if (!context.mounted)return;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -91,7 +99,8 @@ void showWordWithDefault(BuildContext context, String word) async {
         return ConstrainedBox(
           constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.75),
-          child: WordDefaultMeaning(word: word, meaning: meaning),
+          child: WordDefaultMeaning(
+              word: word, meaning: meaning, realLevel: realLevel),
         );
       });
 }
@@ -99,6 +108,7 @@ void showWordWithDefault(BuildContext context, String word) async {
 void showWord(BuildContext context, String word) async {
   LocalCache.defaultDictBasePath ??=
       ((await handler.getDefaultDict()).data ?? '');
+  if (!context.mounted)return;
   if (LocalCache.defaultDictBasePath == "") {
     return showWordWithDefault(context, word);
   }
@@ -245,4 +255,37 @@ Widget highlightTextSplitByToken(String text, List<String> tokens,
     textSpan,
     contextMenuBuilder: contextMenuBuilder,
   );
+}
+
+InkWell buildInkWell(
+    BuildContext context, String word, int showLevel, int realLevel) {
+  if (showLevel == realLevel) {
+    return InkWell(
+      child: SizedBox(
+          height: 32,
+          width: 32,
+          child: CircleAvatar(
+            backgroundColor: Colors.orange,
+            child: Text(showLevel.toString()),
+          )),
+    );
+  }
+  return InkWell(
+      child: SizedBox(
+          height: 32,
+          width: 32,
+          child: CircleAvatar(
+            backgroundColor: null,
+            child: Text(showLevel.toString()),
+          )),
+      onTap: () async {
+        final respData = await handler.updateKnownWords(showLevel, word);
+        if (respData.code != 0) {
+          myToast(context, respData.message);
+          return;
+        }
+        addToGlobalEvent(GlobalEvent(
+            eventType: GlobalEventType.updateKnownWord,
+            param: <String, dynamic>{"word": word, "level": showLevel}));
+      });
 }

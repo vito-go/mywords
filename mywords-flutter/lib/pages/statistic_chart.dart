@@ -5,6 +5,8 @@ import 'package:mywords/util/get_scaffold.dart';
 
 import 'package:mywords/widgets/line_chart.dart';
 
+import '../common/global_event.dart';
+
 class StatisticChart extends StatefulWidget {
   const StatisticChart({super.key});
 
@@ -34,8 +36,8 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   List<Widget> get tableWidgets {
     if (todayData == null || accumulateData == null) {
       return [
-        const Center(child:  CircularProgressIndicator()),
-        const Center(child:  CircularProgressIndicator()),
+        const Center(child: CircularProgressIndicator()),
+        const Center(child: CircularProgressIndicator()),
       ];
     }
     return [
@@ -69,6 +71,7 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     initData();
+    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateLineChart));
   }
 
   @override
@@ -89,7 +92,8 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
     );
     return DefaultTabController(
       length: myTabs.length,
-      child: getScaffold(context,
+      child: getScaffold(
+        context,
         appBar: appBar,
         body: TabBarView(children: tableWidgets),
       ),

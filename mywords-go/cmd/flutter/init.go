@@ -18,15 +18,18 @@ var once sync.Once
 //export Init
 func Init(rootDataDir *C.char) {
 	once.Do(func() {
-		initGlobal(C.GoString(rootDataDir))
+		// 非web版本
+		initGlobal(C.GoString(rootDataDir), "127.0.0.1", 0)
 	})
 }
-func initGlobal(rootDataDir string) {
-	srv, err := server.NewServer(rootDataDir)
+func initGlobal(rootDataDir string, dictHost string, dictRunPort int) {
+	var err error
+	serverGlobal, err = server.NewServer(rootDataDir)
 	if err != nil {
 		panic(err)
 	}
-	serverGlobal = srv
-	multiDictGlobal = dict.NewMultiDictZip(rootDataDir)
-	go multiDictGlobal.Init()
+	multiDictGlobal, err = dict.NewMultiDictZip(rootDataDir, dictHost, dictRunPort)
+	if err != nil {
+		panic(err)
+	}
 }

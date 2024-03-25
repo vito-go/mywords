@@ -15,8 +15,7 @@ String formatTime(DateTime now) {
 }
 
 myToast(BuildContext context, dynamic msg) {
-   myPrint(msg, skip: 2);
-
+  myPrint(msg, skip: 2);
   if (!context.mounted) return;
   showToast(
     "$msg",
@@ -58,7 +57,6 @@ myPrint(dynamic msg,
     print("[$level] ${DateTime.now()} $traceString $msg $arg");
   }
 }
-
 
 copyToClipBoard(BuildContext context, String content) {
   Clipboard.setData(ClipboardData(text: content));
