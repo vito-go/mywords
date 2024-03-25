@@ -1,11 +1,11 @@
 ifeq ($(OS),Windows_NT)
- PLATFORM="Windows"
+ 	PLATFORM="windows"
+else ifeq ($(shell uname),Darwin)
+  	PLATFORM="macos"
+else ifeq ($(shell uname),Linux)
+	PLATFORM="linux"
 else
- ifeq ($(shell uname),Darwin)
-  PLATFORM="MacOS"
- else
-  PLATFORM="Unix-Like"
- endif
+  	PLATFORM="unkonwn"
 endif
 build:
 ifeq ($(OS),Windows_NT)

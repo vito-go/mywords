@@ -169,6 +169,7 @@ func (s *Server) netProxy() *url.URL {
 	return u
 }
 
+//export ProxyURL
 func (s *Server) ProxyURL() string {
 	return s.cfg.Load().ProxyUrl
 }
