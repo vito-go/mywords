@@ -120,6 +120,8 @@ class _State extends State<Home> {
                 GlobalEvent(eventType: GlobalEventType.updateLineChart));
             addToGlobalEvent(
                 GlobalEvent(eventType: GlobalEventType.updateArticleList));
+            addToGlobalEvent(GlobalEvent(
+                eventType: GlobalEventType.articleListScrollToTop, param: 1));
           },
           icon: const Icon(Icons.refresh)),
       IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
