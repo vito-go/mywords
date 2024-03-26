@@ -97,13 +97,7 @@
 ```
 
 ## 预览
-
-<img src="images/home-article-page.png" style="width: 256px"> <img src="images/home-dict-page.png" style="width: 256px">
-<img src="images/home-dict-page-apple.png" style="width: 256px"> <img src="images/article-page.png" style="width: 256px">
-<img src="images/article-page-no-sentences.png" style="width: 256px"><img src="images/word-page.png" style="width: 256px">
-<img src="images/drawer.png" style="width: 256px"> <img src="images/chart-daily.png" style="width: 256px">
-<img src="images/chart-accumulation.png" style="width: 256px"><img src="images/share.png" style="width: 256px">
-<img src="images/sync-data.png" style="width: 256px"><img src="images/my-known-words.png" style="width: 256px">
+<img src="images/mywords.jpg">
 
 ## 添加词典指南
 
