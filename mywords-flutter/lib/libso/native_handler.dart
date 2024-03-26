@@ -572,14 +572,16 @@ class NonWebHandler implements Interface {
 
 // func QueryWordLevel(wordC *C.char) *C.char
   final _getUrlByWord = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('GetUrlByWord');
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('GetUrlByWord');
 
 // getUrlByWord 返回防止携带word参数
   @override
-  String getUrlByWord(String word) {
+  String getUrlByWord(String hostName, String word) {
     final wordC = word.toNativeUtf8();
-    final resultC = _getUrlByWord(wordC);
+    final hostNameC = word.toNativeUtf8();
+    final resultC = _getUrlByWord(hostNameC, wordC);
+    malloc.free(hostNameC);
     malloc.free(wordC);
     final result = resultC.toDartString();
     malloc.free(resultC);
@@ -849,4 +851,10 @@ class NonWebHandler implements Interface {
     malloc.free(resultC);
     return respData.data ?? "";
   }
+  @override
+  String getHostName() {
+    // default value is localhost
+    return "";
+  }
+
 }

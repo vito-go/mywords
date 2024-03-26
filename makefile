@@ -56,5 +56,3 @@ build-la: build-android build-linux
 build-web-platform:bin
 	cd $(GO_DIR) && make build-web-platform
 	mv $(GO_DIR)/bin/* ./bin/
-	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
-	@echo "--------$$ ls -lha bin --------"

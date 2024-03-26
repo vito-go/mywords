@@ -48,12 +48,13 @@ build-so-android:
 
 build-web-platform:
 	@echo "build web for $(PLATFORM) platform"
-	cd $(FLUTTER_DIR) &&make build-web
-	cp -r $(FLUTTER_DIR)/build/web ./cmd/flutter/
+	cd $(FLUTTER_DIR) && make build-web
+	rm -rf cmd/flutter/web/
+	mv $(FLUTTER_DIR)/build/web ./cmd/flutter/
 	- mkdir bin
 	go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/flutter/
 	@echo "build web for $(PLATFORM) platform successfully!"
 #    now you can run the binary file to start the web server
-	@echo "run the binary file to start the web server"
-	@echo "cd bin && ./$(WEB_BIN_NAME)"
-	@echo "open browser and visit http://localhost:18960 or other port you specified"
+	@echo "run the binary file '$(WEB_BIN_NAME)' to start the web server"
+	@echo "$ cd bin && ./$(WEB_BIN_NAME)"
+	@echo "Open your browser and visit 'http://localhost:18960', or use the port that you have specified."

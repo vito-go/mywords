@@ -12,7 +12,8 @@ abstract class Interface {
 
   FutureOr<RespData<void>> parseAndSaveArticleFromFile(String path);
 
-  FutureOr<String> getUrlByWord(String word);
+  // hostname 可以为空，默认localhost
+  FutureOr<String> getUrlByWord(String hostname, String word);
 
   FutureOr<RespData<void>> updateDictName(String dataDir, String name);
 
@@ -103,4 +104,5 @@ abstract class Interface {
   void setLogUrl(String logUrl, String logNonce);
 
   void println(String msg);
+  String getHostName() ;
 }

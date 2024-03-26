@@ -36,16 +36,15 @@ func main() {
 	}
 	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
 	port := flag.Int("port", 18960, "http server port")
-	embeded := flag.Bool("embed", true, "embedded web")
-	rootDir := flag.String("rootDir", defaultRootDir, "root data dir")
-	dictHost := flag.String("dictHost", "127.0.0.1", "dict host")
 	dictPort := flag.Int("dictPort", 18961, "dict port")
+	embeded := flag.Bool("embed", true, "embedded web")
+	rootDir := flag.String("rootDir", defaultRootDir, "root dir")
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)
 	}
-	initGlobal(*rootDir, *dictHost, *dictPort)
+	initGlobal(*rootDir, *dictPort)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/call/", serverHTTPCallFunc)
 	mux.HandleFunc("/_addDictWithFile", addDictWithFile)
@@ -70,7 +69,7 @@ func main() {
 	mylog.Info("server start", "port", *port, "rootDir", *rootDir)
 	go func() {
 		time.Sleep(time.Second)
-		openBrowser(fmt.Sprintf("http://%s:%d", *dictHost, *port))
+		openBrowser(fmt.Sprintf("http://localhost:%d", *port))
 	}()
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
@@ -302,5 +301,5 @@ func openBrowser(url string) {
 	if err != nil {
 		fmt.Printf("open url error: %s\n", url)
 	}
-	fmt.Printf("open %s\n in your browser", url)
+	fmt.Printf("open %s in your browser\n", url)
 }

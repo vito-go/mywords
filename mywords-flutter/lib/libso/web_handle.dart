@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:dio/dio.dart';
 import 'package:mywords/libso/interface.dart';
@@ -171,8 +172,8 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<String> getUrlByWord(String word) async {
-    final result = await call("GetUrlByWord", [word]);
+  Future<String> getUrlByWord(String hostname, String word) async {
+    final result = await call("GetUrlByWord", [hostname, word]);
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? '';
@@ -448,6 +449,11 @@ class HTTPHandler implements Interface {
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? "";
+  }
+
+  @override
+  String getHostName() {
+    return window.location.hostname ?? '';
   }
 }
 
