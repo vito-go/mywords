@@ -313,12 +313,10 @@ func getApplicationDir() (string, error) {
 	case "windows":
 		defaultRootDir = filepath.Join(homeDir, "AppData/Roaming/com.example/mywords")
 	case "darwin":
-
+		defaultRootDir = filepath.Join(homeDir, "Library/Application Support/com.example.mywords")
 	case "linux":
 		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
-
 	}
 	defaultRootDir = filepath.ToSlash(defaultRootDir)
 	return defaultRootDir, err
-
 }
