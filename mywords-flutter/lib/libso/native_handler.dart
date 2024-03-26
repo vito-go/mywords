@@ -186,10 +186,10 @@ class NonWebHandler implements Interface {
     if (downloadDir == null) {
       return RespData.err("downloadDir is null");
     }
-    final downloadPathZip = path.join(downloadDir, "$zipName.zip");
+    final downloadPathZip = path.join(downloadDir, zipName);
     myPrint(downloadPathZip);
     if (File(downloadPathZip).existsSync()) {
-      return RespData.err("文件已存在，请删除或者修改备份文件名: $zipName.zip");
+      return RespData.err("文件已存在，请删除或者修改备份文件名: $zipName");
     }
     final downloadPathC = downloadPathZip.toNativeUtf8();
     final srcC = dataDirPath.toNativeUtf8();
