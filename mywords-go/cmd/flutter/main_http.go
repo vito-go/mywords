@@ -30,11 +30,11 @@ import (
 var webEmbed embed.FS
 
 func main() {
-	homeDir, err := os.UserHomeDir()
+
+	defaultRootDir, err := getApplicationDir()
 	if err != nil {
 		panic(err)
 	}
-	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
 	port := flag.Int("port", 18960, "http server port")
 	dictPort := flag.Int("dictPort", 18961, "dict port")
 	embeded := flag.Bool("embed", true, "embedded web")
@@ -302,4 +302,23 @@ func openBrowser(url string) {
 		fmt.Printf("open url error: %s\n", url)
 	}
 	fmt.Printf("open %s in your browser\n", url)
+}
+func getApplicationDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
+	switch runtime.GOOS {
+	case "windows":
+		defaultRootDir = filepath.Join(homeDir, "AppData/Roaming/com.example/mywords")
+	case "darwin":
+
+	case "linux":
+		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
+
+	}
+	defaultRootDir = filepath.ToSlash(defaultRootDir)
+	return defaultRootDir, err
+
 }
