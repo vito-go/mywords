@@ -411,7 +411,12 @@ func (s *Server) parseChartDateLevelCountMapFromGobFile(r io.ReadCloser) error {
 			//	s.chartDateLevelCountMap[date][level] = make(map[string]struct{})
 			//}
 			for word := range wordMap {
-				s.chartDateLevelCountMap.Set(date, level, map[string]struct{}{word: {}})
+				mData, ok := s.chartDateLevelCountMap.Get(date, level)
+				if !ok {
+					mData = make(map[string]struct{})
+				}
+				mData[word] = struct{}{}
+				s.chartDateLevelCountMap.Set(date, level, mData)
 				//s.chartDateLevelCountMap[date][level][word] = struct{}{}
 			}
 		}
