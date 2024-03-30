@@ -8,6 +8,7 @@ import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
+import 'package:mywords/util/local_cache.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -43,8 +44,8 @@ class ArticlePageState extends State<ArticlePage> {
         return;
       }
       article = respData.data!;
-      parseVersion = await handler.parseVersion();
-
+      LocalCache.parseVersion ??= await handler.parseVersion();
+      parseVersion = LocalCache.parseVersion!;
       if (article!.version != parseVersion) {
         reParseArticle(false);
         return;
@@ -83,7 +84,7 @@ class ArticlePageState extends State<ArticlePage> {
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
       levelCountMap = await _levelDistribute();
-      if (!mounted)return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       setState(() {});
