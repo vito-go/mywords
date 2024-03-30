@@ -23,6 +23,7 @@ func Init(rootDataDir *C.char) {
 	})
 }
 func initGlobal(rootDataDir string, dictRunPort int) {
+	killOldPidAndGenNewPid(rootDataDir)
 	var err error
 	serverGlobal, err = server.NewServer(rootDataDir)
 	if err != nil {

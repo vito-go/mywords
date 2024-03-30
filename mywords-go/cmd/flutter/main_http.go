@@ -317,6 +317,7 @@ func getApplicationDir() (string, error) {
 	case "linux":
 		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
 	}
+	// 请注意，如果同时打开多个应用，可能会导致目录冲突，数据造成不一致或丢失
 	defaultRootDir = filepath.ToSlash(defaultRootDir)
 	return defaultRootDir, err
 }
