@@ -60,3 +60,5 @@ build-web-platform:
 	@echo "run the binary file '$(WEB_BIN_NAME)' to start the web server"
 	@echo "$ cd bin && ./$(WEB_BIN_NAME)"
 	@echo "Open your browser and visit 'http://localhost:18960', or use the port that you have specified."
+clean:
+	rm -rf bin

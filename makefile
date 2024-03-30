@@ -25,8 +25,8 @@ GO_DIR='mywords-go'
 bin:
 	@mkdir -p bin
 clean:
-	rm -rf bin/
 	cd $(FLUTTER_DIR) && make clean
+	cd $(GO_DIR) && make clean
 	@echo "clean done"
 
 build-linux:bin
