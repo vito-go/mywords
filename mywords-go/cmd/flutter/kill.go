@@ -4,8 +4,10 @@ import (
 	"mywords/mylog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // killOldPidAndGenNewPid kill old pid and generate new pid.
@@ -39,6 +41,11 @@ func killOldPidAndGenNewPid(rootDir string) {
 	err = process.Kill()
 	if err != nil {
 		return
+	}
+	switch runtime.GOOS {
+	case "darwin", "linux", "windows", "freebsd", "openbsd", "netbsd", "dragonfly":
+		time.Sleep(time.Millisecond * 250)
+		// wait for old process to exit
 	}
 	// kill log
 	mylog.Info("kill old pid", "pid", pid)
