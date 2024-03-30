@@ -579,7 +579,7 @@ class NonWebHandler implements Interface {
   @override
   String getUrlByWord(String hostName, String word) {
     final wordC = word.toNativeUtf8();
-    final hostNameC = word.toNativeUtf8();
+    final hostNameC = hostName.toNativeUtf8();
     final resultC = _getUrlByWord(hostNameC, wordC);
     malloc.free(hostNameC);
     malloc.free(wordC);
