@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/config/config.dart';
 import 'package:mywords/libso/handler_for_native.dart'
@@ -324,15 +323,6 @@ class _State extends State<ArticleListView> {
         },
       ),
     );
-    return Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, bottom: 5, top: 5),
-        child: CupertinoSearchTextField(
-          controller: controllerSearch,
-          onChanged: (String v) {
-            kw = v;
-            setState(() {});
-          },
-        ));
   }
 
   @override

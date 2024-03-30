@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       // navigatorObservers: [BannerObserver()],
-      title: 'MyWords',
+      title: 'mywords',
       // debugShowCheckedModeBanner: false,
       // themeMode: prefs.themeMode,
       themeMode: ThemeMode.light,

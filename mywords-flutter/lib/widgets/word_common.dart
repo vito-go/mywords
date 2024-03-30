@@ -69,14 +69,11 @@ void queryWordInDict(BuildContext context, String word) async {
   if (kIsWeb) {
     _queryWordInDictWithMobile(context, word);
     return;
-    _queryWordInDictNotMobile(context, word);
-    return;
   }
   if (Platform.isAndroid || Platform.isIOS) {
     _queryWordInDictWithMobile(context, word);
     return;
   }
-
   // Desktop;
   _queryWordInDictNotMobile(context, word);
 }

@@ -8,13 +8,10 @@ import 'package:mywords/widgets/stream_log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util.dart';
-
-import 'package:mywords/environment.dart';
 
 class SyncData extends StatefulWidget {
   const SyncData({super.key});
