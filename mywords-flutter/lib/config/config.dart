@@ -18,6 +18,7 @@ final Map<String, String> _hostIconsAssetPath = {
   "www.npr.org": "$_iconPrefix/ap.png",
   "www.theguardian.com": "$_iconPrefix/theguardian.png",
   "www.voanews.com": "$_iconPrefix/voanews.png",
+  "time.com": "$_iconPrefix/time.png",
 };
 
 String assetPathByHost(String host) {
