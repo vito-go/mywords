@@ -105,7 +105,9 @@ func (m *MySyncMapMap[K, T]) CopyData() map[string]map[K]T {
 	defer m.mux.RUnlock()
 	data := make(map[string]map[K]T, len(m.data))
 	for k, v := range m.data {
-		data[k] = make(map[K]T)
+		if _, ok := data[k]; !ok {
+			data[k] = make(map[K]T)
+		}
 		for k2, v2 := range v {
 			data[k][k2] = v2
 		}
