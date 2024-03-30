@@ -716,7 +716,7 @@ func (s *Server) QueryWordsLevel(words ...string) map[string]WordKnownLevel {
 	resultMap := make(map[string]WordKnownLevel, len(words))
 	for _, word := range words {
 		firstLetter := strings.ToLower(word[:1])
-		if level, ok := s.knownWordsMap.Get(firstLetter, word); !ok {
+		if level, ok := s.knownWordsMap.Get(firstLetter, word); ok {
 			resultMap[word] = level
 		}
 		//if wordLevelMap, ok := s.knownWordsMap[firstLetter]; ok {
