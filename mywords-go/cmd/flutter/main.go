@@ -230,8 +230,6 @@ func downloadBackUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
-	//defer mylog.Ctx(r.Context()).WithFields("remoteAddr", r.RemoteAddr, "method", r.Method, "path", path).Info("====")
-	// app端暂不需考虑支持跨域
 	if cors(w, r) {
 		return
 	}
@@ -242,7 +240,9 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	//}
 	defer r.Body.Close()
 	var args []interface{}
-	if err := json.NewDecoder(r.Body).Decode(&args); err != nil && err != io.EOF {
+	err := json.NewDecoder(r.Body).Decode(&args)
+	// When the method is GET, the body is empty, so the error is io.EOF
+	if err != nil && err != io.EOF {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

@@ -52,7 +52,7 @@ build-web-platform:
 	rm -rf cmd/flutter/web/
 	mv $(FLUTTER_DIR)/build/web ./cmd/flutter/
 	- mkdir bin
-	go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/flutter/
+	CGO_ENABLED=1 go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/flutter/
 	@echo "build web for $(PLATFORM) platform successfully!"
 #    now you can run the binary file to start the web server
 	@echo "run the binary file '$(WEB_BIN_NAME)' to start the web server"

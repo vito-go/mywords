@@ -112,6 +112,7 @@ void showWordWithDefault(BuildContext context, String word) async {
 }
 
 void showWord(BuildContext context, String word) async {
+  FocusManager.instance.primaryFocus?.unfocus();
   LocalCache.defaultDictBasePath ??=
       ((await handler.getDefaultDict()).data ?? '');
   if (!context.mounted) return;

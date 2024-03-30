@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
@@ -218,15 +219,7 @@ class ArticlePageState extends State<ArticlePage> {
             reParseArticle(true);
           },
           icon: const Icon(Icons.refresh)),
-      SizedBox(
-        width: 80,
-        child: TextButton(
-            onPressed: () {
-              preview = !preview;
-              setState(() {});
-            },
-            child: preview ? const Text("Words") : const Text("Preview")),
-      ),
+      previewIcon,
     ];
   }
 
@@ -329,6 +322,16 @@ class ArticlePageState extends State<ArticlePage> {
               text: (netCount / totalCount).toStringAsFixed(2),
               style: const TextStyle(fontWeight: FontWeight.bold)),
         ]));
+  }
+
+  Widget get previewIcon {
+    return IconButton(
+        onPressed: () {
+          preview = !preview;
+          setState(() {});
+        },
+        icon: Icon(Icons.preview,
+            color: preview ? Theme.of(context).primaryColor : null));
   }
 
   @override
