@@ -40,6 +40,7 @@ func main() {
 	embeded := flag.Bool("embed", true, "embedded web")
 	rootDir := flag.String("rootDir", defaultRootDir, "root dir")
 	flag.Parse()
+	killOldPidAndGenNewPid(*rootDir)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)

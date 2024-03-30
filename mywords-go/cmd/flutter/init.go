@@ -16,14 +16,15 @@ func init() {
 var once sync.Once
 
 //export Init
-func Init(rootDataDir *C.char) {
+func Init(rootDataDirC *C.char) {
 	once.Do(func() {
+		rootDataDir := C.GoString(rootDataDirC)
 		// 非web版本
-		initGlobal(C.GoString(rootDataDir), 0)
+		killOldPidAndGenNewPid(rootDataDir)
+		initGlobal(rootDataDir, 0)
 	})
 }
 func initGlobal(rootDataDir string, dictRunPort int) {
-	killOldPidAndGenNewPid(rootDataDir)
 	var err error
 	serverGlobal, err = server.NewServer(rootDataDir)
 	if err != nil {
