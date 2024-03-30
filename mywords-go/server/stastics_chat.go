@@ -48,13 +48,9 @@ func (s *Server) GetToadyChartDateLevelCountMap() map[WordKnownLevel]int {
 		return nil
 	}
 	todayLevelCountMap := make(map[WordKnownLevel]int, 3)
-	for date, levelCountMap := range s.chartDateLevelCountMap.CopyData() {
-		if date == today {
-			for level, countMap := range levelCountMap {
-				todayLevelCountMap[level] = len(countMap)
-			}
-			break
-		}
+	levelWordMap, _ := s.chartDateLevelCountMap.GetMapByKey(today)
+	for _, level := range allWordLevels {
+		todayLevelCountMap[level] = len(levelWordMap[level])
 	}
 	return todayLevelCountMap
 }
@@ -132,10 +128,7 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 	chartData.LineValues = []lineValue{
 		{Tip: allTitle, BarWidth: 2.0},
 	}
-	allDates := make([]string, 0, s.chartDateLevelCountMap.Len())
-	for date := range s.chartDateLevelCountMap.CopyData() {
-		allDates = append(allDates, date)
-	}
+	allDates := s.chartDateLevelCountMap.AllKeys()
 	sort.Strings(allDates)
 	var accumulation = 0
 	for dateIdx, date := range allDates {
@@ -174,8 +167,12 @@ func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string
 		levelWordMap, ok := s.chartDateLevelCountMap.GetMapByKey(today)
 		if ok {
 			wordMap := levelWordMap[wordLevel]
-			delete(wordMap, word)
-			s.chartDateLevelCountMap.Set(today, wordLevel, wordMap)
+			wordMapNew := make(map[string]struct{})
+			for w := range wordMap {
+				wordMapNew[w] = struct{}{}
+			}
+			delete(wordMapNew, word)
+			s.chartDateLevelCountMap.Set(today, wordLevel, wordMapNew)
 			continue
 		}
 	}
@@ -183,13 +180,14 @@ func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string
 	if !ok {
 		levelWordMap = make(map[WordKnownLevel]map[string]struct{})
 	}
-	mapData, ok := levelWordMap[level]
-	if !ok {
-		mapData = make(map[string]struct{})
+	wordMap, _ := levelWordMap[level]
+	wordMapNew := make(map[string]struct{})
+	for w := range wordMap {
+		wordMapNew[w] = struct{}{}
 	}
-	mapData[word] = struct{}{}
-	s.chartDateLevelCountMap.Set(today, level, mapData)
-	//s.chartDateLevelCountMap[today][level][word] = struct{}{}
-	//s.chartDateLevelCountMap.Set(today, level, s.chartDateLevelCountMap[today][level])
+
+	wordMapNew[word] = struct{}{}
+	s.chartDateLevelCountMap.Set(today, level, wordMapNew)
+
 	return
 }

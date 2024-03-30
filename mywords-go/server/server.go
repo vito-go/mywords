@@ -760,8 +760,8 @@ func (s *Server) AllKnownWordMap() map[WordKnownLevel][]string {
 func (s *Server) TodayKnownWordMap() map[WordKnownLevel][]string {
 	var m = make(map[WordKnownLevel][]string, 3)
 	today := time.Now().Format("2006-01-02")
-	knownWordsMap, _ := s.chartDateLevelCountMap.GetMapByKey(today)
-	for level, wordLevelMap := range knownWordsMap {
+	levelWordMap, _ := s.chartDateLevelCountMap.GetMapByKey(today)
+	for level, wordLevelMap := range levelWordMap {
 		for word := range wordLevelMap {
 			m[level] = append(m[level], word)
 		}

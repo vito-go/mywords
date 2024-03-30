@@ -115,6 +115,17 @@ func (m *MySyncMapMap[K, T]) CopyData() map[string]map[K]T {
 	return data
 }
 
+// AllKeys
+func (m *MySyncMapMap[K, T]) AllKeys() []string {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	keys := make([]string, 0, len(m.data))
+	for k := range m.data {
+		keys = append(keys, k)
+	}
+	return keys
+
+}
 func (m *MySyncMapMap[K, T]) Get(key string, key2 K) (T, bool) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
@@ -135,11 +146,4 @@ func (m *MySyncMapMap[K, T]) GetMapByKey(key string) (map[K]T, bool) {
 		data[k] = v
 	}
 	return data, true
-}
-
-func (m *MySyncMapMap[K, T]) Delete(key string, key2 K) {
-	m.mux.Lock()
-	defer m.mux.Unlock()
-	delete(m.data[key], key2)
-
 }
