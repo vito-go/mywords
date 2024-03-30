@@ -144,7 +144,7 @@ func NewServer(rootDataDir string) (*Server, error) {
 		}
 	}
 	chartDateLevelCountMapSync := NewSyncMapMap[WordKnownLevel, map[string]struct{}]()
-
+	chartDateLevelCountMapSync.Replace(chartDateLevelCountMap)
 	cfgAtomic := new(atomic.Pointer[config])
 	cfgAtomic.Store(&cfg)
 	s := &Server{rootDataDir: rootDataDir,
