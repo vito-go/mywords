@@ -30,6 +30,6 @@ build-windows:
 	rm -rf bin/mywords-windows
 	cp -r build/windows/x64/runner/Release bin/mywords-windows
 build-web:
-	 # must clean the web directory before build web
+	 # flutter clean
 	rm -rf build/web
-	flutter build web -v
+	flutter build web
