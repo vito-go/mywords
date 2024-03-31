@@ -74,10 +74,7 @@ func (s *Server) GetChartData() (*ChartData, error) {
 		{Tip: WordKnownLevel(2).Name(), BarWidth: 0.75},
 		{Tip: WordKnownLevel(3).Name(), BarWidth: 1.0},
 	}
-	allDates := make([]string, 0, s.chartDateLevelCountMap.Len())
-	for date := range s.chartDateLevelCountMap.CopyData() {
-		allDates = append(allDates, date)
-	}
+	allDates := s.chartDateLevelCountMap.AllKeys()
 	sort.Strings(allDates)
 	for dateIdx, date := range allDates {
 		chartData.XTitleMap[dateIdx] = date
