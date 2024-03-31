@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+// debug defaultValue http://127.0.0.1:18960
 // should be empty when in product environment
 const debugHostOrigin = kDebugMode
     ? String.fromEnvironment("DEBUG_HOST_ORIGIN",

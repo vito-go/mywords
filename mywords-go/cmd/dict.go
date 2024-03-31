@@ -9,8 +9,8 @@ import (
 var multiDictGlobal *dict.MultiDict
 
 //export GetUrlByWord
-func GetUrlByWord(wordC *C.char) *C.char {
-	u, _ := multiDictGlobal.GetUrlByWord(C.GoString(wordC))
+func GetUrlByWord(hostnameC *C.char, wordC *C.char) *C.char {
+	u, _ := multiDictGlobal.GetUrlByWord(C.GoString(hostnameC), C.GoString(wordC))
 	return CharOk(u)
 }
 

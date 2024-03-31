@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/config/config.dart';
 import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 
@@ -39,11 +41,24 @@ class ArticleListView extends StatefulWidget {
 class _State extends State<ArticleListView> {
   List<FileInfo> fileInfos = [];
 
+  List<FileInfo> get fileInfosFilter {
+    if (kw == "") return fileInfos;
+    final kwTrimLower = kw.trim().toLowerCase();
+    final List<FileInfo> items = [];
+    for (final info in fileInfos) {
+      if (info.title.toLowerCase().contains(kwTrimLower)) {
+        items.add(info);
+      }
+    }
+    return items;
+  }
+
   @override
   void dispose() {
     super.dispose();
     globalEventSubscription?.cancel();
     controller.dispose();
+    controllerSearch.dispose();
   }
 
   StreamSubscription<GlobalEvent>? globalEventSubscription;
@@ -127,29 +142,35 @@ class _State extends State<ArticleListView> {
     ));
   }
 
-  Widget buildFileInfo() {
+  Widget buildFileInfo(List<FileInfo> fileInfosFilter) {
     final listView = ListView.separated(
         controller: controller,
         itemBuilder: (BuildContext context, int index) {
-          final item = fileInfos[index];
+          final item = fileInfosFilter[index];
+          Widget? trailing;
+          final uri = Uri.tryParse(item.sourceUrl);
+          if (uri != null) {
+            final assetPath = assetPathByHost(uri.host);
+            if (assetPath != "") {
+              trailing = ClipOval(
+                  child: Image.asset(assetPath, width: 28, height: 28));
+            }
+          }
           final listTile = ListTile(
-              title: Text(
-                "${item.title} ${item.sourceUrl}",
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              title: Text(item.title,
+                  maxLines: 2, overflow: TextOverflow.ellipsis),
+              trailing: trailing,
               onTap: () {
-                pushTo(context, ArticlePage(fileName: item.fileName))
-                    .then((value) {});
+                pushTo(context, ArticlePage(fileName: item.fileName));
               },
               minLeadingWidth: 0,
-              leading:
-                  Text("[${index + 1}]", style: const TextStyle(fontSize: 14)),
+              leading: Text("[${index + 1}]",
+                  style: TextStyle(
+                      fontSize: 14, color: Theme.of(context).primaryColor)),
               subtitle: Text(
-                "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))} total:${item.totalCount} net:${item.netCount}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ));
+                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))} total:${item.totalCount} net:${item.netCount}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis));
           return Dismissible(
             key: UniqueKey(),
             background: getBackgroundWidget(
@@ -174,7 +195,7 @@ class _State extends State<ArticleListView> {
             child: listTile,
           );
         },
-        itemCount: fileInfos.length,
+        itemCount: fileInfosFilter.length,
         separatorBuilder: (BuildContext context, int index) {
           return const Divider();
         });
@@ -182,7 +203,8 @@ class _State extends State<ArticleListView> {
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
         onRefresh: () async {
-          addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateLineChart));
+          addToGlobalEvent(
+              GlobalEvent(eventType: GlobalEventType.updateLineChart));
           await initFileInfos();
           if (!mounted) return;
           myToast(context, "Successfully!");
@@ -192,7 +214,7 @@ class _State extends State<ArticleListView> {
   Future<void> initFileInfos() async {
     final respData = await widget.getFileInfos();
     if (respData.code != 0) {
-      if (!mounted)return;
+      if (!mounted) return;
       myToast(context, respData.message);
       return;
     }
@@ -283,9 +305,35 @@ class _State extends State<ArticleListView> {
   }
 
   ScrollController controller = ScrollController();
+  TextEditingController controllerSearch = TextEditingController();
+  String kw = "";
+
+  Widget searchEditBuild(int length) {
+    return ListTile(
+      leading: Text(
+        "$length",
+        style: const TextStyle(fontSize: 14),
+      ),
+      title: CupertinoSearchTextField(
+        placeholder: "请输入文章标题关键词",
+        controller: controllerSearch,
+        onChanged: (String v) {
+          kw = v;
+          setState(() {});
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return buildFileInfo();
+    final infos=fileInfosFilter;
+    return Column(
+      children: [
+        // ListTile(title: CupertinoSearchTextField(),),
+        searchEditBuild(infos.length),
+        Expanded(child: buildFileInfo(infos))
+      ],
+    );
   }
 }

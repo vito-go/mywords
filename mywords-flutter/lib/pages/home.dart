@@ -158,7 +158,7 @@ class _State extends State<Home> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: const Text("MyWords"),
+        title: const Text("mywords"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // toolbarHeight: 48,
         // centerTitle: true,

@@ -7,7 +7,10 @@ import 'package:mywords/libso/handler_for_native.dart'
     if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
 import 'package:mywords/util/local_cache.dart';
 import 'package:mywords/widgets/word_default_meaning.dart';
-import 'package:mywords/widgets/word_html.dart';
+
+import 'package:mywords/widgets/word_webview_for_mobile.dart'
+    if (dart.library.html) 'package:mywords/widgets/word_webview_for_web.dart';
+
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'dart:io';
@@ -22,14 +25,14 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
     htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (htmlBasePath == '') {
-    if (!context.mounted)return;
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
     ));
     return;
   }
-  if (!context.mounted)return;
+  if (!context.mounted) return;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -45,13 +48,14 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
 }
 
 void _queryWordInDictNotMobile(BuildContext context, String word) async {
-  String url = await handler.getUrlByWord(word);
+  final hostname=handler.getHostName();
+  String url = await handler.getUrlByWord(hostname,word);
   if (url.isEmpty) {
     word = await handler.dictWordQueryLink(word);
     url = await handler.finalHtmlBasePathWithOutHtml(word);
   }
   if (url.isEmpty) {
-    if (!context.mounted)return;
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
@@ -63,14 +67,13 @@ void _queryWordInDictNotMobile(BuildContext context, String word) async {
 
 void queryWordInDict(BuildContext context, String word) async {
   if (kIsWeb) {
-    _queryWordInDictNotMobile(context, word);
+    _queryWordInDictWithMobile(context, word);
     return;
   }
   if (Platform.isAndroid || Platform.isIOS) {
     _queryWordInDictWithMobile(context, word);
     return;
   }
-
   // Desktop;
   _queryWordInDictNotMobile(context, word);
 }
@@ -82,7 +85,7 @@ void showWordWithDefault(BuildContext context, String word) async {
     meaning = await handler.dictWordQuery(word);
   }
   if (meaning == '') {
-    if (!context.mounted)return;
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
       duration: const Duration(milliseconds: 2000),
@@ -91,7 +94,7 @@ void showWordWithDefault(BuildContext context, String word) async {
   }
   final realLevel = await handler.queryWordLevel(word);
   meaning = fixDefaultMeaning(meaning);
-  if (!context.mounted)return;
+  if (!context.mounted) return;
   showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -106,9 +109,10 @@ void showWordWithDefault(BuildContext context, String word) async {
 }
 
 void showWord(BuildContext context, String word) async {
+  FocusManager.instance.primaryFocus?.unfocus();
   LocalCache.defaultDictBasePath ??=
       ((await handler.getDefaultDict()).data ?? '');
-  if (!context.mounted)return;
+  if (!context.mounted) return;
   if (LocalCache.defaultDictBasePath == "") {
     return showWordWithDefault(context, word);
   }

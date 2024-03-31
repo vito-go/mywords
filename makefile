@@ -25,8 +25,8 @@ GO_DIR='mywords-go'
 bin:
 	@mkdir -p bin
 clean:
-	rm -rf bin/
 	cd $(FLUTTER_DIR) && make clean
+	cd $(GO_DIR) && make clean
 	@echo "clean done"
 
 build-linux:bin
@@ -55,6 +55,4 @@ build-la: build-android build-linux
 
 build-web-platform:bin
 	cd $(GO_DIR) && make build-web-platform
-	mv $(GO_DIR)/bin/* ./bin/
-	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
-	@echo "--------$$ ls -lha bin --------"
+	@mv $(GO_DIR)/bin/* ./bin/
