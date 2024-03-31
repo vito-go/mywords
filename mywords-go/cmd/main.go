@@ -30,22 +30,22 @@ import (
 var webEmbed embed.FS
 
 func main() {
-	homeDir, err := os.UserHomeDir()
+
+	defaultRootDir, err := getApplicationDir()
 	if err != nil {
 		panic(err)
 	}
-	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
 	port := flag.Int("port", 18960, "http server port")
-	embeded := flag.Bool("embed", true, "embedded web")
-	rootDir := flag.String("rootDir", defaultRootDir, "root data dir")
-	dictHost := flag.String("dictHost", "127.0.0.1", "dict host")
 	dictPort := flag.Int("dictPort", 18961, "dict port")
+	embeded := flag.Bool("embed", true, "embedded web")
+	rootDir := flag.String("rootDir", defaultRootDir, "root dir")
 	flag.Parse()
+	killOldPidAndGenNewPid(*rootDir)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		panic(err)
 	}
-	initGlobal(*rootDir, *dictHost, *dictPort)
+	initGlobal(*rootDir, *dictPort)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/call/", serverHTTPCallFunc)
 	mux.HandleFunc("/_addDictWithFile", addDictWithFile)
@@ -60,7 +60,7 @@ func main() {
 		// 本地开发时，使用flutter web的文件, 请不要在生产环境使用，以防build/web目录被删除, 例如flutter clean
 		_, file, _, ok := runtime.Caller(0)
 		if ok {
-			dir := filepath.Join(filepath.Dir(file), "../../../mywords-flutter/build/web")
+			dir := filepath.ToSlash(filepath.Join(filepath.Dir(file), "../../../mywords-flutter/build/web"))
 			mylog.Info("embedded false", "dir", dir)
 			mux.Handle("/", http.FileServer(http.Dir(dir)))
 		} else {
@@ -70,7 +70,7 @@ func main() {
 	mylog.Info("server start", "port", *port, "rootDir", *rootDir)
 	go func() {
 		time.Sleep(time.Second)
-		openBrowser(fmt.Sprintf("http://127.0.0.1:%d", *port))
+		openBrowser(fmt.Sprintf("http://localhost:%d", *port))
 	}()
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
@@ -231,8 +231,6 @@ func downloadBackUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
-	//defer mylog.Ctx(r.Context()).WithFields("remoteAddr", r.RemoteAddr, "method", r.Method, "path", path).Info("====")
-	// app端暂不需考虑支持跨域
 	if cors(w, r) {
 		return
 	}
@@ -243,7 +241,9 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	//}
 	defer r.Body.Close()
 	var args []interface{}
-	if err := json.NewDecoder(r.Body).Decode(&args); err != nil && err != io.EOF {
+	err := json.NewDecoder(r.Body).Decode(&args)
+	// When the method is GET, the body is empty, so the error is io.EOF
+	if err != nil && err != io.EOF {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -290,15 +290,35 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func openBrowser(url string) {
-	var cmd string
+	var err error
 	switch runtime.GOOS {
 	case "windows":
-		cmd = "cmd /c start"
+		err = exec.Command("cmd", "/c start "+url).Run()
 	case "darwin":
-		cmd = "open"
+		err = exec.Command("open", url).Run()
 	default:
-		cmd = "xdg-open"
+		err = exec.Command("xdg-open", url).Run()
 	}
-	_ = exec.Command(cmd, url).Run()
-	fmt.Printf("open %s\n", url)
+	if err != nil {
+		fmt.Printf("open url error: %s\n", url)
+	}
+	fmt.Printf("open %s in your browser\n", url)
+}
+func getApplicationDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
+	switch runtime.GOOS {
+	case "windows":
+		defaultRootDir = filepath.Join(homeDir, "AppData/Roaming/com.example/mywords")
+	case "darwin":
+		defaultRootDir = filepath.Join(homeDir, "Library/Application Support/com.example.mywords")
+	case "linux":
+		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
+	}
+	// 请注意，如果同时打开多个应用，可能会导致目录冲突，数据造成不一致或丢失
+	defaultRootDir = filepath.ToSlash(defaultRootDir)
+	return defaultRootDir, err
 }

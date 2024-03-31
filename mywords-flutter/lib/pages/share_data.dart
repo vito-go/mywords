@@ -8,13 +8,10 @@ import 'package:mywords/widgets/stream_log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util.dart';
-
-import 'package:mywords/environment.dart';
 
 class SyncData extends StatefulWidget {
   const SyncData({super.key});
@@ -107,20 +104,13 @@ class _SyncDataState extends State<SyncData> {
                     if (controllerBackUpZipName.text.startsWith("/")) {
                       myToast(context, "文件名不能包含特殊字符/");
                     }
-
-                    if (kIsWeb) {
-                      Navigator.pop(context);
-                      downloadBackUpdate("${controllerBackUpZipName.text}.zip");
-                      return;
-                    }
-
+                    final zipName = "${controllerBackUpZipName.text}.zip";
                     final dirPath = await dataDirPath();
-                    final respData = await compute(
-                        computeBackUpData,
-                        <String, String>{
-                          "zipName": controllerBackUpZipName.text,
-                          "dataDirPath": dirPath,
-                        });
+                    final respData =
+                        await compute(computeBackUpData, <String, String>{
+                      "zipName": zipName,
+                      "dataDirPath": dirPath,
+                    });
                     if (respData.code != 0) {
                       myToast(context, "备份失败!\n${respData.message}");
                       return;
@@ -264,7 +254,8 @@ class _SyncDataState extends State<SyncData> {
       title: const Text("分享/备份数据"),
     );
 
-    return getScaffold(context,
+    return getScaffold(
+      context,
       appBar: appBar,
       body: Padding(padding: const EdgeInsets.all(10), child: body),
     );
@@ -275,10 +266,4 @@ Future<RespData<String>> computeBackUpData(Map<String, String> param) async {
   final String zipName = param['zipName']!;
   final String dataDirPath = param['dataDirPath']!;
   return handler.backUpData(zipName, dataDirPath);
-}
-
-void downloadBackUpdate(String zipFileName) async {
-  final www = "$debugHostOrigin/_downloadBackUpdate?name=$zipFileName";
-  launchUrlString(www);
-  return;
 }

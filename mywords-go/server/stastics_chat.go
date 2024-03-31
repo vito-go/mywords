@@ -43,25 +43,19 @@ const lastDays = 20
 func (s *Server) GetToadyChartDateLevelCountMap() map[WordKnownLevel]int {
 	today := time.Now().Format("2006-01-02")
 	// copy s.chartDateLevelCountMap
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	if len(s.chartDateLevelCountMap) == 0 {
+
+	if s.chartDateLevelCountMap.Len() == 0 {
 		return nil
 	}
 	todayLevelCountMap := make(map[WordKnownLevel]int, 3)
-	for date, levelCountMap := range s.chartDateLevelCountMap {
-		if date == today {
-			for level, countMap := range levelCountMap {
-				todayLevelCountMap[level] = len(countMap)
-			}
-			break
-		}
+	levelWordMap, _ := s.chartDateLevelCountMap.GetMapByKey(today)
+	for _, level := range allWordLevels {
+		todayLevelCountMap[level] = len(levelWordMap[level])
 	}
 	return todayLevelCountMap
 }
 func (s *Server) GetChartData() (*ChartData, error) {
-	s.mux.Lock()
-	defer s.mux.Unlock()
+
 	var chartData = &ChartData{
 		Title:       "每日单词掌握情况分级统计",
 		SubTitle:    "",
@@ -80,14 +74,11 @@ func (s *Server) GetChartData() (*ChartData, error) {
 		{Tip: WordKnownLevel(2).Name(), BarWidth: 0.75},
 		{Tip: WordKnownLevel(3).Name(), BarWidth: 1.0},
 	}
-	allDates := make([]string, 0, len(s.chartDateLevelCountMap))
-	for date := range s.chartDateLevelCountMap {
-		allDates = append(allDates, date)
-	}
+	allDates := s.chartDateLevelCountMap.AllKeys()
 	sort.Strings(allDates)
 	for dateIdx, date := range allDates {
 		chartData.XTitleMap[dateIdx] = date
-		levelCountMap := s.chartDateLevelCountMap[date]
+		levelCountMap, _ := s.chartDateLevelCountMap.GetMapByKey(date)
 
 		for i := 0; i < len(chartData.LineValues); i++ {
 			if chartData.LineValues[i].Tip == allTitle {
@@ -108,14 +99,6 @@ func (s *Server) GetChartData() (*ChartData, error) {
 				}
 			}
 		}
-		//for level, count := range levelCountMap {
-		//	for i := 0; i < len(chartData.LineValues); i++ {
-		//		if chartData.LineValues[i].Tip == level.Name() {
-		//			chartData.LineValues[i].FlSpots = append(chartData.LineValues[i].FlSpots, []int{dateIdx, len(count)})
-		//			break
-		//		}
-		//	}
-		//}
 	}
 	// at most chartData.LineValues[i].FlSpots has 14 elements, last 14 days
 	for i := 0; i < len(chartData.LineValues); i++ {
@@ -126,8 +109,7 @@ func (s *Server) GetChartData() (*ChartData, error) {
 	return chartData, nil
 }
 func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
-	s.mux.Lock()
-	defer s.mux.Unlock()
+
 	var chartData = &ChartData{
 		Title:       "累计单词掌握情况统计",
 		SubTitle:    "",
@@ -143,15 +125,12 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 	chartData.LineValues = []lineValue{
 		{Tip: allTitle, BarWidth: 2.0},
 	}
-	allDates := make([]string, 0, len(s.chartDateLevelCountMap))
-	for date := range s.chartDateLevelCountMap {
-		allDates = append(allDates, date)
-	}
+	allDates := s.chartDateLevelCountMap.AllKeys()
 	sort.Strings(allDates)
 	var accumulation = 0
 	for dateIdx, date := range allDates {
 		chartData.XTitleMap[dateIdx] = date
-		levelCountMap := s.chartDateLevelCountMap[date]
+		levelCountMap, _ := s.chartDateLevelCountMap.GetMapByKey(date)
 		for i := 0; i < len(chartData.LineValues); i++ {
 			if chartData.LineValues[i].Tip == allTitle {
 				var allCount int
@@ -181,22 +160,31 @@ func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string
 		return
 	}
 	today := time.Now().Format("2006-01-02")
-	if len(s.chartDateLevelCountMap) == 0 {
-		s.chartDateLevelCountMap = make(map[string]map[WordKnownLevel]map[string]struct{})
-	}
-	_, ok = s.chartDateLevelCountMap[today]
-	if !ok {
-		s.chartDateLevelCountMap[today] = make(map[WordKnownLevel]map[string]struct{})
-	}
-	_, ok = s.chartDateLevelCountMap[today][level]
-	if !ok {
-		s.chartDateLevelCountMap[today][level] = make(map[string]struct{})
-	}
-	for knownLevel, wordMap := range s.chartDateLevelCountMap[today] {
-		if _, ok = wordMap[word]; ok {
-			delete(s.chartDateLevelCountMap[today][knownLevel], word)
+	for _, wordLevel := range allWordLevels {
+		levelWordMap, ok := s.chartDateLevelCountMap.GetMapByKey(today)
+		if ok {
+			wordMap := levelWordMap[wordLevel]
+			wordMapNew := make(map[string]struct{})
+			for w := range wordMap {
+				wordMapNew[w] = struct{}{}
+			}
+			delete(wordMapNew, word)
+			s.chartDateLevelCountMap.Set(today, wordLevel, wordMapNew)
+			continue
 		}
 	}
-	s.chartDateLevelCountMap[today][level][word] = struct{}{}
+	levelWordMap, ok := s.chartDateLevelCountMap.GetMapByKey(today)
+	if !ok {
+		levelWordMap = make(map[WordKnownLevel]map[string]struct{})
+	}
+	wordMap, _ := levelWordMap[level]
+	wordMapNew := make(map[string]struct{})
+	for w := range wordMap {
+		wordMapNew[w] = struct{}{}
+	}
+
+	wordMapNew[word] = struct{}{}
+	s.chartDateLevelCountMap.Set(today, level, wordMapNew)
+
 	return
 }

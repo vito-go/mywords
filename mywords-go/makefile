@@ -35,25 +35,30 @@ build-so: build-so-linux build-so-android
 	@echo "build .so for all platform successfully"
 build-so-linux:
 	@echo "build so for linux platform"
-	@go build -tags=flutter -buildmode=c-shared -ldflags="-s -w" -o $(FLUTTER_DIR)/libs/libgo_linux.so ./cmd/flutter/
+	@go build -tags=flutter -buildmode=c-shared -ldflags="-s -w" -o $(FLUTTER_DIR)/libs/libgo_linux.so ./cmd/
 	@echo "build .so for linux platform successfully!"
 build-so-windows:
 	@echo "build so for windows platform"
-	@go build -tags=flutter -buildmode=c-shared -ldflags="-s -w" -o $(FLUTTER_DIR)/libs/libgo_windows.so ./cmd/flutter/
+	@go build -tags=flutter -buildmode=c-shared -ldflags="-s -w" -o $(FLUTTER_DIR)/libs/libgo_windows.so ./cmd/
 	@echo "build .so for windows platform successfully!"
 build-so-android:
 	@echo "build .so for android platform"
-	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build  -tags=flutter -buildmode=c-shared -ldflags="-s -w" -o $(FLUTTER_DIR)/android/app/jniLibs/arm64-v8a/libgo.so ./cmd/flutter/
+	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build  -tags=flutter -buildmode=c-shared -ldflags="-s -w" -o $(FLUTTER_DIR)/android/app/jniLibs/arm64-v8a/libgo.so ./cmd/
 	@echo "build .so for android platform successfully!"
-
+go-build:
+	@echo "build web for $(PLATFORM) platform"
+	- mkdir bin
+	CGO_ENABLED=1 go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/
 build-web-platform:
 	@echo "build web for $(PLATFORM) platform"
-	cd $(FLUTTER_DIR) &&make build-web
-	cp -r $(FLUTTER_DIR)/build/web ./cmd/flutter/
-	- mkdir bin
-	go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/flutter/
+	cd $(FLUTTER_DIR) && make build-web
+	rm -rf cmd/web/
+	mv $(FLUTTER_DIR)/build/web ./cmd/
+	make go-build
 	@echo "build web for $(PLATFORM) platform successfully!"
 #    now you can run the binary file to start the web server
-	@echo "run the binary file to start the web server"
-	@echo "cd bin && ./$(WEB_BIN_NAME)"
-	@echo "open browser and visit http://localhost:18960 or other port you specified"
+	@echo "run the binary file '$(WEB_BIN_NAME)' to start the web server"
+	@echo "$$ cd bin && ./$(WEB_BIN_NAME)"
+	@echo "Open your browser and visit 'http://localhost:18960', or use the port that you have specified."
+clean:
+	rm -rf bin

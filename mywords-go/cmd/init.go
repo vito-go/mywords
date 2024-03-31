@@ -16,19 +16,21 @@ func init() {
 var once sync.Once
 
 //export Init
-func Init(rootDataDir *C.char) {
+func Init(rootDataDirC *C.char) {
 	once.Do(func() {
+		rootDataDir := C.GoString(rootDataDirC)
 		// 非web版本
-		initGlobal(C.GoString(rootDataDir), "127.0.0.1", 0)
+		killOldPidAndGenNewPid(rootDataDir)
+		initGlobal(rootDataDir, 0)
 	})
 }
-func initGlobal(rootDataDir string, dictHost string, dictRunPort int) {
+func initGlobal(rootDataDir string, dictRunPort int) {
 	var err error
 	serverGlobal, err = server.NewServer(rootDataDir)
 	if err != nil {
 		panic(err)
 	}
-	multiDictGlobal, err = dict.NewMultiDictZip(rootDataDir, dictHost, dictRunPort)
+	multiDictGlobal, err = dict.NewMultiDictZip(rootDataDir, dictRunPort)
 	if err != nil {
 		panic(err)
 	}

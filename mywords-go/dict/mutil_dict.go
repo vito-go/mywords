@@ -27,7 +27,6 @@ type MultiDict struct {
 	dictIndexInfo dictIndexInfo            //  dictIndexInfo
 	oneDict       *atomic.Pointer[OneDict] // be careful, it maybe nil if no dict set
 	runPort       int
-	host          string //default localhost
 	onceInit      sync.Once
 }
 
@@ -156,7 +155,7 @@ func (m *MultiDict) serverHTTPIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewMultiDictZip  runPort 0 means a random port
-func NewMultiDictZip(rootDir string, host string, runPort int) (*MultiDict, error) {
+func NewMultiDictZip(rootDir string, runPort int) (*MultiDict, error) {
 	rootDir = filepath.ToSlash(rootDir)
 
 	err := os.MkdirAll(filepath.Join(rootDir, appDictDir), 0755)
@@ -177,12 +176,8 @@ func NewMultiDictZip(rootDir string, host string, runPort int) (*MultiDict, erro
 	DictZipAtomic := new(atomic.Pointer[OneDict])
 	var dictIndexInfoAtomic = new(atomic.Value)
 	dictIndexInfoAtomic.Store(info)
-	if host == "" {
-		host = "127.0.0.1"
-	}
 	m := MultiDict{
 		mux:           sync.Mutex{},
-		host:          host,
 		rootDataDir:   rootDir,
 		runPort:       runPort,
 		onceInit:      sync.Once{},
@@ -222,7 +217,7 @@ func (m *MultiDict) GetHTMLRenderContentByWord(word string) (string, error) {
 	return d.GetHTMLRenderContentByWord(word)
 
 }
-func (m *MultiDict) GetUrlByWord(word string) (string, bool) {
+func (m *MultiDict) GetUrlByWord(hostname string, word string) (string, bool) {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	runPort := m.runPort
@@ -237,7 +232,10 @@ func (m *MultiDict) GetUrlByWord(word string) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	u := fmt.Sprintf("http://%s:%d/%s.html?word=%s", m.host, m.runPort, htmlPath, url.QueryEscape(word))
+	if hostname == "" {
+		hostname = "localhost"
+	}
+	u := fmt.Sprintf("http://%s:%d/%s.html?word=%s", hostname, m.runPort, htmlPath, url.QueryEscape(word))
 	return u, true
 }
 

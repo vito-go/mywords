@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:dio/dio.dart';
 import 'package:mywords/libso/interface.dart';
@@ -10,6 +11,7 @@ import 'package:mywords/widgets/line_chart.dart';
 import 'package:mywords/environment.dart';
 
 import 'package:mywords/util/local_cache.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 final Interface handler = HTTPHandler();
 
@@ -45,9 +47,11 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<RespData<String>> backUpData(String zipName, String dataDirPath) {
-    // TODO: implement backUpData
-    throw UnimplementedError();
+  Future<RespData<String>> backUpData(
+      String zipName, String dataDirPath) async {
+    final www = "$debugHostOrigin/_downloadBackUpdate?name=$zipName";
+    launchUrlString(www);
+    return RespData.dataOK("");
   }
 
   @override
@@ -171,8 +175,8 @@ class HTTPHandler implements Interface {
   }
 
   @override
-  Future<String> getUrlByWord(String word) async {
-    final result = await call("GetUrlByWord", [word]);
+  Future<String> getUrlByWord(String hostname, String word) async {
+    final result = await call("GetUrlByWord", [hostname, word]);
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? '';
@@ -448,6 +452,11 @@ class HTTPHandler implements Interface {
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? "";
+  }
+
+  @override
+  String getHostName() {
+    return window.location.hostname ?? '';
   }
 }
 

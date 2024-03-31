@@ -118,13 +118,16 @@ type ShareFileParam struct {
 }
 
 func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
-	allExistGobGzFileMap := make(map[string]bool, len(s.fileInfoMap)+len(s.fileInfoMap))
-	for k, _ := range s.fileInfoMap {
-		allExistGobGzFileMap[k] = true
-	}
-	for k, _ := range s.fileInfoArchivedMap {
-		allExistGobGzFileMap[k] = true
-	}
+	allExistGobGzFileMap := make(map[string]bool, s.fileInfoMap.Len()+s.fileInfoMap.Len())
+	s.fileInfoMap.Range(func(key string, value FileInfo) bool {
+		allExistGobGzFileMap[key] = true
+		return true
+	})
+
+	s.fileInfoArchivedMap.Range(func(key string, value FileInfo) bool {
+		allExistGobGzFileMap[key] = true
+		return true
+	})
 	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount, SyncKnownWords: syncKnownWords}
 	fileInfoBytes, _ := json.Marshal(param)
 	resp, err := http.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))

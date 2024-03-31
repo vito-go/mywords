@@ -54,7 +54,43 @@ class _State extends State<WordList> {
     }
   }
 
+  int get count1 => (levelWordsMap[1] ?? []).length;
+
+  int get count2 => (levelWordsMap[2] ?? []).length;
+
+  int get count3 => (levelWordsMap[3] ?? []).length;
   StreamSubscription<GlobalEvent>? globalEventSubscription;
+
+  Widget wordLevelRichText() {
+    return RichText(
+      text: TextSpan(
+          style: const TextStyle(color: Colors.black),
+          text: "",
+          children: [
+            const TextSpan(
+                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                style: TextStyle(color: Colors.blueGrey)),
+            const TextSpan(text: "1级: "),
+            TextSpan(
+                text: "$count1",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  2级: "),
+            TextSpan(
+                text: "$count2",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+            const TextSpan(text: "  3级: "),
+            TextSpan(
+                text: "$count3",
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.normal)),
+          ]),
+    );
+  }
 
   @override
   void initState() {
@@ -138,7 +174,10 @@ class _State extends State<WordList> {
   @override
   Widget build(BuildContext context) {
     return Column(
+       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        wordLevelRichText(),
+        const Divider(),
         ListTile(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,

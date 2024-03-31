@@ -41,12 +41,14 @@ dependencies:
   flutter_widget_from_html_core: ^0.14.11
   url_launcher: ^6.2.3
   shared_preferences: ^2.2.2
-  file_picker: ^6.1.1
+  file_picker: ^8.0.0+1
   fl_chart: ^0.66.1
   webview_flutter: ^4.4.4
-  audioplayers: ^5.2.1
+  audioplayers: ^6.0.0
   dio: ^5.4.1
   path: ^1.9.0
+  webview_flutter_web: ^0.2.2+4
+  webview_flutter_platform_interface: ^2.10.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -72,7 +74,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - logo.png
-  #   - images/a_dot_ham.jpeg
+    - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
