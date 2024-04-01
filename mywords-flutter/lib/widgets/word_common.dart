@@ -170,10 +170,6 @@ Widget highlightTextSplitBySpace(
     Color color = prefs.isDark ? Colors.white70 : Colors.black;
     final info = infos[i];
     FontWeight fontWeight = FontWeight.normal;
-    if (tokens.indexWhere((element) => info.startsWith(element)) != -1) {
-      color = Colors.green;
-      fontWeight = FontWeight.bold;
-    }
     final runes = info.runes.toList();
     int start = 0;
     int? end;
@@ -190,6 +186,10 @@ Widget highlightTextSplitBySpace(
       }
     }
     final word = String.fromCharCodes(runes.sublist(start, end));
+    if (tokens.indexWhere((element) => word.startsWith(element)) != -1) {
+      color = Colors.green;
+      fontWeight = FontWeight.bold;
+    }
     children.add(TextSpan(
         text: info,
         recognizer: TapGestureRecognizer()

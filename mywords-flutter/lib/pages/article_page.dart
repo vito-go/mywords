@@ -83,6 +83,9 @@ class ArticlePageState extends State<ArticlePage> {
       addToGlobalEvent(
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
+      List<String> allWordLink = List<String>.generate(
+          wordInfos.length, (index) => wordInfos[index].wordLink);
+      artWordLevelMap = await handler.queryWordsLevel(allWordLink);
       levelCountMap = await _levelDistribute();
       if (!mounted) return;
       ScaffoldMessenger.of(context)

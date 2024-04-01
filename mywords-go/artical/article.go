@@ -120,8 +120,12 @@ func ParseLocalFile(path string) (*Article, error) {
 	return articleFromContent("", time.Now().UnixMilli(), filepath.Base(path), sourceUrl, pureContent)
 }
 
+// shy [194 173]
+// const shy = `­`
+var shy = string([]byte{194, 173})
+
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.0.8"
+const ParseVersion = "0.0.9"
 
 // var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
@@ -161,6 +165,8 @@ func parseContent(sourceUrl, defaultTitle, expr string, respBody []byte, lastMod
 			continue
 		}
 		text = regexp.MustCompile(`\s+`).ReplaceAllString(text, " ") + " "
+		// &shy;
+		text = strings.ReplaceAll(text, shy, "")
 		pureContentBuf.WriteString(text)
 	}
 	pureContent := pureContentBuf.String()
