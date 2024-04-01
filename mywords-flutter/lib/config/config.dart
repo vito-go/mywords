@@ -6,7 +6,6 @@ final Map<String, String> _hostIconsAssetPath = {
   "www.economist.com": "$_iconPrefix/theeconomist.png",
   "www.cnbc.com": "$_iconPrefix/cnbc.png",
   "www.nbcnews.com": "$_iconPrefix/cnbc.png",
-  "www.chinadaily.com.cn": "$_iconPrefix/chinadaily.png",
   "www.bbc.com": "$_iconPrefix/bbc.png",
   "www.bbc.co.uk": "$_iconPrefix/bbc.png",
   "www.thetimes.co.uk": "$_iconPrefix/thetimes.png",
@@ -19,6 +18,7 @@ final Map<String, String> _hostIconsAssetPath = {
   "www.theguardian.com": "$_iconPrefix/theguardian.png",
   "www.voanews.com": "$_iconPrefix/voanews.png",
   "time.com": "$_iconPrefix/time.png",
+  "nypost.com": "$_iconPrefix/nypost.png",
 };
 
 String assetPathByHost(String host) {
