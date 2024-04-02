@@ -47,11 +47,13 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 			return
 		}
 	}()
+	zipDir = filepath.ToSlash(zipDir)
 	baseDir := filepath.Base(zipDir)
 	err = filepath.WalkDir(zipDir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
+		path = filepath.ToSlash(path)
 		pathBase := filepath.Base(path)
 		if _, ok := param.AllExistGobGzFileMap[pathBase]; ok {
 			return nil
@@ -66,7 +68,8 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 		if err != nil {
 			return err
 		}
-		zipPath := filepath.Join(baseDir, relPath)
+		relPath = filepath.ToSlash(relPath)
+		zipPath := filepath.ToSlash(filepath.Join(baseDir, relPath))
 		w, err := zw.Create(zipPath)
 		if err != nil {
 			return err

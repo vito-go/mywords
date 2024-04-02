@@ -18,8 +18,14 @@ class StatisticChart extends StatefulWidget {
 
 class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   List<Widget> get myTabs => [
-        const Text("每日统计"),
-        const Text("累计统计"),
+        const Tab(
+          text: "每日统计",
+          icon: Icon(Icons.today),
+        ),
+        const Tab(
+          text: "累计统计",
+          icon: Icon(Icons.view_day),
+        ),
       ];
 
   ChartLineData? todayData;
@@ -54,6 +60,7 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
     return Tooltip(
       message: "今日学习单词数量: $total\n1级:$count1 2级:$count2 3级:$count3",
       triggerMode: TooltipTriggerMode.tap,
+      showDuration: const Duration(seconds: 30),
       child: const Icon(Icons.info),
     );
   }
