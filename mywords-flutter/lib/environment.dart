@@ -7,4 +7,4 @@ const debugHostOrigin = kDebugMode
         defaultValue: "http://127.0.0.1:18960")
     : "";
 // web版本页面body宽度，<=0意味不设置
-const webBodyWidth = int.fromEnvironment("WEB_BODY_WIDTH", defaultValue: 1080);
+const webBodyWidth = int.fromEnvironment("WEB_BODY_WIDTH", defaultValue: 960);
