@@ -15,30 +15,45 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 )
 
 // MultiDict 管理多个Dict
 type MultiDict struct {
-	mux           sync.Mutex
 	rootDataDir   string                   //app data dir
 	dictIndexInfo dictIndexInfo            //  dictIndexInfo
 	oneDict       *atomic.Pointer[OneDict] // be careful, it maybe nil if no dict set
 	runPort       int
-	onceInit      sync.Once
 }
 
 func (m *MultiDict) saveInfo() error {
+
 	b, _ := json.MarshalIndent(m.dictIndexInfo, "", "  ")
 	err := os.WriteFile(filepath.Join(m.rootDataDir, appDictDir, dictInfoJson), b, 0644)
 	return err
 }
 
+type basePathTitleMap map[string]string
+
+func (b basePathTitleMap) copy() basePathTitleMap {
+	var resultMap = make(basePathTitleMap)
+	for k, v := range b {
+		resultMap[k] = v
+	}
+	return resultMap
+}
+
 type dictIndexInfo struct {
-	DefaultDictBasePath  string            `json:"defaultDictBasePath,omitempty"`
-	DictBasePathTitleMap map[string]string `json:"dictBasePathTitleMap,omitempty"` //zipFile:name
+	DefaultDictBasePath  string           `json:"defaultDictBasePath,omitempty"`
+	DictBasePathTitleMap basePathTitleMap `json:"dictBasePathTitleMap,omitempty"` //zipFile:name, do not modify directly, please copy it first when modifing
+}
+
+func (d dictIndexInfo) Copy() dictIndexInfo {
+	return dictIndexInfo{
+		DefaultDictBasePath:  d.DefaultDictBasePath,
+		DictBasePathTitleMap: d.DictBasePathTitleMap.copy(),
+	}
 }
 
 // baseHTMLPath with .html
@@ -46,7 +61,7 @@ func (d *OneDict) writeByWordBaseHTMLPath(w http.ResponseWriter, word, baseHTMLP
 	content, err := d.getContentByHtmlBasePath(word, baseHTMLPath)
 	if err != nil {
 		if errors.Is(err, DataNotFound) {
-			http.Error(w, "404 page not found", http.StatusNotFound)
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -69,42 +84,37 @@ func (m *MultiDict) serverHTTPHtml(w http.ResponseWriter, r *http.Request) {
 	word := r.URL.Query().Get("word")
 	d := m.oneDict.Load()
 	if d == nil {
+		http.Error(w, loadFailed, http.StatusInternalServerError)
 		return
 	}
 	d.writeByWordBaseHTMLPath(w, word, urlPath)
 }
 
+// serverStartTime as the file last modify time
+var serverStartTime = time.Now()
+
 func (m *MultiDict) serverAssetsExceptHtml(w http.ResponseWriter, r *http.Request) {
+	d := m.oneDict.Load()
+	if d == nil {
+		http.Error(w, loadFailed, http.StatusInternalServerError)
+		return
+	}
 	urlPath := strings.TrimPrefix(r.URL.Path, "/")
+	b, err := d.originalContentByBasePath(urlPath)
+	if err != nil {
+		if errors.Is(err, DataNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if strings.HasSuffix(urlPath, ".js") {
 		w.Header().Set("Content-Type", "text/javascript")
 	} else if strings.HasSuffix(urlPath, ".css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-	} else {
-		urlPath = filepath.Join(dictAssetDataDir, urlPath)
 	}
-	d := m.oneDict.Load()
-	if d == nil {
-		return
-	}
-	f, ok := d.getZipFile(urlPath)
-	if !ok {
-		http.NotFound(w, r)
-		return
-	}
-	fr, err := f.Open()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer fr.Close()
-
-	b, err := io.ReadAll(fr)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	http.ServeContent(w, r, f.Name, f.Modified, bytes.NewReader(b))
+	http.ServeContent(w, r, urlPath, serverStartTime, bytes.NewReader(b))
 }
 
 func (m *MultiDict) serveSound(w http.ResponseWriter, r *http.Request) {
@@ -112,16 +122,22 @@ func (m *MultiDict) serveSound(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimPrefix(r.URL.Path, "/_sound/")
 	d := m.oneDict.Load()
 	if d == nil {
+		http.Error(w, loadFailed, http.StatusInternalServerError)
 		return
 	}
 	mp3, err := d.originalContentByBasePath(name)
 	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
+		if errors.Is(err, DataNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.ServeContent(w, r, name, time.Now(), bytes.NewReader(mp3))
+	http.ServeContent(w, r, name, serverStartTime, bytes.NewReader(mp3))
 }
+
+const loadFailed = "dict loaded failed"
 
 func (m *MultiDict) serveEntry(w http.ResponseWriter, r *http.Request) {
 	// /_sound/
@@ -129,6 +145,7 @@ func (m *MultiDict) serveEntry(w http.ResponseWriter, r *http.Request) {
 
 	d := m.oneDict.Load()
 	if d == nil {
+		http.Error(w, loadFailed, http.StatusInternalServerError)
 		return
 	}
 	basePath, ok := d.finalHtmlBasePathWithOutHtml(word)
@@ -136,8 +153,6 @@ func (m *MultiDict) serveEntry(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	//d.writeByWordBaseHTMLPath(w, basePath+".html")
-	//return
 	// 还是得跳转，否则由于二级路径无法加载js和ｃｓｓ文件
 	u := fmt.Sprintf("/%s.html", basePath)
 	http.Redirect(w, r, u, http.StatusMovedPermanently)
@@ -154,10 +169,9 @@ func (m *MultiDict) serverHTTPIndex(w http.ResponseWriter, r *http.Request) {
 	m.serverAssetsExceptHtml(w, r)
 }
 
-// NewMultiDictZip  runPort 0 means a random port
+// NewMultiDictZip 0 runPort means a random port
 func NewMultiDictZip(rootDir string, runPort int) (*MultiDict, error) {
 	rootDir = filepath.ToSlash(rootDir)
-
 	err := os.MkdirAll(filepath.Join(rootDir, appDictDir), 0755)
 	if err != nil {
 		return nil, err
@@ -177,10 +191,8 @@ func NewMultiDictZip(rootDir string, runPort int) (*MultiDict, error) {
 	var dictIndexInfoAtomic = new(atomic.Value)
 	dictIndexInfoAtomic.Store(info)
 	m := MultiDict{
-		mux:           sync.Mutex{},
 		rootDataDir:   rootDir,
 		runPort:       runPort,
-		onceInit:      sync.Once{},
 		oneDict:       DictZipAtomic,
 		dictIndexInfo: info,
 	}
@@ -218,8 +230,7 @@ func (m *MultiDict) GetHTMLRenderContentByWord(word string) (string, error) {
 
 }
 func (m *MultiDict) GetUrlByWord(hostname string, word string) (string, bool) {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	runPort := m.runPort
 	if runPort == 0 {
 		return "", false
@@ -240,8 +251,7 @@ func (m *MultiDict) GetUrlByWord(hostname string, word string) (string, bool) {
 }
 
 func (m *MultiDict) FinalHtmlBasePathWithOutHtml(word string) (string, bool) {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	runPort := m.runPort
 	if runPort == 0 {
 		return "", false
@@ -258,8 +268,7 @@ func (m *MultiDict) FinalHtmlBasePathWithOutHtml(word string) (string, bool) {
 }
 
 func (m *MultiDict) DictBasePathTitleMap() map[string]string {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	DictBasePathTitleMap := m.dictIndexInfo.DictBasePathTitleMap
 	result := make(map[string]string, len(DictBasePathTitleMap))
 	for k, v := range DictBasePathTitleMap {
@@ -268,8 +277,7 @@ func (m *MultiDict) DictBasePathTitleMap() map[string]string {
 	return result
 }
 func (m *MultiDict) UpdateDictName(basePath, title string) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	DictBasePathTitleMap := m.dictIndexInfo.DictBasePathTitleMap
 	_, ok := DictBasePathTitleMap[basePath]
 	if !ok {
@@ -282,17 +290,17 @@ func (m *MultiDict) UpdateDictName(basePath, title string) error {
 	return nil
 }
 func (m *MultiDict) SetDefaultDict(basePath string) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	return m.setDefaultDict(basePath)
 }
 func (m *MultiDict) setDefaultDict(basePath string) error {
-
 	if basePath == "" {
 		if d := m.oneDict.Load(); d != nil {
 			d.Close()
 		}
-		m.dictIndexInfo.DefaultDictBasePath = basePath
+		copyInfo := m.dictIndexInfo.Copy()
+		copyInfo.DefaultDictBasePath = basePath
+		m.dictIndexInfo = copyInfo
 		m.oneDict.Store(nil)
 		if err := m.saveInfo(); err != nil {
 			return err
@@ -311,7 +319,9 @@ func (m *MultiDict) setDefaultDict(basePath string) error {
 	if oldDict != nil {
 		oldDict.Close()
 	}
-	m.dictIndexInfo.DefaultDictBasePath = basePath
+	copyInfo := m.dictIndexInfo.Copy()
+	copyInfo.DefaultDictBasePath = basePath
+	m.dictIndexInfo = copyInfo
 	m.oneDict.Store(newDict)
 	if err = m.saveInfo(); err != nil {
 		return err
@@ -319,13 +329,13 @@ func (m *MultiDict) setDefaultDict(basePath string) error {
 	return nil
 }
 func (m *MultiDict) DelDict(basePath string) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	if basePath == "" {
 		return nil
 	}
 	if basePath == m.dictIndexInfo.DefaultDictBasePath {
 		m.dictIndexInfo.DefaultDictBasePath = ""
+
 		m.oneDict.Load().Close()
 	}
 	delete(m.dictIndexInfo.DictBasePathTitleMap, basePath)
@@ -336,12 +346,11 @@ func (m *MultiDict) DelDict(basePath string) error {
 	return nil
 }
 func (m *MultiDict) AddDict(originalZipPath string) error {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	dictBasePath := filepath.Base(originalZipPath)
 	_, ok := m.dictIndexInfo.DictBasePathTitleMap[dictBasePath]
 	if ok {
-		return fmt.Errorf("该字典已加载: %s", dictBasePath)
+		return fmt.Errorf("该字典已加载: %s, 请修改文件名或者删除旧词典", dictBasePath)
 	}
 	d, err := NewDictZip(originalZipPath)
 	if err != nil {
@@ -354,7 +363,9 @@ func (m *MultiDict) AddDict(originalZipPath string) error {
 		return err
 	}
 	basePath := filepath.Base(zipFile)
-	m.dictIndexInfo.DictBasePathTitleMap[basePath] = basePath
+	copyInfo := m.dictIndexInfo.Copy()
+	copyInfo.DictBasePathTitleMap[basePath] = basePath
+	m.dictIndexInfo = copyInfo
 	if err = m.saveInfo(); err != nil {
 		return err
 	}
@@ -364,8 +375,7 @@ func (m *MultiDict) AddDict(originalZipPath string) error {
 	return err
 }
 func (m *MultiDict) SearchByKeyWord(keyWord string) []string {
-	m.mux.Lock()
-	defer m.mux.Unlock()
+
 	d := m.oneDict.Load()
 	if d == nil {
 		return nil

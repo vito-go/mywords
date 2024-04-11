@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
+import 'dart:html' show window;
 
 import 'package:dio/dio.dart';
 import 'package:mywords/libso/interface.dart';
@@ -13,9 +13,9 @@ import 'package:mywords/environment.dart';
 import 'package:mywords/util/local_cache.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-final Interface handler = HTTPHandler();
+final Handler handlerImplement = WebHandler();
 
-class HTTPHandler implements Interface {
+class WebHandler implements Handler {
   @override
   Future<RespData<void>> addDict(String dataDir) async {
     throw "not support add dict on web platform in this way";
@@ -457,6 +457,14 @@ class HTTPHandler implements Interface {
   @override
   String getHostName() {
     return window.location.hostname ?? '';
+  }
+
+  @override
+  FutureOr<ShareInfo> getShareInfo() async {
+    final result = await call("GetShareInfo", []);
+    final RespData<ShareInfo> respData = RespData.fromJson(
+        jsonDecode(result), (json) => ShareInfo.fromJson(json));
+    return respData.data!;
   }
 }
 

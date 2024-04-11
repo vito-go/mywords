@@ -1,6 +1,8 @@
 ## 项目概览
 
 本项目提供一个英语单词学习工具，专为英语学习者设计，通过阅读英文或双语文章来扩充词汇库。用户能够自动提取学习文章中的单词、统计词频、筛选过滤，同时跟踪和记录单词掌握程度。
+- 背单词神器! 输入一个英语或双语文章的网址，本工具将自动提取文章中所有单词及其所在句子，对文章单词进行去重、统计汇总。你可以过滤筛选只显示出你不认识的单词。
+- 本工具支持自定义词典库，用户可以添加自己的词典库，以便在学习过程中查阅单词释义。
 
 ## 日志更新
 
@@ -13,6 +15,7 @@
 - **学习进度跟踪**：单词可标记为不同认知等级，包括“0:陌生”，“1:了解”，“2:认识”，“3:熟悉”。这有助于定制化学习路径，同时加深记忆。
 - **筛选浏览功能**：过滤出特定认知等级的单词，例如选定标记“0”能显示所有您尚不了解的单词。
 - **同步和平台兼容性**： 基于`Go`和`Flutter`开发的跨平台应用，支持在 Android、Linux 和 Windows 使用，支持设备间数据同步，便捷学习不受限制。
+- **web版本支持**：支持本地部署或云端部署，可以在浏览器打开web应用，使用体验与桌面应用和移动应用一致。
 - **本地数据存储**：无需依赖后台服务器，确保所有数据均在本地安全存储，支持本地备份、本地恢复。
 
 ## 开发与技术支持
@@ -111,7 +114,7 @@
     - WeChat：`vitogo-chat`
     - Email：`liushihao888@gmail.com`
 - 您还可以加入我们的微信学习分享交流群，与其他学员一起分享英语学习心得，共同学习进步。扫描下面的二维码即可加入微信群：
-    - <img src="images/wechat-group.png" style="width: 256px">
+    - <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/wechat-group.png" style="width: 256px">
 
 3. **词典库格式说明**：
   - 词典库应当是一个zip压缩文件，该文件包含以下内容：
@@ -132,49 +135,51 @@
 ## 制作词典数据库文件
 
 在下载mdx/mdd格式词典文件以及提取词典资源代码文件后，您需要按照以下步骤制作词典数据库文件：
-1. **提取制作html文件及`word_html_map.jso`**:
-  ```pythnon
-  # coding: utf-8
-  import hashlib
-  import json
-  import os
-  from readmdict import MDX, MDD
-  def str_encrypt(bytes):
-      """
-      使用sha1加密算法，返回str加密后的字符串
-       # string.encode('utf-8')
-      """
-      sha1 = hashlib.sha1()
-      sha1.update(bytes)
-      return sha1.hexdigest()
-   
-  def makeHtml():
-      mdx = MDX('<.mdx文件路径>')
-      os.makedirs("html",exist_ok=True)
-      i=0
-      wordsHtmlSha1Map={}
-      items=mdx.items()
-      for key,value in items:
-          i+=1
-          word=key.decode(encoding='utf-8')
-          sa1Str=str_encrypt(value)
-          dir=sa1Str[:2]
-          fName=dir+str(i)
-          wordsHtmlSha1Map[word]=fName
-          df = open("html/"+fName+".html", 'wb')
-          df.write(value)
-          df.close()
-      b = json.dumps(wordsHtmlSha1Map,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
-      f2 = open('word_html_map.json', 'w')
-      f2.write(b)
-      f2.close()
-      print(i,"exit with 0")
-  
-  if __name__ == '__main__':
-      makeHtml()
+1. **提取制作html文件及`word_html_map.json`**:
+    ```python
+    # coding: utf-8
+    import hashlib
+    import json
+    import os
+    from readmdict import MDX, MDD
+    from urllib.parse import quote
+    import os
+    import sys
+    # from urllib.parse import unquote
     
-  
-  ```
+     
+    def makeHtml(mdxPath):
+        mdx = MDX(mdxPath)
+        base_dir=os.path.dirname(mdxPath)
+        all_words_path=os.path.join(base_dir,"word_html_map.json")
+        html_dir=os.path.join(base_dir,"html")
+        print("html directory is: "+html_dir)
+        print("all words json file path: "+all_words_path)
+        os.makedirs(html_dir,exist_ok=True)
+        i=0
+        allWordsMap={}
+        items=mdx.items()
+        for key,value in items:
+            i+=1
+            word=key.decode(encoding='utf-8')
+            word_quote=quote(word,safe='')
+            allWordsMap[word]=word_quote
+            html_path=os.path.join(html_dir,word_quote+".html")
+            df = open(html_path, 'wb')
+            df.write(value)
+            df.close()
+        b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
+        f2 = open(all_words_path, 'w')
+        f2.write(b)
+        f2.close()
+        print(i,"exit with 0")
+    
+    if __name__ == '__main__':
+        # python extract_html.py <mdx_path>
+        # mdx_path=sys.argv[1]
+        mdx_path="<mdx_path>"
+    
+    ```
 - 2. **提取图片、声音资源文件(data 文件夹)**:
   ```shell
      python readmdict.py -x <.mdd文件>
@@ -183,6 +188,7 @@
   ```shell
      zip -q -r -9 mydict.zip data/ html/ *.css *.js word_html_map.json
   ```
+  - 如果压缩文件中包含其他文件，如.ini文件等，可以在zip命令中添加相应的文件名。
 - 4. **将以上词典数据库文件添加设置为词典数据库文件**
   - > 加载本地词典数据库文件--开始解析 
   - > <img src="images/add-dict.png" style="width: 256px">

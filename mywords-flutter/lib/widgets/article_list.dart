@@ -4,8 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/config/config.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_page.dart';
@@ -168,7 +167,7 @@ class _State extends State<ArticleListView> {
                   style: TextStyle(
                       fontSize: 14, color: Theme.of(context).primaryColor)),
               subtitle: Text(
-                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))} total:${item.totalCount} net:${item.netCount}",
+                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis));
           return Dismissible(

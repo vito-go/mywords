@@ -112,8 +112,7 @@ func (d *OneDict) originalContentByBasePath(basePath string) (result []byte, err
 		path = filepath.Join(htmlDir, basePath)
 	} else if strings.HasSuffix(basePath, ".css") || strings.HasSuffix(basePath, ".js") {
 		path = basePath
-		_, ok := d.getZipFile(path)
-		if !ok {
+		if _, ok := d.getZipFile(path); !ok {
 			// js and css file can be in dictAssetDataDir
 			path = filepath.Join(dictAssetDataDir, basePath)
 		}
@@ -130,6 +129,9 @@ func (d *OneDict) originalContentByBasePath(basePath string) (result []byte, err
 		}()
 	} else {
 		path = filepath.Join(dictAssetDataDir, basePath)
+		if _, ok := d.getZipFile(path); !ok {
+			path = basePath
+		}
 	}
 	f, ok := d.getZipFile(path)
 	if !ok {
