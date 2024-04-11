@@ -81,6 +81,7 @@ func (d *OneDict) writeByWordBaseHTMLPath(w http.ResponseWriter, word, baseHTMLP
 
 func (m *MultiDict) serverHTTPHtml(w http.ResponseWriter, r *http.Request) {
 	urlPath := strings.TrimPrefix(r.URL.Path, "/")
+	urlPath = url.QueryEscape(urlPath)
 	word := r.URL.Query().Get("word")
 	d := m.oneDict.Load()
 	if d == nil {

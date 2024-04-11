@@ -16,6 +16,10 @@ import (
 )
 
 func (s *Server) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
+	if !s.shareOpen.Load() {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	var param ShareFileParam
 	defer r.Body.Close()
 	b, _ := io.ReadAll(r.Body)
@@ -33,7 +37,7 @@ func (s *Server) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Reques
 	err := ZipToWriterWithFilter(w, srcDataPath, &param)
 	if err != nil {
 		mylog.Error("share data error", "remoteHost", remoteHost, "err", err.Error())
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
 	mylog.Info("share data done", "remoteHost", remoteHost)
@@ -133,7 +137,13 @@ func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	})
 	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount, SyncKnownWords: syncKnownWords}
 	fileInfoBytes, _ := json.Marshal(param)
-	resp, err := http.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))
+	cli := http.Client{}
+	defer cli.CloseIdleConnections()
+	// 使用 http.Post 会默认使用http.DefaultClient, 会导致连接不释放.如果服务器关闭,客户端仍然保持连接
+	//
+	// // Serve a new connection.
+	//	func (c *conn) serve(ctx context.Context) {
+	resp, err := cli.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))
 	//resp, err := http.Get(httpUrl)
 	if err != nil {
 		return 0, err
@@ -201,7 +211,13 @@ func (s *Server) ShareOpen(port int, code int64) error {
 		return err
 	}
 	mylog.Info("StartServer success", `port`, port)
-	go http.Serve(lis, mux)
+	go func() {
+
+		err := http.Serve(lis, mux)
+		if err != nil {
+			mylog.Warn(err.Error())
+		}
+	}()
 	return nil
 }
 

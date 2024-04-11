@@ -178,6 +178,7 @@
         # python extract_html.py <mdx_path>
         # mdx_path=sys.argv[1]
         mdx_path="<mdx_path>"
+        makeHtml(mdx_path)
     
     ```
 - 2. **提取图片、声音资源文件(data 文件夹)**:
