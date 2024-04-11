@@ -47,6 +47,7 @@ type Server struct {
 
 	mux           sync.Mutex //
 	shareListener net.Listener
+	shareOpen     *atomic.Bool
 	// multicast
 	remoteHostMap sync.Map // remoteHost: port
 
@@ -55,7 +56,17 @@ type Server struct {
 }
 
 type config struct {
-	ProxyUrl string `json:"proxyUrl"`
+	ProxyUrl  string `json:"proxyUrl"`
+	SharePort int    `json:"sharePort"`
+	ShareCode int64  `json:"shareCode"`
+}
+
+func (c *config) Clone() *config {
+	return &config{
+		ProxyUrl:  c.ProxyUrl,
+		SharePort: c.SharePort,
+		ShareCode: c.ShareCode,
+	}
 }
 
 const (
@@ -131,6 +142,12 @@ func NewServer(rootDataDir string) (*Server, error) {
 			return nil, err
 		}
 	}
+	if cfg.SharePort == 0 {
+		cfg.SharePort = 18964
+	}
+	if cfg.ShareCode == 0 {
+		cfg.ShareCode = 890604
+	}
 
 	var chartDateLevelCountMap = make(map[string]map[WordKnownLevel]map[string]struct{})
 	b, err = os.ReadFile(filepath.Join(rootDataDir, dataDir, chartDataJsonFile))
@@ -154,6 +171,7 @@ func NewServer(rootDataDir string) (*Server, error) {
 		chartDateLevelCountMap: chartDateLevelCountMapSync,
 		fileInfoArchivedMap:    fileInfosArchivedMapSync,
 		cfg:                    cfgAtomic,
+		shareOpen:              &atomic.Bool{},
 	}
 	return s, nil
 }

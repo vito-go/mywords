@@ -162,34 +162,47 @@ func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	return n, nil
 }
 
-// ShareOpen .
+type ShareInfo struct {
+	Port int   `json:"port"`
+	Code int64 `json:"code"`
+	Open bool  `json:"open"`
+}
+
+// GetShareInfo .
+func (s *Server) GetShareInfo() *ShareInfo {
+	cfg := s.cfg.Load()
+	info := ShareInfo{
+		Port: cfg.SharePort,
+		Code: cfg.ShareCode,
+		Open: s.shareOpen.Load(),
+	}
+	return &info
+}
 func (s *Server) ShareOpen(port int, code int64) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if s.shareListener != nil {
 		_ = s.shareListener.Close()
 	}
+	mux := http.NewServeMux()
+	mux.HandleFunc(fmt.Sprintf("/%d", code), s.serverHTTPShareBackUpData)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
 	s.shareListener = lis
-	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("/%d", code), s.serverHTTPShareBackUpData)
-	var chanErr = make(chan error, 1)
-	go func() {
-		if err = http.Serve(lis, mux); err != nil {
-			chanErr <- err
-		}
-	}()
-	select {
-	case err = <-chanErr:
-		mylog.Error("Start Server error", `err`, err.Error())
+	s.shareOpen.Store(true)
+	c := s.cfg.Load().Clone()
+	c.ShareCode = code
+	c.SharePort = port
+	s.cfg.Store(c)
+	err = s.saveConfig()
+	if err != nil {
 		return err
-	case <-time.After(time.Millisecond * 256):
-		mylog.Info("StartServer success", `port`, port)
-		return nil
 	}
+	mylog.Info("StartServer success", `port`, port)
+	go http.Serve(lis, mux)
+	return nil
 }
 
 // ShareClosed .
@@ -199,4 +212,5 @@ func (s *Server) ShareClosed() {
 	if s.shareListener != nil {
 		_ = s.shareListener.Close()
 	}
+	s.shareOpen.Store(false)
 }

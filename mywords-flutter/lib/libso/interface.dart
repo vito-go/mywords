@@ -5,7 +5,7 @@ import 'package:mywords/libso/types.dart';
 
 import 'package:mywords/widgets/line_chart.dart';
 
-abstract class Interface {
+abstract class Handler {
   FutureOr<void> initLib();
 
   FutureOr<RespData<void>> parseAndSaveArticleFromSourceUrl(String www);
@@ -63,6 +63,7 @@ abstract class Interface {
       String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
+
   FutureOr<String> proxyURL();
 
   FutureOr<RespData<void>> shareClosed();
@@ -101,8 +102,11 @@ abstract class Interface {
 
   FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
 
+  FutureOr<ShareInfo> getShareInfo();
+
   void setLogUrl(String logUrl, String logNonce);
 
   void println(String msg);
-  String getHostName() ;
+
+  String getHostName();
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,16 +6,11 @@ late SharedPreferences _globalPrefs;
 
 Future<void> initGlobalPrefs() async {
   _globalPrefs = await SharedPreferences.getInstance();
-  // debug模式热更新不删除
-  if (!kDebugMode) {
-    prefs.shareOpenPortCode = '';
-  }
 }
 
 final prefs = _Prefs();
 
 class _Prefs {
-
   String get _defaultHomeIndex => "mywords:_defaultHomeIndex";
 
   String get _tipHideWithLevel =>
@@ -29,8 +23,6 @@ class _Prefs {
   String get _syncKnownWords => "mywords:_syncKnownWords";
 
   String get _showWordLevel => "mywords:_showWordLevel";
-
-  String get _shareOpenPortCode => "mywords:_shareOpenPortCode";
 
   String get _syncIpPortCode => "mywords:_syncIpPortCode";
 
@@ -69,16 +61,6 @@ class _Prefs {
     } else if (value == ThemeMode.light) {
       _globalPrefs.setInt(key, 2);
     }
-  }
-
-
-
-  // port_code
-  String get shareOpenPortCode =>
-      _globalPrefs.getString(_shareOpenPortCode) ?? '';
-
-  set shareOpenPortCode(String s) {
-    _globalPrefs.setString(_shareOpenPortCode, s);
   }
 
   // port_code
@@ -133,7 +115,7 @@ class _Prefs {
     return _globalPrefs.getBool(key) ?? false;
   }
 
-  setTipHideWithLevel(String tip,bool hide) {
+  setTipHideWithLevel(String tip, bool hide) {
     final key = "$_tipHideWithLevel$tip";
     return _globalPrefs.setBool(key, hide);
   }

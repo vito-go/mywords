@@ -39,6 +39,12 @@ func ShareOpen(port int, code int64) *C.char {
 	return CharSuccess()
 }
 
+//export GetShareInfo
+func GetShareInfo() *C.char {
+	info := serverGlobal.GetShareInfo()
+	return CharOk(info)
+}
+
 //export GetChartData
 func GetChartData() *C.char {
 	data, err := serverGlobal.GetChartData()

@@ -4,8 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:mywords/common/global_event.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/local_cache.dart';
@@ -54,7 +53,9 @@ class ArticlePageState extends State<ArticlePage> {
           wordInfos.length, (index) => wordInfos[index].wordLink);
       artWordLevelMap = await handler.queryWordsLevel(allWordLink);
       levelCountMap = await _levelDistribute();
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
