@@ -123,9 +123,9 @@
 
   - 结构说明：
     - `data/`: 文件夹，存放字典资源文件，如图片、声音等。
-    - `html/`: 文件夹，存放单词释义的html文件。
-    - `*.css`, `*.js`: 文件，html文件夹下的html文件需要引用的资源，文件名应包含.html后缀。
-    - `word_html_map.json`: json文件，存放单词和html文件名的映射关系，格式为键值对json（key为单词，value为html文件名，不含.html后缀）。
+    - `html/`: 文件夹，存放单词释义的html页面文件，文件名应包含`.html`后缀。
+    - `*.css`, `*.js`: 静态资源文件，可以在压缩包根目录,也可以放在data文件夹下
+    - `word_html_map.json`: json文件，存放单词和html文件名的映射关系，格式为键值对json（key为单词，value为html文件名，不含`.html`后缀）。
 
 4. **自制词典数据**：
   - 您可以下载mdx/mdd格式的词典文件，例如[牛津高阶英汉双解词典（第10版）V3](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E8%AF%8D%E5%85%B8%EF%BC%88%E7%AC%AC10%E7%89%88%EF%BC%89V3/)
@@ -138,47 +138,44 @@
 1. **提取制作html文件及`word_html_map.json`**:
     ```python
     # coding: utf-8
-    import hashlib
+    import base64
     import json
     import os
     from readmdict import MDX, MDD
-    from urllib.parse import quote
     import os
     import sys
-    # from urllib.parse import unquote
     
-     
+    
     def makeHtml(mdxPath):
-        mdx = MDX(mdxPath)
-        base_dir=os.path.dirname(mdxPath)
-        all_words_path=os.path.join(base_dir,"word_html_map.json")
-        html_dir=os.path.join(base_dir,"html")
-        print("html directory is: "+html_dir)
-        print("all words json file path: "+all_words_path)
-        os.makedirs(html_dir,exist_ok=True)
-        i=0
-        allWordsMap={}
-        items=mdx.items()
-        for key,value in items:
-            i+=1
-            word=key.decode(encoding='utf-8')
-            word_quote=quote(word,safe='')
-            allWordsMap[word]=word_quote
-            html_path=os.path.join(html_dir,word_quote+".html")
-            df = open(html_path, 'wb')
-            df.write(value)
-            df.close()
-        b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
-        f2 = open(all_words_path, 'w')
-        f2.write(b)
-        f2.close()
-        print(i,"exit with 0")
+    mdx = MDX(mdxPath)
+    base_dir=os.path.dirname(mdxPath)
+    all_words_path=os.path.join(base_dir,"word_html_map.json")
+    html_dir=os.path.join(base_dir,"html")
+    print("html directory is: "+html_dir)
+    print("all words json file path: "+all_words_path)
+    os.makedirs(html_dir,exist_ok=True)
+    i=1
+    allWordsMap={}
+    items=mdx.items()
+    for key,value in items:
+    word=key.decode(encoding='utf-8')
+    work_html_name = str(i)
+    allWordsMap[word]=work_html_name
+    html_path=os.path.join(html_dir,work_html_name+".html")
+    df = open(html_path, 'wb')
+    df.write(value)
+    df.close()
+    i+=1
+    b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
+    f2 = open(all_words_path, 'w')
+    f2.write(b)
+    f2.close()
+    print(i,"exit with 0")
     
     if __name__ == '__main__':
-        # python extract_html.py <mdx_path>
-        # mdx_path=sys.argv[1]
-        mdx_path="<mdx_path>"
-    
+    # python extract_html.py <mdx_path>
+    mdx_path=sys.argv[1]
+    makeHtml(mdx_path)
     ```
 - 2. **提取图片、声音资源文件(data 文件夹)**:
   ```shell
