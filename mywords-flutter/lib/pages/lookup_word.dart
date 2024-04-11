@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/word_common.dart';
+
+import '../util/local_cache.dart';
 
 class LoopUpWord extends StatefulWidget {
   const LoopUpWord({super.key});
@@ -47,7 +48,9 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
       return;
     }
     final RespData<List<String>> respData;
-    final defaultDict = (await handler.getDefaultDict()).data ?? '';
+    LocalCache.defaultDictBasePath ??=
+        ((await handler.getDefaultDict()).data ?? '');
+    final defaultDict = LocalCache.defaultDictBasePath ?? '';
     if (defaultDict == "") {
       respData = await handler.searchByKeyWordWithDefault(v);
     } else {

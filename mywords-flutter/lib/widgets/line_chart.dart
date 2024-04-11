@@ -320,7 +320,10 @@ class _LineChart extends StatelessWidget {
   LineTouchData get lineTouchData1 => LineTouchData(
         handleBuiltInTouches: true,
         touchTooltipData: LineTouchTooltipData(
-          tooltipBgColor: Colors.blueGrey.withOpacity(0.75),
+          // tooltipBgColor: Colors.blueGrey.withOpacity(0.75),
+          getTooltipColor: (LineBarSpot touchedSpot) {
+            return Colors.blueGrey.withOpacity(0.75);
+          },
           getTooltipItems: getTooltipItems,
           fitInsideHorizontally: true,
           fitInsideVertically: true,
@@ -334,6 +337,16 @@ class _LineChart extends StatelessWidget {
         getTitlesWidget: (double value, TitleMeta meta) {
           final valueDouble = value;
           const style = TextStyle(color: Colors.white);
+          // myPrint("${data.maxY} $valueDouble ${meta.appliedInterval}");
+          if (data.maxY != null &&
+              data.maxY! != valueDouble &&
+              data.maxY! - valueDouble < meta.appliedInterval) {
+            return SideTitleWidget(
+              axisSide: meta.axisSide,
+              child: const Text(""),
+            );
+          }
+
           if (valueDouble.toInt() != valueDouble) {
             return SideTitleWidget(
               axisSide: meta.axisSide,
@@ -348,22 +361,6 @@ class _LineChart extends StatelessWidget {
         });
     return AxisTitles(sideTitles: sideTitles);
   }
-
-  // Y轴
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(color: Colors.white);
-    String valueText = "";
-    if (value == 0.0) {
-      valueText = "0";
-    } else {
-      valueText = data.yTitleMap[value.toInt().toString()] ?? '';
-    }
-    Text text = Text(valueText, style: style, textAlign: TextAlign.center);
-    return SideTitleWidget(axisSide: meta.axisSide, child: text);
-  }
-
-  SideTitles get leftSideTitles => SideTitles(
-      getTitlesWidget: leftTitleWidgets, showTitles: true, reservedSize: 44);
 
   FlTitlesData get titlesData1 => FlTitlesData(
         bottomTitles: bottomTitles,
@@ -425,7 +422,7 @@ class _LineChart extends StatelessWidget {
       drawHorizontalLine: true,
       drawVerticalLine: false,
       getDrawingHorizontalLine: (double value) {
-        if (value.toStringAsFixed(2) == data.baselineY.toStringAsFixed(2)) {
+        if (value.toInt()== data.baselineY.toInt()) {
           return const FlLine(
               strokeWidth: 1.5, color: Colors.blue, dashArray: [10, 0]);
         }

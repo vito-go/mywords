@@ -3,11 +3,11 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/local_cache.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
@@ -203,9 +203,17 @@ class _State extends State<DictDatabase> {
     }
     final file = files[0];
     if (kIsWeb) {
-      if (file.readStream == null) return;
+      myPrint(
+          "字典数据库文件: ${file.name}: file.readStream==null: ${file.readStream == null} file.size: ${file.size} 文件大小: ${file.bytes?.length}");
+      if (file.readStream == null) {
+        myToast(context, "读取文件失败: file bytes null");
+        return;
+      }
     } else {
-      if (file.path == null) return;
+      if (file.path == null) {
+        myToast(context, "读取文件失败: file path null");
+        return;
+      }
     }
     setState(() {
       zipFilePath = file.name;
@@ -229,6 +237,7 @@ class _State extends State<DictDatabase> {
     initDictDirNames();
     zipFilePath = '';
     defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
+    LocalCache.defaultDictBasePath = null;
     setState(() {});
   }
 
