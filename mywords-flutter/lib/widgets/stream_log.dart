@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:mywords/libso/handler_for_native.dart'
-if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:io';

@@ -125,7 +125,7 @@ func ParseLocalFile(path string) (*Article, error) {
 var shy = string([]byte{194, 173})
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.0.9"
+const ParseVersion = "0.1.0"
 
 // var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
@@ -247,6 +247,11 @@ loopSentences:
 			if !unicode.IsLetter(rune(word[0])) {
 				// filter out the word start with non-letter
 				continue
+			}
+			if _, ok := dict.DefaultDictWordMap[word]; !ok {
+				if _, ok = dict.WordLinkMap[word]; !ok {
+					continue
+				}
 			}
 			totalCount++
 			//if n == 0 && word[0] >= 'A' && word[0] <= 'Z' {

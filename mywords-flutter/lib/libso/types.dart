@@ -80,7 +80,7 @@ class Article {
     final List<dynamic> ws = json["wordInfos"] ?? [];
     return Article(
       title: json["title"].toString(),
-      lastModified: json["lastModified"]??0,
+      lastModified: json["lastModified"] ?? 0,
       version: json["version"].toString(),
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
@@ -138,4 +138,25 @@ class WordInfo {
         "count": count,
         "sentence": List<dynamic>.from(sentence.map((x) => x)),
       };
+}
+
+class ShareInfo {
+  int port;
+  int code;
+  bool open;
+
+  ShareInfo({
+    required this.port,
+    required this.code,
+    required this.open,
+  });
+
+  factory ShareInfo.fromRawJson(String str) =>
+      ShareInfo.fromJson(json.decode(str));
+
+  factory ShareInfo.fromJson(Map<String, dynamic> json) => ShareInfo(
+        port: json["port"] ?? 0,
+        code: json["code"] ?? 0,
+        open: json["open"] ?? false,
+      );
 }

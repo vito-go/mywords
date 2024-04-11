@@ -59,6 +59,7 @@ var exportedFuncMap = map[string]any{
 	"SetXpathExpr":               SetXpathExpr,
 	"ShareClosed":                ShareClosed,
 	"ShareOpen":                  ShareOpen,
+	"GetShareInfo":               GetShareInfo,
 	"ShowFileInfoList":           ShowFileInfoList,
 	"TodayKnownWordMap":          TodayKnownWordMap,
 	"UnArchiveGobFile":           UnArchiveGobFile,

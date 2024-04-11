@@ -2,6 +2,7 @@ package dict
 
 import (
 	"archive/zip"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -112,8 +113,7 @@ func (d *OneDict) originalContentByBasePath(basePath string) (result []byte, err
 		path = filepath.Join(htmlDir, basePath)
 	} else if strings.HasSuffix(basePath, ".css") || strings.HasSuffix(basePath, ".js") {
 		path = basePath
-		_, ok := d.getZipFile(path)
-		if !ok {
+		if _, ok := d.getZipFile(path); !ok {
 			// js and css file can be in dictAssetDataDir
 			path = filepath.Join(dictAssetDataDir, basePath)
 		}
@@ -130,6 +130,9 @@ func (d *OneDict) originalContentByBasePath(basePath string) (result []byte, err
 		}()
 	} else {
 		path = filepath.Join(dictAssetDataDir, basePath)
+		if _, ok := d.getZipFile(path); !ok {
+			path = basePath
+		}
 	}
 	f, ok := d.getZipFile(path)
 	if !ok {
@@ -150,7 +153,6 @@ func (d *OneDict) originalContentByBasePath(basePath string) (result []byte, err
 
 func (d *OneDict) replaceCSS(htmlNode *html.Node, allCssNames []string) {
 	styleNode := htmlquery.FindOne(htmlNode, "//style")
-
 	if styleNode == nil {
 		return
 	}
@@ -181,8 +183,8 @@ func (d *OneDict) replaceJS(htmlNode *html.Node) {
 		for i := 0; i < len(ele.Attr); i++ {
 			if ele.Attr[i].Key == "src" {
 				//thumb_fruit_misc.png
-				mp3Href := strings.TrimSpace(ele.Attr[i].Val)
-				b, err := d.originalContentByBasePath(mp3Href)
+				val := strings.TrimSpace(ele.Attr[i].Val)
+				b, err := d.originalContentByBasePath(val)
 				if err != nil {
 					continue
 				}
@@ -196,22 +198,18 @@ func (d *OneDict) replaceJS(htmlNode *html.Node) {
 					},
 				}
 				headNode.AppendChild(&scriptNode)
-				// set png href with base64
 			}
 		}
 	}
 }
-func (d *OneDict) replaceMP3(htmlNode *html.Node) {
-	headNode := htmlquery.FindOne(htmlNode, "//head")
-	if headNode == nil {
-		return
-	}
-	mp3s := htmlquery.Find(htmlNode, "//a[contains(@href,'.mp3')]")
-	for _, mp3 := range mp3s {
-		for i := 0; i < len(mp3.Attr); i++ {
-			if mp3.Attr[i].Key == "href" {
+func (d *OneDict) replaceMP3WithSourceBase64(htmlNode *html.Node) {
+	// must be a tag?
+	divs := htmlquery.Find(htmlNode, "//a[contains(@href,'sound://')]")
+	for _, div := range divs {
+		for i := 0; i < len(div.Attr); i++ {
+			if div.Attr[i].Key == "href" {
 				//sound://apple__gb_5.mp3
-				mp3Href := strings.TrimPrefix(strings.TrimSpace(mp3.Attr[i].Val), "sound://")
+				mp3Href := strings.TrimPrefix(strings.TrimSpace(div.Attr[i].Val), "sound://")
 				b, err := d.originalContentByBasePath(mp3Href)
 				if err != nil {
 					mylog.Error(err.Error())
@@ -219,46 +217,49 @@ func (d *OneDict) replaceMP3(htmlNode *html.Node) {
 				}
 				// x-wav可以播放
 				src := fmt.Sprintf("data:audio/x-wav;base64,%s", base64.StdEncoding.EncodeToString(b))
-
-				// set mp3 href with base64
-
-				// remove href
-				mp3.Attr[i].Key = "onclick"
-				onclick := fmt.Sprintf(`(function () { var audio = new Audio(); audio.src = "%s"; audio.play(); })()`, src)
-				mp3.Attr[i].Val = onclick
-				//mp3.Data = "a"
-				//scriptNode := &html.Node{
-				//	Type: html.ElementNode,
-				//	Data: "script",
-				//	FirstChild: &html.Node{
-				//		Data: fmt.Sprintf(`function audio%d() { var audio = new Audio(); audio.src = "%s"; audio.play(); }`, idx, val),
-				//		Type: html.TextNode,
-				//	},
-				//}
-				//headNode.AppendChild(scriptNode)
+				val := fmt.Sprintf(`(function () { var audio = new Audio(); audio.src = "%s"; audio.play(); })()`, src)
+				div.Attr[i].Key = "onclick"
+				div.Attr[i].Val = val
 			}
 		}
 	}
 }
 func (d *OneDict) replacePng(htmlNode *html.Node) {
-	pngs := htmlquery.Find(htmlNode, "//img[contains(@src,'.png')]")
-	for _, ele := range pngs {
-		for i := 0; i < len(ele.Attr); i++ {
-			if ele.Attr[i].Key == "src" {
+	divs := htmlquery.Find(htmlNode, "//img[contains(@src,'.png')]")
+	for _, div := range divs {
+		for i := 0; i < len(div.Attr); i++ {
+			if div.Attr[i].Key == "src" {
 				//thumb_fruit_misc.png
-				mp3Href := strings.TrimSpace(ele.Attr[i].Val)
+				mp3Href := strings.TrimSpace(div.Attr[i].Val)
 				b, err := d.originalContentByBasePath(mp3Href)
 				if err != nil {
 					mylog.Error(err.Error())
 					continue
 				}
 				// set png href with base64
-				ele.Attr[i].Val = fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(b))
+				div.Attr[i].Val = fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(b))
 			}
 		}
 	}
 }
 
+func (d *OneDict) replaceJPG(htmlNode *html.Node) {
+	divs := htmlquery.Find(htmlNode, "//img[contains(@src,'.jpg')]")
+	for _, div := range divs {
+		for i := 0; i < len(div.Attr); i++ {
+			if div.Attr[i].Key == "src" {
+				val := strings.TrimSpace(div.Attr[i].Val)
+				b, err := d.originalContentByBasePath(val)
+				if err != nil {
+					mylog.Error(err.Error())
+					continue
+				}
+				// set png href with base64
+				div.Attr[i].Val = fmt.Sprintf("data:image/jpeg;base64,%s", base64.StdEncoding.EncodeToString(b))
+			}
+		}
+	}
+}
 func (d *OneDict) replaceHTMLContent(htmlContent string) (string, error) {
 	// 查找正则表达式去除所有的含有css的标签, 因为过滤后的文本的link标签可能在body中，所以需要用正则表达式来解析并替换
 	//cssExpr := `<link.*?href="(.*\.css)".*?>`
@@ -274,7 +275,6 @@ func (d *OneDict) replaceHTMLContent(htmlContent string) (string, error) {
 	if err != nil {
 		return htmlContent, nil
 	}
-
 	headNode := htmlquery.FindOne(htmlNode, "//head")
 	if headNode == nil {
 		return "", errors.New("head node not found")
@@ -289,10 +289,11 @@ func (d *OneDict) replaceHTMLContent(htmlContent string) (string, error) {
 	}
 	// 替换的顺序不能变，因为替换后的htmlNode会变化
 	d.replacePng(htmlNode)
+	d.replaceJPG(htmlNode) // replaceJPG TODO not tested
 	// 找出包含所有的script标签并且src属性值包含.js的标签，然后删除这些标签
 	d.replaceJS(htmlNode)
-	//  找出包含所有的a标签并且href属性值包含.mp3的标签，然后删除这些标签
-	d.replaceMP3(htmlNode)
+	// 找出包含所有的a标签并且href属性值包含sound://的标签，然后删除这些标签
+	d.replaceMP3WithSourceBase64(htmlNode)
 	// 找出包含所有的link标签并且href属性值包含.css的标签，然后删除这些标签
 	d.replaceCSS(htmlNode, allCssNames)
 	return htmlquery.OutputHTML(htmlNode, true), nil
@@ -315,18 +316,18 @@ func (d *OneDict) GetHTMLRenderContentByWord(word string) (string, error) {
 }
 
 func completeHtml(word, htmlOriginalContent string) (string, bool) {
-	const linkPrefix = "@@@LINK="
 	var needReplace = true
 	if strings.HasPrefix(htmlOriginalContent, linkPrefix) {
-		word := strings.TrimSpace(strings.TrimPrefix(htmlOriginalContent, linkPrefix))
+		word = strings.TrimSpace(strings.TrimPrefix(htmlOriginalContent, linkPrefix))
 		htmlOriginalContent = fmt.Sprintf(entryDiv, word, word)
 		needReplace = false
 	}
-	complete := fmt.Sprintf(tmpl, word, htmlOriginalContent)
-	return complete, needReplace
+	// webview必须有完整的html标签
+	htmlOriginalContent = fmt.Sprintf(tmpl, word, htmlOriginalContent)
+	return htmlOriginalContent, needReplace
 }
 
-// getContentByHtmlBasePath htmlBasePath 带html后缀
+// getContentByHtmlBasePath
 func (d *OneDict) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, error) {
 	f, ok := d.getZipFile(filepath.Join(htmlDir, htmlBasePath))
 	if !ok {
@@ -342,47 +343,38 @@ func (d *OneDict) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, e
 		return nil, err
 	}
 	s := string(b)
-	const linkPrefix = "@@@LINK="
 	if strings.HasPrefix(s, linkPrefix) {
 		word := strings.TrimSpace(strings.TrimPrefix(s, linkPrefix))
 		htmlName, ok := d.FinalHtmlBasePathWithOutHtml(word)
 		if ok {
-			s = fmt.Sprintf(`<div>👉<a href="/%s.html?word=%s">%s</a></div>`, htmlName, url.QueryEscape(word), word)
+			s = fmt.Sprintf(`<big>👉<a href="/%s.html?word=%s">%s</a></big>`, htmlName, url.QueryEscape(word), word)
 		}
 	}
-	htmlContent := fmt.Sprintf(tmpl, word, s)
-	// 查找所有的html图片。替换html中的图片为base64图片
-	// <img src="images/1.png" alt="1.png" />
-	// <img src="images/2.png" alt="2.png" />
-	return []byte(htmlContent), nil
+	s = fmt.Sprintf(tmpl, word, s)
+	return []byte(s), nil
 }
-func (d *OneDict) addOnClickMp3(htmlNode *html.Node) {
-	mp3s := htmlquery.Find(htmlNode, "//a[contains(@href,'.mp3')]")
-	for _, mp3 := range mp3s {
-		for i := 0; i < len(mp3.Attr); i++ {
-			if mp3.Attr[i].Key == "href" {
-				// x-wav可以播放
-				src := fmt.Sprintf("/_sound/%s", strings.TrimPrefix(mp3.Attr[i].Val, "sound://"))
+func (d *OneDict) replaceSoundWithSourceURL(htmlNode *html.Node) {
+	// must be a tag?
+	divs := htmlquery.Find(htmlNode, "//a[contains(@href,'sound://')]")
+	for _, div := range divs {
+		for i := 0; i < len(div.Attr); i++ {
+			if div.Attr[i].Key == "href" {
+				src := fmt.Sprintf("/_sound/%s", strings.TrimPrefix(div.Attr[i].Val, "sound://"))
 				val := fmt.Sprintf(`(function(){var audio=new Audio();audio.src='%s';audio.play();})()`, src)
-				// set mp3 href with base64
-				// remove href
-				mp3.Attr[i].Key = "onclick"
-				mp3.Attr[i].Val = val
-				//mp3.Data = "a"
+				div.Attr[i].Key = "onclick"
+				div.Attr[i].Val = val
 			}
 		}
 	}
 }
-func (d *OneDict) changeEntreHref(htmlNode *html.Node) {
-	mp3s := htmlquery.Find(htmlNode, "//a[contains(@href,'entry://')]")
-	for _, mp3 := range mp3s {
-		for i := 0; i < len(mp3.Attr); i++ {
-			if mp3.Attr[i].Key == "href" {
+func (d *OneDict) changeEntryHref(htmlNode *html.Node) {
+	divs := htmlquery.Find(htmlNode, "//a[contains(@href,'entry://')]")
+	for _, div := range divs {
+		for i := 0; i < len(div.Attr); i++ {
+			if div.Attr[i].Key == "href" {
 				// x-wav可以播放
-				val := strings.ReplaceAll(mp3.Attr[i].Val, "entry://", "/_entry/")
-				// set mp3 href with base64
-				// remove href
-				mp3.Attr[i].Val = val
+				val := strings.ReplaceAll(div.Attr[i].Val, "entry://", "/_entry/")
+				div.Attr[i].Val = val
 			}
 		}
 	}

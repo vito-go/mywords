@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 import 'package:mywords/widgets/stream_log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -12,6 +10,8 @@ import 'package:mywords/widgets/private_ip.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util.dart';
+
+import '../libso/types.dart';
 
 class SyncData extends StatefulWidget {
   const SyncData({super.key});
@@ -23,21 +23,18 @@ class SyncData extends StatefulWidget {
 }
 
 class _SyncDataState extends State<SyncData> {
-  bool shareOpenOK = false;
-  TextEditingController controllerPort = TextEditingController();
-  TextEditingController controllerCode = TextEditingController();
+  ShareInfo shareInfo = ShareInfo(port: 18964, code: 890604, open: false);
+  TextEditingController controllerPort = TextEditingController(text: " ");
+  TextEditingController controllerCode = TextEditingController(text: " ");
   TextEditingController controllerBackUpZipName =
       TextEditingController(text: "mywords-backup-data");
 
   @override
   void initState() {
     super.initState();
-    updateLocalExampleIP();
     initController();
+    updateLocalExampleIP();
   }
-
-  final defaultPort = 18964;
-  final defaultCode = 890604;
 
   void updateLocalExampleIP() async {
     final ips = await handler.getIPv4s();
@@ -47,25 +44,11 @@ class _SyncDataState extends State<SyncData> {
     setState(() {});
   }
 
-  void initController() {
-    final ss = prefs.shareOpenPortCode.split("/");
-    myPrint(ss);
-    if (ss.length != 2) {
-      controllerPort.text = '$defaultPort';
-      controllerCode.text = '$defaultCode';
-      return;
-    }
-    myPrint(ss);
-    final p = int.tryParse(ss[0]);
-    final c = int.tryParse(ss[1]);
-    if (p != null && c != null) {
-      controllerPort.text = p.toString();
-      controllerCode.text = c.toString();
-      shareOpenOK = true;
-    } else {
-      controllerPort.text = '$defaultPort';
-      controllerCode.text = '$defaultCode';
-    }
+  void initController() async {
+    shareInfo = await handler.getShareInfo();
+    controllerPort.text = '${shareInfo.port}';
+    controllerCode.text = '${shareInfo.code}';
+    setState(() {});
   }
 
   @override
@@ -132,51 +115,49 @@ class _SyncDataState extends State<SyncData> {
     }
   }
 
-  Future<int> doShareClose() async {
+  Future<void> doShareClose() async {
     final respData = await handler.shareClosed();
     if (respData.code != 0) {
       myToast(context, respData.message);
-      return -1;
+      return;
     }
-    prefs.shareOpenPortCode = '';
+    shareInfo.open = false;
+    setState(() {});
     handler.println("share server closed!");
-
-    return 0;
+    return;
   }
 
-  Future<int> doShareOpen() async {
-    if (controllerPort.text == "") {
+  Future<void> doShareOpen() async {
+    if (controllerPort.text.trim() == "") {
       myToast(context, "端口号不能为空");
-      return -1;
+      return;
     }
-    if (controllerCode.text == "") {
+    if (controllerCode.text.trim() == "") {
       myToast(context, "Code码不能为空");
-      return -1;
+      return;
     }
-    final port = int.parse(controllerPort.text);
-    final code = int.parse(controllerCode.text);
+    final port = int.parse(controllerPort.text.trim());
+    final code = int.parse(controllerCode.text.trim());
     final respData = await handler.shareOpen(port, code);
     if (respData.code != 0) {
       myToast(context, respData.message);
-      return -1;
+      return;
     }
-    prefs.shareOpenPortCode = '$port/$code';
-    return 0;
+    shareInfo.open = true;
+    shareInfo.port = port;
+    shareInfo.code = code;
+    setState(() {});
+    return;
   }
 
   Widget switchBuild() {
     return Switch(
-        value: shareOpenOK,
+        value: shareInfo.open,
         onChanged: (v) async {
-          int c;
           if (v) {
-            c = await doShareOpen();
+            doShareOpen();
           } else {
-            c = await doShareClose();
-          }
-          if (c == 0) {
-            shareOpenOK = v;
-            setState(() {});
+            doShareClose();
           }
         });
   }
@@ -204,7 +185,7 @@ class _SyncDataState extends State<SyncData> {
     children.add(ListTile(
       leading: Tooltip(
         message:
-            "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${prefs.shareOpenPortCode == '' ? '$defaultPort/$defaultCode' : prefs.shareOpenPortCode}",
+            "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${shareInfo.port}/${shareInfo.port}",
         triggerMode: TooltipTriggerMode.tap,
         child: const Icon(Icons.info_outline),
       ),

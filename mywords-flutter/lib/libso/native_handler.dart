@@ -37,7 +37,9 @@ DynamicLibrary getLibGo() {
   throw "DynamicLibrary Platform: ${Platform.operatingSystem}  implement me";
 }
 
-class NonWebHandler implements Interface {
+final Handler handlerImplement = NativeHandler();
+
+class NativeHandler implements Handler {
   @override
   void initLib() async {
     final dir = await getApplicationSupportDirectory();
@@ -851,10 +853,22 @@ class NonWebHandler implements Interface {
     malloc.free(resultC);
     return respData.data ?? "";
   }
+
   @override
   String getHostName() {
     // default value is localhost
     return "";
   }
 
+  final _getShareInfo = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('GetShareInfo');
+
+  @override
+  ShareInfo getShareInfo() {
+    final resultC = _getShareInfo();
+    final RespData<ShareInfo> respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()), (json) => ShareInfo.fromJson(json));
+    malloc.free(resultC);
+    return respData.data!;
+  }
 }

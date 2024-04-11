@@ -6,8 +6,7 @@ import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/common/global_event.dart';
 

@@ -4,8 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/widgets/word_common.dart';
 
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/common/global_event.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';

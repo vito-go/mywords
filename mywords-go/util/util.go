@@ -68,16 +68,18 @@ func zipToWriter(writer io.Writer, zipDir string) (err error) {
 			return
 		}
 	}()
-	baseDir := filepath.Base(zipDir)
+	zipDir = filepath.ToSlash(zipDir)
+	baseDir := filepath.ToSlash(filepath.Base(zipDir))
 	err = filepath.WalkDir(zipDir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
+		path = filepath.ToSlash(path)
 		relPath, err := filepath.Rel(zipDir, path)
 		if err != nil {
 			return err
 		}
-		zipPath := filepath.Join(baseDir, relPath)
+		zipPath := filepath.ToSlash(filepath.Join(baseDir, relPath))
 		w, err := zw.Create(zipPath)
 		if err != nil {
 			return err

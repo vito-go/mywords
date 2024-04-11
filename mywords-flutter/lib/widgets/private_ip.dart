@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 
 class PrivateIP extends StatefulWidget {
   const PrivateIP({super.key});

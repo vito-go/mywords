@@ -16,6 +16,10 @@ import (
 )
 
 func (s *Server) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
+	if !s.shareOpen.Load() {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	var param ShareFileParam
 	defer r.Body.Close()
 	b, _ := io.ReadAll(r.Body)
@@ -33,7 +37,7 @@ func (s *Server) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Reques
 	err := ZipToWriterWithFilter(w, srcDataPath, &param)
 	if err != nil {
 		mylog.Error("share data error", "remoteHost", remoteHost, "err", err.Error())
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
 	mylog.Info("share data done", "remoteHost", remoteHost)
@@ -133,7 +137,13 @@ func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	})
 	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount, SyncKnownWords: syncKnownWords}
 	fileInfoBytes, _ := json.Marshal(param)
-	resp, err := http.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))
+	cli := http.Client{}
+	defer cli.CloseIdleConnections()
+	// 使用 http.Post 会默认使用http.DefaultClient, 会导致连接不释放.如果服务器关闭,客户端仍然保持连接
+	//
+	// // Serve a new connection.
+	//	func (c *conn) serve(ctx context.Context) {
+	resp, err := cli.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))
 	//resp, err := http.Get(httpUrl)
 	if err != nil {
 		return 0, err
@@ -162,34 +172,53 @@ func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	return n, nil
 }
 
-// ShareOpen .
+type ShareInfo struct {
+	Port int   `json:"port"`
+	Code int64 `json:"code"`
+	Open bool  `json:"open"`
+}
+
+// GetShareInfo .
+func (s *Server) GetShareInfo() *ShareInfo {
+	cfg := s.cfg.Load()
+	info := ShareInfo{
+		Port: cfg.SharePort,
+		Code: cfg.ShareCode,
+		Open: s.shareOpen.Load(),
+	}
+	return &info
+}
 func (s *Server) ShareOpen(port int, code int64) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if s.shareListener != nil {
 		_ = s.shareListener.Close()
 	}
+	mux := http.NewServeMux()
+	mux.HandleFunc(fmt.Sprintf("/%d", code), s.serverHTTPShareBackUpData)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
 	s.shareListener = lis
-	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("/%d", code), s.serverHTTPShareBackUpData)
-	var chanErr = make(chan error, 1)
+	s.shareOpen.Store(true)
+	c := s.cfg.Load().Clone()
+	c.ShareCode = code
+	c.SharePort = port
+	s.cfg.Store(c)
+	err = s.saveConfig()
+	if err != nil {
+		return err
+	}
+	mylog.Info("StartServer success", `port`, port)
 	go func() {
-		if err = http.Serve(lis, mux); err != nil {
-			chanErr <- err
+
+		err := http.Serve(lis, mux)
+		if err != nil {
+			mylog.Warn(err.Error())
 		}
 	}()
-	select {
-	case err = <-chanErr:
-		mylog.Error("Start Server error", `err`, err.Error())
-		return err
-	case <-time.After(time.Millisecond * 256):
-		mylog.Info("StartServer success", `port`, port)
-		return nil
-	}
+	return nil
 }
 
 // ShareClosed .
@@ -199,4 +228,5 @@ func (s *Server) ShareClosed() {
 	if s.shareListener != nil {
 		_ = s.shareListener.Close()
 	}
+	s.shareOpen.Store(false)
 }

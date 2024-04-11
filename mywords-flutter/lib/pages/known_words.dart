@@ -1,8 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler_for_native.dart'
-    if (dart.library.html) 'package:mywords/libso/handler_for_web.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/widgets/word_list.dart';
 import 'package:mywords/util/get_scaffold.dart';

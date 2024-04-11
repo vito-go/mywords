@@ -28,6 +28,12 @@ func call(function any, args []interface{}) (response []reflect.Value, err error
 		return nil, fmt.Errorf("args length not match, expect %d, but got %d", numIn, len(args))
 	}
 	argValues := make([]reflect.Value, numIn)
+	waitFreeC := make([]*C.char, 0, len(args))
+	defer func() {
+		for i := range waitFreeC {
+			C.free(unsafe.Pointer(waitFreeC[i]))
+		}
+	}()
 	for i, arg := range args {
 		var newValue reflect.Value
 		k := f.Type().In(i).Kind()
@@ -79,7 +85,7 @@ func call(function any, args []interface{}) (response []reflect.Value, err error
 				newValue = reflect.ValueOf(v)
 			case reflect.Ptr:
 				argC := C.CString(v)
-				defer C.free(unsafe.Pointer(argC))
+				waitFreeC = append(waitFreeC, argC)
 				newValue = reflect.ValueOf(argC)
 			default:
 				return nil, fmt.Errorf("args type not match,[%d] expect %v, but got %v", i, k, reflect.String)
@@ -94,7 +100,7 @@ func call(function any, args []interface{}) (response []reflect.Value, err error
 				newValue = reflect.ValueOf(s)
 			case reflect.Ptr:
 				argC := C.CString(s)
-				defer C.free(unsafe.Pointer(argC))
+				waitFreeC = append(waitFreeC, argC)
 				newValue = reflect.ValueOf(argC)
 			default:
 				return nil, fmt.Errorf("args type not match,[%d] expect %v, but got %v", i, k, reflect.String)

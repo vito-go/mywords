@@ -21,6 +21,7 @@ type ChartData struct {
 	LineValues  []lineValue    `json:"lineValues"` // multiple lines
 	BaselineY   int            `json:"baselineY"`
 	MinY        int            `json:"minY"`
+	MaxY        int            `json:"maxY,omitempty"`
 }
 
 func (chartData *ChartData) SetMinY() {
@@ -32,10 +33,22 @@ func (chartData *ChartData) SetMinY() {
 			}
 		}
 	}
-	if minY == math.MaxInt {
-		minY = 0
+	if minY != math.MaxInt {
+		chartData.MinY = minY
 	}
-	chartData.MinY = minY
+}
+func (chartData *ChartData) SetMaxY() {
+	var maxY = -math.MaxInt
+	for _, lv := range chartData.LineValues {
+		for _, v := range lv.FlSpots {
+			if v[1] > maxY {
+				maxY = v[1]
+			}
+		}
+	}
+	if maxY != -math.MaxInt {
+		chartData.MaxY = maxY
+	}
 }
 
 const lastDays = 20
@@ -106,6 +119,8 @@ func (s *Server) GetChartData() (*ChartData, error) {
 			chartData.LineValues[i].FlSpots = chartData.LineValues[i].FlSpots[len(chartData.LineValues[i].FlSpots)-lastDays:]
 		}
 	}
+	chartData.SetMinY()
+	chartData.SetMaxY()
 	return chartData, nil
 }
 func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
@@ -150,6 +165,7 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 		}
 	}
 	chartData.SetMinY()
+	chartData.SetMaxY()
 	return chartData, nil
 }
 
