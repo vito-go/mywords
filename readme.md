@@ -138,48 +138,44 @@
 1. **提取制作html文件及`word_html_map.json`**:
     ```python
     # coding: utf-8
-    import hashlib
+    import base64
     import json
     import os
     from readmdict import MDX, MDD
-    from urllib.parse import quote
     import os
     import sys
-    # from urllib.parse import unquote
     
-     
+    
     def makeHtml(mdxPath):
-        mdx = MDX(mdxPath)
-        base_dir=os.path.dirname(mdxPath)
-        all_words_path=os.path.join(base_dir,"word_html_map.json")
-        html_dir=os.path.join(base_dir,"html")
-        print("html directory is: "+html_dir)
-        print("all words json file path: "+all_words_path)
-        os.makedirs(html_dir,exist_ok=True)
-        i=0
-        allWordsMap={}
-        items=mdx.items()
-        for key,value in items:
-            i+=1
-            word=key.decode(encoding='utf-8')
-            word_quote=quote(word,safe='')
-            allWordsMap[word]=word_quote
-            html_path=os.path.join(html_dir,word_quote+".html")
-            df = open(html_path, 'wb')
-            df.write(value)
-            df.close()
-        b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
-        f2 = open(all_words_path, 'w')
-        f2.write(b)
-        f2.close()
-        print(i,"exit with 0")
+    mdx = MDX(mdxPath)
+    base_dir=os.path.dirname(mdxPath)
+    all_words_path=os.path.join(base_dir,"word_html_map.json")
+    html_dir=os.path.join(base_dir,"html")
+    print("html directory is: "+html_dir)
+    print("all words json file path: "+all_words_path)
+    os.makedirs(html_dir,exist_ok=True)
+    i=1
+    allWordsMap={}
+    items=mdx.items()
+    for key,value in items:
+    word=key.decode(encoding='utf-8')
+    work_html_name = str(i)
+    allWordsMap[word]=work_html_name
+    html_path=os.path.join(html_dir,work_html_name+".html")
+    df = open(html_path, 'wb')
+    df.write(value)
+    df.close()
+    i+=1
+    b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
+    f2 = open(all_words_path, 'w')
+    f2.write(b)
+    f2.close()
+    print(i,"exit with 0")
     
     if __name__ == '__main__':
-        # python extract_html.py <mdx_path>
-        # mdx_path=sys.argv[1]
-        mdx_path="<mdx_path>"
-        makeHtml(mdx_path)
-    
+    # python extract_html.py <mdx_path>
+    mdx_path=sys.argv[1]
+    makeHtml(mdx_path)
     ```
 - 2. **提取图片、声音资源文件(data 文件夹)**:
   ```shell
