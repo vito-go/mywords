@@ -123,9 +123,9 @@
 
   - 结构说明：
     - `data/`: 文件夹，存放字典资源文件，如图片、声音等。
-    - `html/`: 文件夹，存放单词释义的html文件。
-    - `*.css`, `*.js`: 文件，html文件夹下的html文件需要引用的资源，文件名应包含.html后缀。
-    - `word_html_map.json`: json文件，存放单词和html文件名的映射关系，格式为键值对json（key为单词，value为html文件名，不含.html后缀）。
+    - `html/`: 文件夹，存放单词释义的html页面文件，文件名应包含`.html`后缀。
+    - `*.css`, `*.js`: 静态资源文件，可以在压缩包根目录,也可以放在data文件夹下
+    - `word_html_map.json`: json文件，存放单词和html文件名的映射关系，格式为键值对json（key为单词，value为html文件名，不含`.html`后缀）。
 
 4. **自制词典数据**：
   - 您可以下载mdx/mdd格式的词典文件，例如[牛津高阶英汉双解词典（第10版）V3](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E8%AF%8D%E5%85%B8%EF%BC%88%E7%AC%AC10%E7%89%88%EF%BC%89V3/)
