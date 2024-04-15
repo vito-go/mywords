@@ -73,8 +73,8 @@ func (d *OneDict) writeByWordBaseHTMLPath(w http.ResponseWriter, word, baseHTMLP
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	d.addOnClickMp3(htmlNode)
-	d.changeEntreHref(htmlNode)
+	d.replaceSoundWithSourceURL(htmlNode)
+	d.changeEntryHref(htmlNode)
 	html.Render(w, htmlNode)
 	return
 }
@@ -114,6 +114,13 @@ func (m *MultiDict) serverAssetsExceptHtml(w http.ResponseWriter, r *http.Reques
 		w.Header().Set("Content-Type", "text/javascript")
 	} else if strings.HasSuffix(urlPath, ".css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	} else if strings.HasSuffix(urlPath, ".spx") {
+		// TODO
+		// Uncaught (in promise) DOMException: Failed to load because no supported source was found.
+		// HTML标准和大多数现代浏览器通常不支持SPX（Speex）格式的音频文件。
+		//浏览器的音频解码器通常支持的格式包括MP3, WAV, AAC, Ogg Vorbis, Ogg Opus, 和WebM等。
+
+		//w.Header().Set("Content-Type", "audio/x-speex")
 	}
 	http.ServeContent(w, r, urlPath, serverStartTime, bytes.NewReader(b))
 }
@@ -347,7 +354,6 @@ func (m *MultiDict) DelDict(basePath string) error {
 	return nil
 }
 func (m *MultiDict) AddDict(originalZipPath string) error {
-
 	dictBasePath := filepath.Base(originalZipPath)
 	_, ok := m.dictIndexInfo.DictBasePathTitleMap[dictBasePath]
 	if ok {

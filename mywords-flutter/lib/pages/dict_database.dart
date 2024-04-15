@@ -7,6 +7,7 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/local_cache.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
@@ -203,7 +204,7 @@ class _State extends State<DictDatabase> {
     final file = files[0];
     if (kIsWeb) {
       myPrint(
-          "字典数据库文件: ${file.name}: file.readStream==null: ${file.readStream==null} file.size: ${file.size} 文件大小: ${file.bytes?.length}");
+          "字典数据库文件: ${file.name}: file.readStream==null: ${file.readStream == null} file.size: ${file.size} 文件大小: ${file.bytes?.length}");
       if (file.readStream == null) {
         myToast(context, "读取文件失败: file bytes null");
         return;
@@ -236,6 +237,7 @@ class _State extends State<DictDatabase> {
     initDictDirNames();
     zipFilePath = '';
     defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
+    LocalCache.defaultDictBasePath = null;
     setState(() {});
   }
 
