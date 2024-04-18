@@ -181,9 +181,8 @@ func (s *Server) RootDataDir() string {
 	return s.rootDataDir
 }
 
-// ZipDataDir .
-func (s *Server) ZipDataDir() string {
-	return filepath.Join(s.rootDataDir, dataDir)
+func (s *Server) DataDir() string {
+	return filepath.ToSlash(filepath.Join(s.rootDataDir, dataDir))
 }
 
 func (s *Server) netProxy() *url.URL {
@@ -811,14 +810,9 @@ func (s *Server) articleFromGobGZContent(b []byte) (*artical.Article, error) {
 		return nil, err
 	}
 	defer gzReader.Close()
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gzReader)
-	if err != nil {
-		return nil, err
-	}
 	var art artical.Article
 	//gob unmarshal
-	err = gob.NewDecoder(bytes.NewReader(buf.Bytes())).Decode(&art)
+	err = gob.NewDecoder(gzReader).Decode(&art)
 	if err != nil {
 		return nil, err
 	}

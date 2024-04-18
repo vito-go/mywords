@@ -399,7 +399,7 @@ class ArticlePageState extends State<ArticlePage> {
       children.add(const SizedBox(height: 8));
       children.add(Expanded(
           child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16),
+              padding: const EdgeInsets.only(left: 16, right: 16,bottom: 10),
               child: buildWords(wordInfos))));
     }
     final body = Column(
