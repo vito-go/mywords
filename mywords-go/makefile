@@ -48,12 +48,12 @@ build-so-android:
 go-build:
 	@echo "build web for $(PLATFORM) platform"
 	- mkdir bin
-	CGO_ENABLED=1 go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/
+	CGO_ENABLED=1 go build -tags embed -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/
 build-web-platform:
 	@echo "build web for $(PLATFORM) platform"
 	cd $(FLUTTER_DIR) && make build-web
-	rm -rf cmd/web/
-	mv $(FLUTTER_DIR)/build/web ./cmd/
+	rm -rf www/web/
+	mv $(FLUTTER_DIR)/build/web www/
 	make go-build
 	@echo "build web for $(PLATFORM) platform successfully!"
 #    now you can run the binary file to start the web server

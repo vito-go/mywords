@@ -3,21 +3,17 @@
 package main
 
 import (
-	"embed"
 	"flag"
 	"fmt"
 	"mywords/mylog"
+	"mywords/www"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
 	"time"
 )
-
-// 请把flutter build web的文件放到web目录下 否则编译不通过 pattern web/*: no matching files found
-//
-//go:embed web/*
-var webEmbed embed.FS
 
 func main() {
 
@@ -27,7 +23,6 @@ func main() {
 	}
 	port := flag.Int("port", 18960, "http server port")
 	dictPort := flag.Int("dictPort", 18961, "dict port")
-	embeded := flag.Bool("embed", true, "embedded web")
 	rootDir := flag.String("rootDir", defaultRootDir, "root dir")
 	flag.Parse()
 	killOldPidAndGenNewPid(*rootDir)
@@ -42,21 +37,7 @@ func main() {
 	mux.HandleFunc("/_downloadBackUpdate", downloadBackUpdate)
 	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
 	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)
-
-	if *embeded {
-		// 请把flutter build web的文件放到web目录下
-		mux.Handle("/", http.FileServer(http.FS(&webEmbedHandler{webEmbed: webEmbed})))
-	} else {
-		// 本地开发时，使用flutter web的文件, 请不要在生产环境使用，以防build/web目录被删除, 例如flutter clean
-		_, file, _, ok := runtime.Caller(0)
-		if ok {
-			dir := filepath.ToSlash(filepath.Join(filepath.Dir(file), "../../../mywords-flutter/build/web"))
-			mylog.Info("embedded false", "dir", dir)
-			mux.Handle("/", http.FileServer(http.Dir(dir)))
-		} else {
-			panic("runtime.Caller failed")
-		}
-	}
+	mux.Handle("/", http.FileServer(www.FileSystem))
 	mylog.Info("server start", "port", *port, "rootDir", *rootDir)
 	go func() {
 		time.Sleep(time.Second)
@@ -65,4 +46,23 @@ func main() {
 	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
 	}
+}
+
+func getApplicationDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
+	switch runtime.GOOS {
+	case "windows":
+		defaultRootDir = filepath.Join(homeDir, "AppData/Roaming/com.example/mywords")
+	case "darwin":
+		defaultRootDir = filepath.Join(homeDir, "Library/Application Support/com.example.mywords")
+	case "linux":
+		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
+	}
+	// 请注意，如果同时打开多个应用，可能会导致目录冲突，数据造成不一致或丢失
+	defaultRootDir = filepath.ToSlash(defaultRootDir)
+	return defaultRootDir, err
 }

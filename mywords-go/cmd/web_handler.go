@@ -3,11 +3,9 @@ package main
 //#include <stdlib.h>
 import "C"
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/fs"
 	"mywords/mylog"
 	"mywords/util"
 	"net/http"
@@ -247,32 +245,4 @@ func openBrowser(url string) {
 		fmt.Printf("open url error: %s\n", url)
 	}
 	fmt.Printf("open %s in your browser\n", url)
-}
-func getApplicationDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
-	switch runtime.GOOS {
-	case "windows":
-		defaultRootDir = filepath.Join(homeDir, "AppData/Roaming/com.example/mywords")
-	case "darwin":
-		defaultRootDir = filepath.Join(homeDir, "Library/Application Support/com.example.mywords")
-	case "linux":
-		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
-	}
-	// 请注意，如果同时打开多个应用，可能会导致目录冲突，数据造成不一致或丢失
-	defaultRootDir = filepath.ToSlash(defaultRootDir)
-	return defaultRootDir, err
-}
-
-type webEmbedHandler struct {
-	webEmbed embed.FS
-}
-
-func (f webEmbedHandler) Open(name string) (fs.File, error) {
-	// 在windows系统下必须用toSlash 封装一下路径，否则，web\index.html!=web/index.html
-	name = filepath.ToSlash(filepath.Join("web", name))
-	return f.webEmbed.Open(name)
 }

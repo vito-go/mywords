@@ -26,3 +26,4 @@ vendor/
 *.profile
 _*.*
 cmd/web/*
+www/web/*
