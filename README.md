@@ -1,4 +1,5 @@
-# [English Version](README.md) | [中文版](README-zh-hans.md)
+## [English Version](README.md) | [中文版](README-zh-hans.md)
+
 
 ## Project Overview
 This project provides a tool for learning English vocabulary, designed specifically for English learners, by expanding their vocabulary through reading English or bilingual articles. Users can automatically extract words from the learning articles, analyze word frequency, filter words, and track and record their mastery level.
