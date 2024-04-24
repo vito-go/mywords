@@ -41,7 +41,11 @@ dependencies:
   flutter_widget_from_html_core: ^0.14.11
   url_launcher: ^6.2.3
   shared_preferences: ^2.2.2
-  file_picker: ^8.0.0+1
+  file_picker:
+    #  https://github.com/miguelpruivo/flutter_file_picker/pull/1496
+    #  Fix: TypeError: Instance of 'NativeByteBuffer': type 'NativeByteBuffer' is not a subtype of type 'List'.
+    git:
+        url: https://github.com/vito-go/flutter_file_picker
   fl_chart: ^0.67.0
   webview_flutter: ^4.4.4
   audioplayers: ^6.0.0
