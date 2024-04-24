@@ -207,10 +207,10 @@
 请按照上述步骤确保词典数据正确添加至你的学习工具中，以便在学习过程中查阅单词和词组的详细释义，从而更有效地提升你的语言能力。
 
 ## TODO
-- 暗黑主题色
-- IOS、MacOS平台支持
-- web版本支持(已完成)，支持本地部署及云端部署
-- README.md of English version
+- [ ] 暗黑主题色
+- [ ] IOS、MacOS平台支持
+- [x] web版本支持(已完成)，支持本地部署及云端部署
+- [x] README.md of English version
 
 ---
 
