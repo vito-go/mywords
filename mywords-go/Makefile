@@ -48,7 +48,7 @@ build-so-android:
 go-build:
 	@echo "build web for $(PLATFORM) platform"
 	- mkdir bin
-	CGO_ENABLED=1 go build -tags embed -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/
+	CGO_ENABLED=1 go build -ldflags="-s -w" -o ./bin/$(WEB_BIN_NAME) ./cmd/
 build-web-platform:
 	@echo "build web for $(PLATFORM) platform"
 	cd $(FLUTTER_DIR) && make build-web
