@@ -52,8 +52,8 @@ go-build:
 build-web-platform:
 	@echo "build web for $(PLATFORM) platform"
 	cd $(FLUTTER_DIR) && make build-web
-	rm -rf www/web/
-	mv $(FLUTTER_DIR)/build/web www/
+	rm -rf cmd/web/
+	mv $(FLUTTER_DIR)/build/web ./cmd/
 	make go-build
 	@echo "build web for $(PLATFORM) platform successfully!"
 #    now you can run the binary file to start the web server
