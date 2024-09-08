@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	port := flag.Int("port", 18960, "http server port")
+	port := flag.Int("port", 18960, "http client port")
 	dictPort := flag.Int("dictPort", 18961, "dict port")
 	rootDir := flag.String("rootDir", defaultRootDir, "root dir")
 	flag.Parse()
@@ -42,7 +42,7 @@ func main() {
 	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
 	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)
 	mux.Handle("/", http.FileServer(http.FS(&webEmbedHandler{webEmbed: webEmbed})))
-	mylog.Info("server start", "port", *port, "rootDir", *rootDir)
+	mylog.Info("client start", "port", *port, "rootDir", *rootDir)
 	go func() {
 		time.Sleep(time.Second)
 		openBrowser(fmt.Sprintf("http://localhost:%d", *port))

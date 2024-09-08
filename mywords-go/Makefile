@@ -56,7 +56,7 @@ build-web-platform:
 	mv $(FLUTTER_DIR)/build/web ./cmd/
 	make go-build
 	@echo "build web for $(PLATFORM) platform successfully!"
-#    now you can run the binary file to start the web server
+#    now you can run the binary file to start the web client
 	@echo "run the binary file '$(WEB_BIN_NAME)' to start the web server"
 	@echo "$$ cd bin && ./$(WEB_BIN_NAME)"
 	@echo "Open your browser and visit 'http://localhost:18960', or use the port that you have specified."

@@ -1,19 +1,27 @@
-package server
+package client
 
 import "C"
 import (
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/sha1"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"github.com/antchfx/xpath"
+	"golang.org/x/time/rate"
+	"gorm.io/gorm"
 	"io"
 	"mywords/artical"
+	"mywords/client/dao"
 	"mywords/dict"
+	"mywords/model"
+	"mywords/model/mtype"
 	"mywords/mylog"
+	"mywords/pkg/db"
+	"mywords/pkg/log"
 	"net"
 	"net/url"
 	"os"
@@ -26,33 +34,31 @@ import (
 	"unicode"
 )
 
-type WordKnownLevel int // from 1 to 3, 3 stands for the most known. zero means unknown.
-var allWordLevels = [...]WordKnownLevel{1, 2, 3}
-
-func (w WordKnownLevel) Name() string {
-
-	return fmt.Sprintf("%d级", w)
-}
-
-type Server struct {
+type Client struct {
 	rootDataDir string
-	xpathExpr   string                  //must can compile
-	cfg         *atomic.Pointer[config] // include proxyUrl, etc.
-	//
+	xpathExpr   string //must can compile
 	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
-	knownWordsMap *MySyncMapMap[string, WordKnownLevel] // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	//fileInfoMap1        map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
-	fileInfoMap         *MySyncMap[FileInfo] // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
-	fileInfoArchivedMap *MySyncMap[FileInfo] // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
 
 	mux           sync.Mutex //
 	shareListener net.Listener
 	shareOpen     *atomic.Bool
 	// multicast
-	remoteHostMap sync.Map // remoteHost: port
 
 	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
-	chartDateLevelCountMap *MySyncMapMap[WordKnownLevel, map[string]struct{}] // date: {1: {"words":{}}, 2: 200, 3: 300}
+
+	// 新字段
+
+	rootDir string
+
+	gdb             *gorm.DB
+	dbPath          string
+	allDao          *dao.AllDao
+	codeContentChan chan CodeContent
+	pprofListen     net.Listener //may be nil
+
+	messageLimiter *rate.Limiter
+	closed         atomic.Bool
 }
 
 type config struct {
@@ -70,11 +76,7 @@ func (c *config) Clone() *config {
 }
 
 const (
-	dataDir           = `data`                     // 存放背单词的目录
-	knownWordsFile    = "known_words.json"         // all known words
-	fileInfoFile      = "file_infos.json"          // file_infos.json index file
-	chartDataJsonFile = "daily_chart_data.json"    // daily_chart_data.json daily chart data
-	fileInfosArchived = "file_infos_archived.json" // file_infos_archived.json index file
+	dataDir = `data` // 存放背单词的目录
 )
 
 const (
@@ -83,109 +85,73 @@ const (
 	configFile      = "config.json"  // config.json
 )
 
-func NewServer(rootDataDir string) (*Server, error) {
+func NewServer(rootDataDir string) (*Client, error) {
 	rootDataDir = filepath.ToSlash(rootDataDir)
 	if err := os.MkdirAll(rootDataDir, 0755); err != nil {
 		return nil, err
 	}
+
+	dbDir := filepath.ToSlash(filepath.Join(rootDataDir, DirDB))
+	err := os.MkdirAll(dbDir, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+	dbPath := filepath.ToSlash(filepath.Join(dbDir, "myproxy.db"))
+	gdb, err := db.NewDB(dbPath)
+	if err != nil {
+		return nil, err
+	}
+	allDao := dao.NewAllDao(gdb)
 	if err := os.MkdirAll(filepath.Join(rootDataDir, dataDir, gobFileDir), 0755); err != nil {
 		return nil, err
 	}
-	b, err := os.ReadFile(filepath.Join(rootDataDir, dataDir, fileInfoFile))
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	fileInfoMap := make(map[string]FileInfo)
-	if len(b) > 0 {
-		err = json.Unmarshal(b, &fileInfoMap)
-		if err != nil {
-			return nil, err
-		}
-	}
-	fileInfoMapSync := NewMySyncMap[FileInfo]()
 
-	fileInfoMapSync.Replace(fileInfoMap)
-	b, err = os.ReadFile(filepath.Join(rootDataDir, dataDir, fileInfosArchived))
-	if err != nil && !os.IsNotExist(err) {
+	client := &Client{rootDataDir: rootDataDir,
+		xpathExpr:       artical.DefaultXpathExpr,
+		allDao:          allDao,
+		rootDir:         rootDataDir,
+		gdb:             gdb,
+		dbPath:          dbPath,
+		codeContentChan: make(chan CodeContent, 1024),
+		shareOpen:       &atomic.Bool{},
+	}
+	err = client.InitCreateTables()
+	if err != nil {
 		return nil, err
-	}
-	fileInfoArchivedMap := make(map[string]FileInfo)
-	if len(b) > 0 {
-		err = json.Unmarshal(b, &fileInfoArchivedMap)
-		if err != nil {
-			return nil, err
-		}
-	}
-	fileInfosArchivedMapSync := NewMySyncMap[FileInfo]()
-	fileInfosArchivedMapSync.Replace(fileInfoArchivedMap)
-	b, err = os.ReadFile(filepath.Join(rootDataDir, dataDir, knownWordsFile))
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	knownWordsMap := make(map[string]map[string]WordKnownLevel)
-	if len(b) > 0 {
-		err = json.Unmarshal(b, &knownWordsMap)
-		if err != nil {
-			return nil, err
-		}
-	}
-	knownWordsMapSync := NewSyncMapMap[string, WordKnownLevel]()
-	knownWordsMapSync.Replace(knownWordsMap)
-	b, err = os.ReadFile(filepath.Join(rootDataDir, configFile))
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	var cfg config
-	if len(b) > 0 {
-		err = json.Unmarshal(b, &cfg)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if cfg.SharePort == 0 {
-		cfg.SharePort = 18964
-	}
-	if cfg.ShareCode == 0 {
-		cfg.ShareCode = 890604
 	}
 
-	var chartDateLevelCountMap = make(map[string]map[WordKnownLevel]map[string]struct{})
-	b, err = os.ReadFile(filepath.Join(rootDataDir, dataDir, chartDataJsonFile))
-	if err != nil && !os.IsNotExist(err) {
+	pprofLis, err := client.startPProf()
+	if err != nil {
 		return nil, err
 	}
-	if len(b) > 0 {
-		err = json.Unmarshal(b, &chartDateLevelCountMap)
-		if err != nil {
-			return nil, err
+	client.pprofListen = pprofLis
+	log.SetHook(func(ctx context.Context, record *log.HookRecord) {
+		msg := record.Content
+		if debug.Load() {
+			client.SendCodeContent(CodeLog, msg)
 		}
-	}
-	chartDateLevelCountMapSync := NewSyncMapMap[WordKnownLevel, map[string]struct{}]()
-	chartDateLevelCountMapSync.Replace(chartDateLevelCountMap)
-	cfgAtomic := new(atomic.Pointer[config])
-	cfgAtomic.Store(&cfg)
-	s := &Server{rootDataDir: rootDataDir,
-		knownWordsMap:          knownWordsMapSync,
-		fileInfoMap:            fileInfoMapSync,
-		xpathExpr:              artical.DefaultXpathExpr,
-		chartDateLevelCountMap: chartDateLevelCountMapSync,
-		fileInfoArchivedMap:    fileInfosArchivedMapSync,
-		cfg:                    cfgAtomic,
-		shareOpen:              &atomic.Bool{},
-	}
-	return s, nil
+		level := record.Level
+
+		if level == log.LevelError {
+
+		} else if level == log.LevelWarn {
+
+		}
+
+	})
+	return client, nil
 }
 
 // RootDataDir . root data dir
-func (s *Server) RootDataDir() string {
+func (s *Client) RootDataDir() string {
 	return s.rootDataDir
 }
 
-func (s *Server) DataDir() string {
+func (s *Client) DataDir() string {
 	return filepath.ToSlash(filepath.Join(s.rootDataDir, dataDir))
 }
 
-func (s *Server) netProxy() *url.URL {
+func (s *Client) netProxy() *url.URL {
 	proxyUrl := s.cfg.Load().ProxyUrl
 	if proxyUrl == "" {
 		return nil
@@ -197,12 +163,12 @@ func (s *Server) netProxy() *url.URL {
 	return u
 }
 
-func (s *Server) ProxyURL() string {
+func (s *Client) ProxyURL() string {
 	return s.cfg.Load().ProxyUrl
 }
 
 // restoreFromBackUpDataFromAZipFile delete gob file and update fileInfoMap
-func (s *Server) restoreFromBackUpDataFromAZipFile(f *zip.File) error {
+func (s *Client) restoreFromBackUpDataFromAZipFile(f *zip.File) error {
 	r, err := f.Open()
 	if err != nil {
 		return err
@@ -221,7 +187,7 @@ func (s *Server) restoreFromBackUpDataFromAZipFile(f *zip.File) error {
 	return s.saveArticle(art)
 }
 
-func (s *Server) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]FileInfo, error) {
+func (s *Client) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]model.FileInfo, error) {
 	r, err := f.Open()
 	if err != nil {
 		return nil, err
@@ -232,9 +198,9 @@ func (s *Server) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]File
 		return nil, err
 	}
 	if len(b) == 0 {
-		return make(map[string]FileInfo), nil
+		return make(map[string]model.FileInfo), nil
 	}
-	var fileInfoMap = make(map[string]FileInfo)
+	var fileInfoMap = make(map[string]model.FileInfo)
 	err = json.Unmarshal(b, &fileInfoMap)
 	if err != nil {
 		return nil, err
@@ -243,7 +209,7 @@ func (s *Server) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]File
 }
 
 // restoreFromBackUpDataKnownWordsFile delete gob file and update knownWordsMap
-func (s *Server) restoreFromBackUpDataKnownWordsFile(f *zip.File) error {
+func (s *Client) restoreFromBackUpDataKnownWordsFile(f *zip.File) error {
 	r, err := f.Open()
 	if err != nil {
 		return err
@@ -256,7 +222,7 @@ func (s *Server) restoreFromBackUpDataKnownWordsFile(f *zip.File) error {
 	if len(b) == 0 {
 		return nil
 	}
-	var knownWordsMap = make(map[string]map[string]WordKnownLevel)
+	var knownWordsMap = make(map[string]map[string]mtype.WordKnownLevel)
 	err = json.Unmarshal(b, &knownWordsMap)
 	if err != nil {
 		return err
@@ -271,10 +237,10 @@ func (s *Server) restoreFromBackUpDataKnownWordsFile(f *zip.File) error {
 	return s.saveKnownWordsMapToFile()
 }
 
-func (s *Server) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
+func (s *Client) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
 	return s.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount, syncByRemoteArchived)
 }
-func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
+func (s *Client) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
 	r, err := zip.OpenReader(backUpDataZipPath)
 	if err != nil {
 		return err
@@ -295,7 +261,7 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 			}
 		}
 	}
-	var fileInfoMap map[string]FileInfo
+	var fileInfoMap map[string]model.FileInfo
 	// restore file_infos.json
 	for _, f := range r.File {
 		if filepath.Base(f.Name) == fileInfoFile {
@@ -306,7 +272,7 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 			break
 		}
 	}
-	var fileInfoArchivedMap map[string]FileInfo
+	var fileInfoArchivedMap map[string]model.FileInfo
 	for _, f := range r.File {
 		if filepath.Base(f.Name) == fileInfosArchived {
 			fileInfoArchivedMap, err = s.restoreFromBackUpDataFileInfoFile(f)
@@ -320,8 +286,8 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 	if len(fileInfoMap) == 0 {
 		return nil
 	}
-	var fileInfoMapOK = make(map[string]FileInfo)
-	var fileInfoMapArchivedOK = make(map[string]FileInfo)
+	var fileInfoMapOK = make(map[string]model.FileInfo)
+	var fileInfoMapArchivedOK = make(map[string]model.FileInfo)
 
 	// restore gob files
 	for _, f := range r.File {
@@ -404,7 +370,7 @@ func (s *Server) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 	}
 	return nil
 }
-func (s *Server) parseChartDateLevelCountMapFromGobFile(r io.ReadCloser) error {
+func (s *Client) parseChartDateLevelCountMapFromGobFile(r io.ReadCloser) error {
 	defer r.Close()
 	b, err := io.ReadAll(r)
 	if err != nil {
@@ -413,7 +379,7 @@ func (s *Server) parseChartDateLevelCountMapFromGobFile(r io.ReadCloser) error {
 	if len(b) == 0 {
 		return nil
 	}
-	var chartDateLevelCountMap = make(map[string]map[WordKnownLevel]map[string]struct{})
+	var chartDateLevelCountMap = make(map[string]map[mtype.WordKnownLevel]map[string]struct{})
 	err = json.Unmarshal(b, &chartDateLevelCountMap)
 	if err != nil {
 		return err
@@ -442,16 +408,16 @@ func (s *Server) parseChartDateLevelCountMapFromGobFile(r io.ReadCloser) error {
 }
 
 // KnownWordsMap .
-func (s *Server) KnownWordsMap() map[string]map[string]WordKnownLevel {
+func (s *Client) KnownWordsMap() map[string]map[string]mtype.WordKnownLevel {
 	return s.knownWordsMap.CopyData()
 }
 
 // FixMyKnownWords .
-func (s *Server) FixMyKnownWords() error {
-	newMap := make(map[string]map[string]WordKnownLevel)
+func (s *Client) FixMyKnownWords() error {
+	newMap := make(map[string]map[string]mtype.WordKnownLevel)
 	for letter, wordLevelMap := range s.knownWordsMap.CopyData() {
 		if _, ok := newMap[letter]; !ok {
-			newMap[letter] = make(map[string]WordKnownLevel)
+			newMap[letter] = make(map[string]mtype.WordKnownLevel)
 		}
 		for word, level := range wordLevelMap {
 			if unicode.IsUpper(rune(word[0])) {
@@ -469,7 +435,7 @@ func (s *Server) FixMyKnownWords() error {
 }
 
 // SetProxyUrl .
-func (s *Server) SetProxyUrl(proxyUrl string) error {
+func (s *Client) SetProxyUrl(proxyUrl string) error {
 	cfg := s.cfg.Load()
 	cfgNew := new(config)
 	*cfgNew = *cfg
@@ -488,7 +454,7 @@ func (s *Server) SetProxyUrl(proxyUrl string) error {
 }
 
 // SetXpathExpr . usually for debug
-func (s *Server) SetXpathExpr(expr string) (err error) {
+func (s *Client) SetXpathExpr(expr string) (err error) {
 	if expr == "" {
 		s.xpathExpr = artical.DefaultXpathExpr
 		return nil
@@ -501,7 +467,7 @@ func (s *Server) SetXpathExpr(expr string) (err error) {
 	return nil
 }
 
-func (s *Server) UpdateKnownWords(level WordKnownLevel, words ...string) error {
+func (s *Client) UpdateKnownWords(level mtype.WordKnownLevel, words ...string) error {
 
 	for _, word := range words {
 		//updateKnownWordCountLineChart must be ahead of updateKnownWords
@@ -518,7 +484,7 @@ func (s *Server) UpdateKnownWords(level WordKnownLevel, words ...string) error {
 	return nil
 
 }
-func (s *Server) updateKnownWords(level WordKnownLevel, words ...string) error {
+func (s *Client) updateKnownWords(level mtype.WordKnownLevel, words ...string) error {
 	if len(words) == 0 {
 		return nil
 	}
@@ -539,7 +505,7 @@ func (s *Server) updateKnownWords(level WordKnownLevel, words ...string) error {
 }
 
 // saveKnownWordsMapToFile save knownWordsMap to file
-func (s *Server) saveKnownWordsMapToFile() error {
+func (s *Client) saveKnownWordsMapToFile() error {
 	//save to file
 	b, _ := json.MarshalIndent(s.knownWordsMap.CopyData(), "", "  ")
 	path := filepath.Join(s.rootDataDir, dataDir, knownWordsFile)
@@ -550,7 +516,7 @@ func (s *Server) saveKnownWordsMapToFile() error {
 	return nil
 }
 
-func (s *Server) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, htmlContent []byte, lastModified int64) (*artical.Article, error) {
+func (s *Client) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, htmlContent []byte, lastModified int64) (*artical.Article, error) {
 	art, err := artical.ParseContent(sourceUrl, s.xpathExpr, htmlContent, lastModified)
 	if err != nil {
 		return nil, err
@@ -561,7 +527,7 @@ func (s *Server) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, ht
 	}
 	return art, nil
 }
-func (s *Server) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Article, error) {
+func (s *Client) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Article, error) {
 	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.netProxy())
 	if err != nil {
 		return nil, err
@@ -574,7 +540,7 @@ func (s *Server) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Ar
 	return art, nil
 }
 
-func (s *Server) ParseAndSaveArticleFromFile(path string) (*artical.Article, error) {
+func (s *Client) ParseAndSaveArticleFromFile(path string) (*artical.Article, error) {
 	art, err := artical.ParseLocalFile(path)
 	if err != nil {
 		return nil, err
@@ -586,7 +552,7 @@ func (s *Server) ParseAndSaveArticleFromFile(path string) (*artical.Article, err
 	return art, nil
 }
 
-func (s *Server) saveArticle(art *artical.Article) error {
+func (s *Client) saveArticle(art *artical.Article) error {
 	lastModified := art.LastModified
 	if lastModified <= 0 {
 		lastModified = time.Now().UnixMilli()
@@ -616,7 +582,7 @@ func (s *Server) saveArticle(art *artical.Article) error {
 		return err
 	}
 	// save FileInfo
-	fileInfo := FileInfo{
+	fileInfo := model.FileInfo{
 		Title:        art.Title,
 		SourceUrl:    sourceUrl,
 		FileName:     fileName,
@@ -644,12 +610,12 @@ func (s *Server) saveArticle(art *artical.Article) error {
 	return nil
 }
 
-func (s *Server) ShowFileInfoList() []FileInfo {
-	var items = make([]FileInfo, 0, s.fileInfoMap.Len())
+func (s *Client) ShowFileInfoList() []model.FileInfo {
+	var items = make([]model.FileInfo, 0, s.fileInfoMap.Len())
 	//for _, v := range s.fileInfoMap {
 	//	items = append(items, v)
 	//}
-	s.fileInfoMap.Range(func(key string, value FileInfo) bool {
+	s.fileInfoMap.Range(func(key string, value model.FileInfo) bool {
 		items = append(items, value)
 		return true
 	})
@@ -659,9 +625,9 @@ func (s *Server) ShowFileInfoList() []FileInfo {
 	})
 	return items
 }
-func (s *Server) GetFileNameBySourceUrl(sourceUrl string) (string, bool) {
+func (s *Client) GetFileNameBySourceUrl(sourceUrl string) (string, bool) {
 	var fileName string
-	s.fileInfoMap.Range(func(key string, value FileInfo) bool {
+	s.fileInfoMap.Range(func(key string, value model.FileInfo) bool {
 		if sourceUrl == value.SourceUrl {
 			fileName = value.FileName
 			return false
@@ -678,7 +644,7 @@ func (s *Server) GetFileNameBySourceUrl(sourceUrl string) (string, bool) {
 	//	}
 	//}
 
-	s.fileInfoArchivedMap.Range(func(key string, value FileInfo) bool {
+	s.fileInfoArchivedMap.Range(func(key string, value model.FileInfo) bool {
 		if sourceUrl == value.SourceUrl {
 			fileName = value.FileName
 			return false
@@ -697,9 +663,9 @@ func (s *Server) GetFileNameBySourceUrl(sourceUrl string) (string, bool) {
 	return "", false
 }
 
-func (s *Server) GetArchivedFileInfoList() []FileInfo {
-	var items = make([]FileInfo, 0, s.fileInfoArchivedMap.Len())
-	s.fileInfoArchivedMap.Range(func(key string, value FileInfo) bool {
+func (s *Client) GetArchivedFileInfoList() []model.FileInfo {
+	var items = make([]model.FileInfo, 0, s.fileInfoArchivedMap.Len())
+	s.fileInfoArchivedMap.Range(func(key string, value model.FileInfo) bool {
 		items = append(items, value)
 		return true
 	})
@@ -714,10 +680,10 @@ func (s *Server) GetArchivedFileInfoList() []FileInfo {
 	return items
 }
 
-func (s *Server) QueryWordLevel(word string) (WordKnownLevel, bool) {
+func (s *Client) QueryWordLevel(word string) (mtype.WordKnownLevel, bool) {
 	return s.queryWordLevel(word)
 }
-func (s *Server) queryWordLevel(word string) (WordKnownLevel, bool) {
+func (s *Client) queryWordLevel(word string) (mtype.WordKnownLevel, bool) {
 	// check level
 	if len(word) == 0 {
 		return 0, false
@@ -731,11 +697,11 @@ func (s *Server) queryWordLevel(word string) (WordKnownLevel, bool) {
 	return s.knownWordsMap.Get(firstLetter, word)
 
 }
-func (s *Server) QueryWordsLevel(words ...string) map[string]WordKnownLevel {
+func (s *Client) QueryWordsLevel(words ...string) map[string]mtype.WordKnownLevel {
 	if len(words) == 0 {
-		return map[string]WordKnownLevel{}
+		return map[string]mtype.WordKnownLevel{}
 	}
-	resultMap := make(map[string]WordKnownLevel, len(words))
+	resultMap := make(map[string]mtype.WordKnownLevel, len(words))
 	for _, word := range words {
 		firstLetter := strings.ToLower(word[:1])
 		if level, ok := s.knownWordsMap.Get(firstLetter, word); ok {
@@ -748,8 +714,8 @@ func (s *Server) QueryWordsLevel(words ...string) map[string]WordKnownLevel {
 	return resultMap
 }
 
-func (s *Server) LevelDistribute(words []string) map[WordKnownLevel]int {
-	var m = make(map[WordKnownLevel]int, 3)
+func (s *Client) LevelDistribute(words []string) map[mtype.WordKnownLevel]int {
+	var m = make(map[mtype.WordKnownLevel]int, 3)
 	for _, word := range words {
 		firstLetter := strings.ToLower(word[:1])
 		if l, ok := s.knownWordsMap.Get(firstLetter, word); ok {
@@ -760,8 +726,8 @@ func (s *Server) LevelDistribute(words []string) map[WordKnownLevel]int {
 	}
 	return m
 }
-func (s *Server) AllKnownWordMap() map[WordKnownLevel][]string {
-	var m = make(map[WordKnownLevel][]string, 3)
+func (s *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
+	var m = make(map[mtype.WordKnownLevel][]string, 3)
 	for _, wordLevelMap := range s.knownWordsMap.CopyData() {
 		for word, level := range wordLevelMap {
 			m[level] = append(m[level], word)
@@ -774,8 +740,8 @@ func (s *Server) AllKnownWordMap() map[WordKnownLevel][]string {
 	}
 	return m
 }
-func (s *Server) TodayKnownWordMap() map[WordKnownLevel][]string {
-	var m = make(map[WordKnownLevel][]string, 3)
+func (s *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
+	var m = make(map[mtype.WordKnownLevel][]string, 3)
 	today := time.Now().Format("2006-01-02")
 	levelWordMap, _ := s.chartDateLevelCountMap.GetMapByKey(today)
 	for level, wordLevelMap := range levelWordMap {
@@ -791,11 +757,11 @@ func (s *Server) TodayKnownWordMap() map[WordKnownLevel][]string {
 	return m
 }
 
-func (s *Server) ArticleFromGobFile(fileName string) (*artical.Article, error) {
+func (s *Client) ArticleFromGobFile(fileName string) (*artical.Article, error) {
 	return s.articleFromGobFile(fileName)
 }
 
-func (s *Server) articleFromGobFile(fileName string) (*artical.Article, error) {
+func (s *Client) articleFromGobFile(fileName string) (*artical.Article, error) {
 	path := filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName)
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -804,7 +770,7 @@ func (s *Server) articleFromGobFile(fileName string) (*artical.Article, error) {
 	}
 	return s.articleFromGobGZContent(b)
 }
-func (s *Server) articleFromGobGZContent(b []byte) (*artical.Article, error) {
+func (s *Client) articleFromGobGZContent(b []byte) (*artical.Article, error) {
 	gzReader, err := gzip.NewReader(bytes.NewReader(b))
 	if err != nil {
 		return nil, err
@@ -820,10 +786,10 @@ func (s *Server) articleFromGobGZContent(b []byte) (*artical.Article, error) {
 }
 
 // DeleteGobFile delete gob file and update fileInfoMap
-func (s *Server) DeleteGobFile(fileName string) error {
+func (s *Client) DeleteGobFile(fileName string) error {
 	return s.deleteGobFile(fileName)
 }
-func (s *Server) deleteGobFile(fileName string) error {
+func (s *Client) deleteGobFile(fileName string) error {
 	var err error
 	s.fileInfoMap.Delete(fileName)
 	//delete(s.fileInfoMap, fileName)
@@ -843,7 +809,7 @@ func (s *Server) deleteGobFile(fileName string) error {
 }
 
 // ArchiveGobFile archive the gob file
-func (s *Server) ArchiveGobFile(fileName string) error {
+func (s *Client) ArchiveGobFile(fileName string) error {
 	info, ok := s.fileInfoMap.Get(fileName)
 	if !ok {
 		return nil
@@ -859,7 +825,7 @@ func (s *Server) ArchiveGobFile(fileName string) error {
 }
 
 // UnArchiveGobFile UnArchive the gob file
-func (s *Server) UnArchiveGobFile(fileName string) error {
+func (s *Client) UnArchiveGobFile(fileName string) error {
 	info, ok := s.fileInfoArchivedMap.Get(fileName)
 	if !ok {
 		return nil
@@ -874,8 +840,8 @@ func (s *Server) UnArchiveGobFile(fileName string) error {
 }
 
 // saveFileInfo .
-func (s *Server) saveFileInfoMap() error {
-	s.fileInfoArchivedMap.Range(func(key string, value FileInfo) bool {
+func (s *Client) saveFileInfoMap() error {
+	s.fileInfoArchivedMap.Range(func(key string, value model.FileInfo) bool {
 		s.fileInfoMap.Delete(key)
 		return true
 	})
@@ -901,7 +867,7 @@ func (s *Server) saveFileInfoMap() error {
 }
 
 // saveFileInfo .
-func (s *Server) saveChartDataFile() error {
+func (s *Client) saveChartDataFile() error {
 	path := filepath.Join(s.rootDataDir, dataDir, chartDataJsonFile)
 	b, _ := json.MarshalIndent(s.chartDateLevelCountMap.CopyData(), "", "  ")
 	err := os.WriteFile(path, b, 0644)
@@ -912,7 +878,7 @@ func (s *Server) saveChartDataFile() error {
 }
 
 // saveConfig .
-func (s *Server) saveConfig() error {
+func (s *Client) saveConfig() error {
 	path := filepath.Join(s.rootDataDir, configFile)
 	b, _ := json.MarshalIndent(s.cfg.Load(), "", "  ")
 	err := os.WriteFile(path, b, 0644)

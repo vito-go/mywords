@@ -1,6 +1,9 @@
-package server
+package client
 
-import "sync"
+import (
+	"mywords/model/mtype"
+	"sync"
+)
 
 type MySyncMap[T any] struct {
 	data map[string]T
@@ -66,7 +69,7 @@ func NewMySyncMap[T any]() *MySyncMap[T] {
 	}
 }
 
-type MySyncMapMap[K string | WordKnownLevel, T any] struct {
+type MySyncMapMap[K string | mtype.WordKnownLevel, T any] struct {
 	mux  sync.RWMutex
 	data map[string]map[K]T
 }
@@ -78,7 +81,7 @@ func (m *MySyncMapMap[K, T]) Len() int {
 
 }
 
-func NewSyncMapMap[K string | WordKnownLevel, T any]() *MySyncMapMap[K, T] {
+func NewSyncMapMap[K string | mtype.WordKnownLevel, T any]() *MySyncMapMap[K, T] {
 	return &MySyncMapMap[K, T]{
 		mux:  sync.RWMutex{},
 		data: make(map[string]map[K]T),

@@ -1,4 +1,4 @@
-package server
+package client
 
 import (
 	"archive/zip"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"mywords/model"
 	"mywords/mylog"
 	"net"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-func (s *Server) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
+func (s *Client) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
 	if !s.shareOpen.Load() {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -96,7 +97,7 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 }
 
 // RestoreFromShareServer . restore from a zip file,tempDir can be empty
-func (s *Server) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount, syncByRemoteArchived bool) error {
+func (s *Client) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount, syncByRemoteArchived bool) error {
 	httpUrl := fmt.Sprintf("http://%s:%d/%d", ip, port, code)
 	// save to temp dir
 	tempZipPath := filepath.Join(tempDir, fmt.Sprintf("mywors-%d.zip", time.Now().UnixMilli()))
@@ -124,14 +125,14 @@ type ShareFileParam struct {
 	SyncKnownWords       bool            `json:"syncKnownWords"`
 }
 
-func (s *Server) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
+func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
 	allExistGobGzFileMap := make(map[string]bool, s.fileInfoMap.Len()+s.fileInfoMap.Len())
-	s.fileInfoMap.Range(func(key string, value FileInfo) bool {
+	s.fileInfoMap.Range(func(key string, value model.FileInfo) bool {
 		allExistGobGzFileMap[key] = true
 		return true
 	})
 
-	s.fileInfoArchivedMap.Range(func(key string, value FileInfo) bool {
+	s.fileInfoArchivedMap.Range(func(key string, value model.FileInfo) bool {
 		allExistGobGzFileMap[key] = true
 		return true
 	})
@@ -179,7 +180,7 @@ type ShareInfo struct {
 }
 
 // GetShareInfo .
-func (s *Server) GetShareInfo() *ShareInfo {
+func (s *Client) GetShareInfo() *ShareInfo {
 	cfg := s.cfg.Load()
 	info := ShareInfo{
 		Port: cfg.SharePort,
@@ -188,7 +189,7 @@ func (s *Server) GetShareInfo() *ShareInfo {
 	}
 	return &info
 }
-func (s *Server) ShareOpen(port int, code int64) error {
+func (s *Client) ShareOpen(port int, code int64) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if s.shareListener != nil {
@@ -222,7 +223,7 @@ func (s *Server) ShareOpen(port int, code int64) error {
 }
 
 // ShareClosed .
-func (s *Server) ShareClosed() {
+func (s *Client) ShareClosed() {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if s.shareListener != nil {

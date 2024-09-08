@@ -1,7 +1,8 @@
-package server
+package client
 
 import (
 	"math"
+	"mywords/model/mtype"
 	"sort"
 	"time"
 )
@@ -53,21 +54,21 @@ func (chartData *ChartData) SetMaxY() {
 
 const lastDays = 20
 
-func (s *Server) GetToadyChartDateLevelCountMap() map[WordKnownLevel]int {
+func (s *Client) GetToadyChartDateLevelCountMap() map[mtype.WordKnownLevel]int {
 	today := time.Now().Format("2006-01-02")
 	// copy s.chartDateLevelCountMap
 
 	if s.chartDateLevelCountMap.Len() == 0 {
 		return nil
 	}
-	todayLevelCountMap := make(map[WordKnownLevel]int, 3)
+	todayLevelCountMap := make(map[mtype.WordKnownLevel]int, 3)
 	levelWordMap, _ := s.chartDateLevelCountMap.GetMapByKey(today)
-	for _, level := range allWordLevels {
+	for _, level := range mtype.AllWordLevels {
 		todayLevelCountMap[level] = len(levelWordMap[level])
 	}
 	return todayLevelCountMap
 }
-func (s *Server) GetChartData() (*ChartData, error) {
+func (s *Client) GetChartData() (*ChartData, error) {
 
 	var chartData = &ChartData{
 		Title:       "每日单词掌握情况分级统计",
@@ -83,9 +84,9 @@ func (s *Server) GetChartData() (*ChartData, error) {
 	const allTitle = "all"
 	chartData.LineValues = []lineValue{
 		{Tip: allTitle, BarWidth: 2.0},
-		{Tip: WordKnownLevel(1).Name(), BarWidth: 0.5},
-		{Tip: WordKnownLevel(2).Name(), BarWidth: 0.75},
-		{Tip: WordKnownLevel(3).Name(), BarWidth: 1.0},
+		{Tip: mtype.WordKnownLevel(1).Name(), BarWidth: 0.5},
+		{Tip: mtype.WordKnownLevel(2).Name(), BarWidth: 0.75},
+		{Tip: mtype.WordKnownLevel(3).Name(), BarWidth: 1.0},
 	}
 	allDates := s.chartDateLevelCountMap.AllKeys()
 	sort.Strings(allDates)
@@ -103,7 +104,7 @@ func (s *Server) GetChartData() (*ChartData, error) {
 				break
 			}
 		}
-		for _, level := range allWordLevels {
+		for _, level := range mtype.AllWordLevels {
 			count := len(levelCountMap[level])
 			for i := 0; i < len(chartData.LineValues); i++ {
 				if chartData.LineValues[i].Tip == level.Name() {
@@ -123,7 +124,7 @@ func (s *Server) GetChartData() (*ChartData, error) {
 	chartData.SetMaxY()
 	return chartData, nil
 }
-func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
+func (s *Client) GetChartDataAccumulate() (*ChartData, error) {
 
 	var chartData = &ChartData{
 		Title:       "累计单词掌握情况统计",
@@ -169,14 +170,14 @@ func (s *Server) GetChartDataAccumulate() (*ChartData, error) {
 	return chartData, nil
 }
 
-func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string) {
+func (s *Client) updateKnownWordCountLineChart(level mtype.WordKnownLevel, word string) {
 	l, ok := s.queryWordLevel(word)
 	if ok && level <= l {
 		// only update level to higher
 		return
 	}
 	today := time.Now().Format("2006-01-02")
-	for _, wordLevel := range allWordLevels {
+	for _, wordLevel := range mtype.AllWordLevels {
 		levelWordMap, ok := s.chartDateLevelCountMap.GetMapByKey(today)
 		if ok {
 			wordMap := levelWordMap[wordLevel]
@@ -191,7 +192,7 @@ func (s *Server) updateKnownWordCountLineChart(level WordKnownLevel, word string
 	}
 	levelWordMap, ok := s.chartDateLevelCountMap.GetMapByKey(today)
 	if !ok {
-		levelWordMap = make(map[WordKnownLevel]map[string]struct{})
+		levelWordMap = make(map[mtype.WordKnownLevel]map[string]struct{})
 	}
 	wordMap, _ := levelWordMap[level]
 	wordMapNew := make(map[string]struct{})

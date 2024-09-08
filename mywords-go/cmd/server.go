@@ -4,16 +4,17 @@ import "C"
 import (
 	"encoding/json"
 	"mywords/artical"
+	"mywords/client"
 	"mywords/dict"
+	"mywords/model/mtype"
 	"mywords/mylog"
-	"mywords/server"
 	"mywords/util"
 	"net"
 	"sort"
 	"strings"
 )
 
-var serverGlobal *server.Server
+var serverGlobal *client.Client
 
 //export UpdateKnownWords
 func UpdateKnownWords(level int, c *C.char) *C.char {
@@ -23,7 +24,7 @@ func UpdateKnownWords(level int, c *C.char) *C.char {
 		return CharErr(err.Error())
 	}
 	mylog.Info("UpdateKnownWords", "level", level, "words", words)
-	err = serverGlobal.UpdateKnownWords(server.WordKnownLevel(level), words...)
+	err = serverGlobal.UpdateKnownWords(mtype.WordKnownLevel(level), words...)
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -157,7 +158,7 @@ func DictWordQueryLink(wordC *C.char) *C.char {
 
 //export KnownWordsCountMap
 func KnownWordsCountMap() *C.char {
-	var m = make(map[server.WordKnownLevel]int, 3)
+	var m = make(map[mtype.WordKnownLevel]int, 3)
 	for _, knownWordsMap := range serverGlobal.KnownWordsMap() {
 		for _, level := range knownWordsMap {
 			if level <= 0 {

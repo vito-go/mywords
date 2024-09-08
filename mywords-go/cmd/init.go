@@ -2,8 +2,8 @@ package main
 
 import "C"
 import (
+	"mywords/client"
 	"mywords/dict"
-	"mywords/server"
 	"sync"
 	"time"
 )
@@ -26,7 +26,7 @@ func Init(rootDataDirC *C.char) {
 }
 func initGlobal(rootDataDir string, dictRunPort int) {
 	var err error
-	serverGlobal, err = server.NewServer(rootDataDir)
+	serverGlobal, err = client.NewServer(rootDataDir)
 	if err != nil {
 		panic(err)
 	}
