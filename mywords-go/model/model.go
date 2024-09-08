@@ -1,5 +1,7 @@
 package model
 
+import "mywords/model/mtype"
+
 type FileInfo struct {
 	ID        int64  `json:"id"`
 	Title     string `json:"title"`
@@ -39,11 +41,10 @@ type DictInfo struct {
 }
 
 type KeyValue struct {
-	ID    int64 `json:"id"`
-	KeyId KeyId `json:"keyId"` // unique
+	ID    int64       `json:"id"`
+	KeyId mtype.KeyId `json:"keyId"` // unique
 	// rename Key to KeyId
 	Value    string `json:"value"`
 	CreateAt int64  `json:"createAt"`
 	UpdateAt int64  `json:"updateAt"`
 }
-type KeyId int

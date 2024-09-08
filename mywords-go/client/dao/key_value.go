@@ -5,6 +5,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"mywords/model"
+	"mywords/model/mtype"
+	"mywords/pkg/db"
 )
 
 type keyValueDao struct {
@@ -54,6 +56,24 @@ func (m *keyValueDao) AllItems(ctx context.Context) ([]model.KeyValue, error) {
 	var msgs []model.KeyValue
 	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
 	return msgs, err
+}
+func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
+	item, err := m.ItemByKeyId(ctx, mtype.KeyIdProxy)
+	if err != nil {
+		return "", err
+	}
+	return item.Value, nil
+}
+func (m *keyValueDao) ItemByKeyId(ctx context.Context, keyId int64) (*model.KeyValue, error) {
+	var msg model.KeyValue
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Find(&msg)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return nil, db.DataNotFound
+	}
+	return &msg, nil
 }
 
 // DeleteById .

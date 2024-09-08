@@ -76,13 +76,9 @@ func (c *config) Clone() *config {
 }
 
 const (
-	dataDir = `data` // 存放背单词的目录
-)
-
-const (
+	dataDir         = `data`         // 存放背单词的目录
 	gobFileDir      = "gob_gz_files" // a.txt.gob, b.txt.gob, c.txt.gob ...
 	gobGzFileSuffix = ".gob.gz"      // file_infos.json index file
-	configFile      = "config.json"  // config.json
 )
 
 func NewServer(rootDataDir string) (*Client, error) {
@@ -151,20 +147,25 @@ func (s *Client) DataDir() string {
 	return filepath.ToSlash(filepath.Join(s.rootDataDir, dataDir))
 }
 
-func (s *Client) netProxy() *url.URL {
-	proxyUrl := s.cfg.Load().ProxyUrl
-	if proxyUrl == "" {
+func (s *Client) netProxy(ctx context.Context) *url.URL {
+	proxy, err := s.allDao.KeyValueDao.Proxy(ctx)
+	if err != nil {
 		return nil
 	}
-	u, err := url.Parse(proxyUrl)
+
+	u, err := url.Parse(proxy)
 	if err != nil {
-		return u
+		return nil
 	}
 	return u
 }
 
 func (s *Client) ProxyURL() string {
-	return s.cfg.Load().ProxyUrl
+	u := s.netProxy(context.Background())
+	if u == nil {
+		return ""
+	}
+	return u.String()
 }
 
 // restoreFromBackUpDataFromAZipFile delete gob file and update fileInfoMap

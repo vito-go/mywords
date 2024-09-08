@@ -7,6 +7,8 @@ import (
 	"mywords/pkg/db/dblogger"
 )
 
+var DataNotFound = gorm.ErrRecordNotFound
+
 func NewDB(dbPath string) (*gorm.DB, error) {
 	//auto_vacuum 支持的值有：NONE, FULL, INCREMENTAL
 	//https://www.sqlite.org/pragma.html#pragma_auto_vacuum

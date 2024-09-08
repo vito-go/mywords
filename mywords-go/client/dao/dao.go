@@ -3,6 +3,7 @@ package dao
 import "gorm.io/gorm"
 
 type AllDao struct {
+	gdb           *gorm.DB
 	FileInfoDao   *fileInfoDao
 	KeyValueDao   *keyValueDao
 	DictInfoDao   *dictInfoDao
@@ -16,5 +17,9 @@ func NewAllDao(gdb *gorm.DB) *AllDao {
 		DictInfoDao:   &dictInfoDao{Gdb: gdb},
 		KnownWordsDao: &knownWordsDao{Gdb: gdb},
 	}
+}
 
+// GDB returns the gorm.DB instance
+func (a *AllDao) GDB() *gorm.DB {
+	return a.gdb
 }
