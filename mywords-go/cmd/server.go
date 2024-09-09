@@ -2,13 +2,15 @@ package main
 
 import "C"
 import (
+	"context"
 	"encoding/json"
 	"mywords/artical"
 	"mywords/client"
 	"mywords/dict"
+	"mywords/model"
 	"mywords/model/mtype"
 	"mywords/mylog"
-	"mywords/util"
+	"mywords/pkg/util"
 	"net"
 	"sort"
 	"strings"
@@ -156,16 +158,13 @@ func DictWordQueryLink(wordC *C.char) *C.char {
 	return CharOk(s)
 }
 
+var ctx = context.TODO()
+
 //export KnownWordsCountMap
 func KnownWordsCountMap() *C.char {
-	var m = make(map[mtype.WordKnownLevel]int, 3)
-	for _, knownWordsMap := range serverGlobal.KnownWordsMap() {
-		for _, level := range knownWordsMap {
-			if level <= 0 {
-				continue
-			}
-			m[level]++
-		}
+	var m, err = serverGlobal.AllDao().KnownWordsDao.LevelWordsCountMap(ctx)
+	if err != nil {
+		return CharErr(err.Error())
 	}
 	return CharOk(m)
 }
@@ -182,12 +181,20 @@ func ProxyURL() *C.char {
 
 //export ShowFileInfoList
 func ShowFileInfoList() *C.char {
-	return CharOk(serverGlobal.ShowFileInfoList())
+	result, err := serverGlobal.AllDao().FileInfoDao.AllItemsByArchived(context.Background(), false)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharOk(result)
 }
 
 //export GetArchivedFileInfoList
 func GetArchivedFileInfoList() *C.char {
-	return CharOk(serverGlobal.GetArchivedFileInfoList())
+	result, err := serverGlobal.AllDao().FileInfoDao.AllItemsByArchived(context.Background(), true)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharOk(result)
 }
 
 //export ArticleFromGobFile
@@ -209,26 +216,22 @@ func GetFileNameBySourceUrl(sourceUrl *C.char) *C.char {
 }
 
 //export DeleteGobFile
-func DeleteGobFile(fileName *C.char) *C.char {
-	err := serverGlobal.DeleteGobFile(C.GoString(fileName))
+func DeleteGobFile(id int64) *C.char {
+	err := serverGlobal.DeleteGobFile(id)
 	if err != nil {
 		return CharErr(err.Error())
 	}
 	return CharSuccess()
 }
 
-//export ArchiveGobFile
-func ArchiveGobFile(fileName *C.char) *C.char {
-	err := serverGlobal.ArchiveGobFile(C.GoString(fileName))
+//export UpdateFileInfo
+func UpdateFileInfo(fileInfoC *C.char) *C.char {
+	var fileInfo model.FileInfo
+	err := json.Unmarshal([]byte(C.GoString(fileInfoC)), &fileInfo)
 	if err != nil {
 		return CharErr(err.Error())
 	}
-	return CharSuccess()
-}
-
-//export UnArchiveGobFile
-func UnArchiveGobFile(fileName *C.char) *C.char {
-	err := serverGlobal.UnArchiveGobFile(C.GoString(fileName))
+	err = serverGlobal.AllDao().FileInfoDao.Update(ctx, &fileInfo)
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -277,8 +280,11 @@ func QueryWordsLevel(wordC *C.char) *C.char {
 	if err != nil {
 		return CharErr(err.Error())
 	}
-	l := serverGlobal.QueryWordsLevel(words...)
-	return CharOk(l)
+	result, err := serverGlobal.QueryWordsLevel(words...)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharOk(result)
 }
 
 //export LevelDistribute

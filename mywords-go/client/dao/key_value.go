@@ -7,6 +7,7 @@ import (
 	"mywords/model"
 	"mywords/model/mtype"
 	"mywords/pkg/db"
+	"time"
 )
 
 type keyValueDao struct {
@@ -40,6 +41,43 @@ func (m *keyValueDao) Update(ctx context.Context, msg *model.KeyValue) error {
 	// 如果您想要在更新时选择、忽略某些字段，您可以使用 Select、Omit
 	// If you want to select, update some fields, you can use Select, Omit
 	return m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID).Updates(msg).Error
+}
+
+// UpdateOrCreateByKeyId .
+func (m *keyValueDao) UpdateOrCreateByKeyId(ctx context.Context, keyId mtype.KeyId, value string) (err error) {
+	TX := m.Gdb.WithContext(ctx).Begin()
+	defer func() {
+		if err != nil {
+			TX.Rollback()
+			return
+		}
+		err = TX.Commit().Error
+	}()
+	// https://gorm.io/zh_CN/docs/update.html#%E6%9B%B4%E6%96%B0%E9%80%89%E5%AE%9A%E5%AD%97%E6%AE%B5
+	// 如果您想要在更新时选择、忽略某些字段，您可以使用 Select、Omit
+	// If you want to select, update some fields, you can use Select, Omit
+	now := time.Now().UnixMilli()
+	var updates = map[string]interface{}{"value": value,
+		"update_at": now,
+	}
+	tx := TX.Table(m.Table()).Where("key_id = ?", keyId).Updates(updates)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		err = TX.Table(m.Table()).Create(&model.KeyValue{
+			ID:       0,
+			KeyId:    keyId,
+			Value:    value,
+			CreateAt: now,
+			UpdateAt: now,
+		}).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
 }
 
 // CreateBatch .

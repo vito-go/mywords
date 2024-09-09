@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"mywords/model"
+	"mywords/pkg/db"
 )
 
 type fileInfoDao struct {
@@ -50,13 +51,27 @@ func (m *fileInfoDao) CreateBatch(ctx context.Context, msgs ...model.FileInfo) e
 	}).Create(msgs).Error
 }
 
-func (m *fileInfoDao) AllItems(ctx context.Context) ([]model.FileInfo, error) {
-	var msgs []model.FileInfo
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
-	return msgs, err
+func (m *fileInfoDao) AllItemsByArchived(ctx context.Context, archived bool) ([]model.FileInfo, error) {
+	var items []model.FileInfo
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("archived = ?", archived).Order("update_at DESC").Find(&items).Error
+	return items, err
+}
+
+func (m *fileInfoDao) ItemByID(ctx context.Context, id int64) (*model.FileInfo, error) {
+	var result model.FileInfo
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Find(&result)
+	err := tx.Error
+	if err != nil {
+		return nil, err
+	}
+	if tx.RowsAffected == 0 {
+		return nil, db.DataNotFound
+	}
+	return &result, err
 }
 
 // DeleteById .
-func (m *fileInfoDao) DeleteById(ctx context.Context, id int64) error {
-	return m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Delete(&model.FileInfo{}).Error
+func (m *fileInfoDao) DeleteById(ctx context.Context, id int64) (int64, error) {
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Delete(&model.FileInfo{})
+	return tx.RowsAffected, tx.Error
 }

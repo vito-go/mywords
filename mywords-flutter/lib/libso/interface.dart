@@ -33,11 +33,9 @@ abstract class Handler {
 
   FutureOr<String> finalHtmlBasePathWithOutHtml(String word);
 
-  FutureOr<RespData<void>> deleteGobFile(String fileName);
+  FutureOr<RespData<void>> deleteGobFile(int id);
 
-  FutureOr<RespData<void>> archiveGobFile(String fileName);
-
-  FutureOr<RespData<void>> unArchiveGobFile(String fileName);
+  FutureOr<RespData<void>> updateFileInfo(FileInfo item);
 
   FutureOr<RespData<List<FileInfo>>> showFileInfoList();
 

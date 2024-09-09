@@ -4,25 +4,64 @@ class FileInfo {
   final String title;
   final String fileName;
   final String sourceUrl;
+  final int id;
   final int size;
   final int lastModified;
   final bool isDir;
+  final bool archived;
   final int totalCount;
   final int netCount;
+  final int updateAt;
+  final int createAt;
 
   FileInfo({
     required this.sourceUrl,
     required this.title,
+    required this.id,
     required this.fileName,
     required this.size,
     required this.lastModified,
     required this.isDir,
     required this.totalCount,
+    required this.archived,
     required this.netCount,
+    required this.updateAt,
+    required this.createAt,
   });
 
   factory FileInfo.fromRawJson(String str) =>
       FileInfo.fromJson(json.decode(str));
+
+  // copyWith方法
+  FileInfo copyWith({
+    String? sourceUrl,
+    String? title,
+    String? fileName,
+    int? size,
+    int? lastModified,
+    bool? isDir,
+    int? totalCount,
+    int? netCount,
+    int? updateAt,
+    bool? archived,
+    int? createAt,
+    int? id,
+  }) {
+    return FileInfo(
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      title: title ?? this.title,
+      fileName: fileName ?? this.fileName,
+      size: size ?? this.size,
+      lastModified: lastModified ?? this.lastModified,
+      isDir: isDir ?? this.isDir,
+      totalCount: totalCount ?? this.totalCount,
+      netCount: netCount ?? this.netCount,
+      updateAt: updateAt ?? this.updateAt,
+      createAt: createAt ?? this.createAt,
+      archived: archived ?? this.archived,
+      id: id?? this.id,
+    );
+  }
 
   String toRawJson() => json.encode(toJson());
 
@@ -35,6 +74,10 @@ class FileInfo {
         isDir: json["isDir"],
         totalCount: json["totalCount"],
         netCount: json["netCount"],
+        updateAt: json["updateAt"],
+        createAt: json["createAt"],
+        archived: json["archived"],
+    id: json["id"],
       );
 
   Map<String, dynamic> toJson() => {

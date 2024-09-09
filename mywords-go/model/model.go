@@ -21,12 +21,12 @@ type FileInfo struct {
 
 // KnownWords 已知的单词
 type KnownWords struct {
-	ID        int64  `json:"id"`
-	Word      string `json:"word"`
-	CreateDay int64  `json:"createDay"` //20060102
-	Level     int    `json:"level"`     // 0, 1,2,3 default 0
-	CreateAt  int64  `json:"createAt"`
-	UpdateAt  int64  `json:"updateAt"`
+	ID        int64                `json:"id"`
+	Word      string               `json:"word"`
+	CreateDay int64                `json:"createDay"` //20060102
+	Level     mtype.WordKnownLevel `json:"level"`     // 0, 1,2,3 default 0
+	CreateAt  int64                `json:"createAt"`
+	UpdateAt  int64                `json:"updateAt"`
 }
 
 // DictInfo 单词字典信息

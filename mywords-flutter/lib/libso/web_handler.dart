@@ -39,8 +39,8 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> archiveGobFile(String fileName) async {
-    final result = await call("ArchiveGobFile", [fileName]);
+  Future<RespData<void>> updateFileInfo(FileInfo item) async {
+    final result = await call("ArchiveGobFile", [item.toRawJson()]);
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
     return respData;
@@ -73,8 +73,8 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> deleteGobFile(String fileName) async {
-    final result = await call("DeleteGobFile", [fileName]);
+  Future<RespData<void>> deleteGobFile(int id) async {
+    final result = await call("DeleteGobFile", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
@@ -341,15 +341,6 @@ class WebHandler implements Handler {
       return result;
     });
 
-    return respData;
-  }
-
-  @override
-  Future<RespData<void>> unArchiveGobFile(String fileName) async {
-    final result = await call("UnArchiveGobFile", [fileName]);
-
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
     return respData;
   }
 

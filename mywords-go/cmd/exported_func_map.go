@@ -13,7 +13,7 @@ package main
 var exportedFuncMap = map[string]any{
 	"AddDict":                          AddDict,
 	"AllKnownWordMap":                  AllKnownWordMap,
-	"ArchiveGobFile":                   ArchiveGobFile,
+	"UpdateFileInfo":                   UpdateFileInfo,
 	"ArticleFromGobFile":               ArticleFromGobFile,
 	"GetFileNameBySourceUrl":           GetFileNameBySourceUrl,
 	"BackUpData":                       BackUpData,
@@ -62,7 +62,6 @@ var exportedFuncMap = map[string]any{
 	"GetShareInfo":               GetShareInfo,
 	"ShowFileInfoList":           ShowFileInfoList,
 	"TodayKnownWordMap":          TodayKnownWordMap,
-	"UnArchiveGobFile":           UnArchiveGobFile,
 	"UpdateDictName":             UpdateDictName,
 	"UpdateKnownWords":           UpdateKnownWords,
 	"GetIPv4s":                   GetIPv4s,

@@ -63,9 +63,9 @@ class _State extends State<ArticleListView> {
   StreamSubscription<GlobalEvent>? globalEventSubscription;
 
   void slideToUnArchive(FileInfo item) {
-    final fileName = item.fileName;
+     final itemNew=item.copyWith(archived: false);
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final respData = await handler.unArchiveGobFile(fileName);
+      final respData = await handler.updateFileInfo( itemNew);
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
@@ -88,9 +88,9 @@ class _State extends State<ArticleListView> {
   }
 
   void slideToArchive(FileInfo item) {
-    final fileName = item.fileName;
+    final itemNew = item.copyWith(archived: true);
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final RespData respData = await handler.archiveGobFile(fileName);
+      final RespData respData = await handler.updateFileInfo(itemNew);
       if (respData.code != 0) {
         if (!mounted) {
           return;
@@ -116,9 +116,9 @@ class _State extends State<ArticleListView> {
   }
 
   void slideToDelete(FileInfo item) {
-    final fileName = item.fileName;
+    final id = item.id;
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final RespData respData = await handler.deleteGobFile(fileName);
+      final RespData respData = await handler.deleteGobFile(id);
       if (respData.code != 0) {
         if (!mounted) return;
         myToast(context, respData.message);
@@ -326,7 +326,7 @@ class _State extends State<ArticleListView> {
 
   @override
   Widget build(BuildContext context) {
-    final infos=fileInfosFilter;
+    final infos = fileInfosFilter;
     return Column(
       children: [
         // ListTile(title: CupertinoSearchTextField(),),

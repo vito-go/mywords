@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"mywords/model"
+	"mywords/model/mtype"
 )
 
 type knownWordsDao struct {
@@ -54,6 +55,34 @@ func (m *knownWordsDao) AllItems(ctx context.Context) ([]model.KnownWords, error
 	var msgs []model.KnownWords
 	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
 	return msgs, err
+}
+
+func (m *knownWordsDao) ItemsByWords(ctx context.Context, words ...string) ([]model.KnownWords, error) {
+	if len(words) == 0 {
+		return nil, nil
+	}
+	var msgs []model.KnownWords
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("word in ?", words).Order("update_at DESC").Find(&msgs).Error
+	return msgs, err
+}
+
+func (m *knownWordsDao) LevelWordsCountMap(ctx context.Context) (map[mtype.WordKnownLevel]int64, error) {
+	// SELECT level, COUNT(*) FROM known_words GROUP BY level;
+	type result struct {
+		Level mtype.WordKnownLevel
+		Count int64
+	}
+	var items []result
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("level, COUNT(*) as count").Group("level").Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	resultMap := make(map[mtype.WordKnownLevel]int64, len(items))
+	for _, item := range items {
+		resultMap[item.Level] = item.Count
+	}
+	return resultMap, nil
+
 }
 
 // DeleteById .

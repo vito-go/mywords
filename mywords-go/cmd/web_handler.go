@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"mywords/mylog"
-	"mywords/util"
+	"mywords/pkg/util"
 	"net/http"
 	"os"
 	"os/exec"

@@ -78,46 +78,29 @@ class NativeHandler implements Handler {
 
 // func DeleteGobFile(fileName *C.char) *C.char
   final _deleteGobFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DeleteGobFile');
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('DeleteGobFile');
 
   @override
-  RespData<void> deleteGobFile(String fileName) {
+  RespData<void> deleteGobFile(int id) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final c = fileName.toNativeUtf8();
-    final resultC = _deleteGobFile(c);
+     final resultC = _deleteGobFile(id);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);
-    malloc.free(c);
-    return respData;
+     return respData;
   }
 
 // func ArchiveGobFile(fileName *C.char) *C.char
-  final _archiveGobFile = nativeAddLib.lookupFunction<
+  final UpdateFileInfo = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('ArchiveGobFile');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('UpdateFileInfo');
 
   @override
-  RespData<void> archiveGobFile(String fileName) {
+  RespData<void> updateFileInfo(FileInfo item) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final c = fileName.toNativeUtf8();
-    final resultC = _archiveGobFile(c);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    return respData;
-  }
-
-// func ArchiveGobFile(fileName *C.char) *C.char
-  final _unArchiveGobFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('UnArchiveGobFile');
-
-  @override
-  RespData<void> unArchiveGobFile(String fileName) {
-    // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final c = fileName.toNativeUtf8();
-    final resultC = _unArchiveGobFile(c);
+    final c = item.toRawJson().toNativeUtf8();
+    final resultC = UpdateFileInfo(c);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     return respData;
