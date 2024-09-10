@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"encoding/json"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"mywords/model"
@@ -102,6 +103,33 @@ func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
 	}
 	return item.Value, nil
 }
+func (m *keyValueDao) QueryShareInfo(ctx context.Context) (*mtype.ShareInfo, error) {
+	item, err := m.ItemByKeyId(ctx, mtype.KeyIdShareInfo)
+	if err != nil {
+		return nil, err
+	}
+	var shareInfo mtype.ShareInfo
+	err = json.Unmarshal([]byte(item.Value), &shareInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &shareInfo, nil
+}
+
+// SetShareInfo .If not exist, create it.
+func (m *keyValueDao) SetShareInfo(ctx context.Context, shareInfo *mtype.ShareInfo) error {
+	value, err := json.Marshal(shareInfo)
+	if err != nil {
+		return err
+	}
+	return m.UpdateOrCreateByKeyId(ctx, mtype.KeyIdShareInfo, string(value))
+}
+
+// SetProxyURL .
+func (m *keyValueDao) SetProxyURL(ctx context.Context, proxyURL string) error {
+	return m.UpdateOrCreateByKeyId(ctx, mtype.KeyIdProxy, proxyURL)
+}
+
 func (m *keyValueDao) ItemByKeyId(ctx context.Context, keyId int64) (*model.KeyValue, error) {
 	var msg model.KeyValue
 	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Find(&msg)

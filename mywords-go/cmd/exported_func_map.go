@@ -14,8 +14,7 @@ var exportedFuncMap = map[string]any{
 	"AddDict":                          AddDict,
 	"AllKnownWordMap":                  AllKnownWordMap,
 	"UpdateFileInfo":                   UpdateFileInfo,
-	"ArticleFromGobFile":               ArticleFromGobFile,
-	"GetFileNameBySourceUrl":           GetFileNameBySourceUrl,
+	"GetFileInfoBySourceURL":           GetFileInfoBySourceURL,
 	"BackUpData":                       BackUpData,
 	"CharErr":                          CharErr,
 	"CharSuccess":                      CharSuccess,
@@ -63,6 +62,6 @@ var exportedFuncMap = map[string]any{
 	"ShowFileInfoList":           ShowFileInfoList,
 	"TodayKnownWordMap":          TodayKnownWordMap,
 	"UpdateDictName":             UpdateDictName,
-	"UpdateKnownWords":           UpdateKnownWords,
+	"UpdateKnownWordLevel":       UpdateKnownWordLevel,
 	"GetIPv4s":                   GetIPv4s,
 }

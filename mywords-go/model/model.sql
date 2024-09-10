@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS file_info (
     "last_modified" INTEGER,
     "isDir"        INTEGER,
 --     Archived     bool  `json:"archived"`     // 是否已经归档
-"archived"      BOOLEAN,
+    "archived"      BOOLEAN,
     "total_count"   INTEGER,
     "net_count"     INTEGER,
     "created_at"   INTEGER,

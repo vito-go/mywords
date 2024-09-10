@@ -57,6 +57,12 @@ func (m *fileInfoDao) AllItemsByArchived(ctx context.Context, archived bool) ([]
 	return items, err
 }
 
+// AllFileNames .
+func (m *fileInfoDao) AllFileNames(ctx context.Context) ([]string, error) {
+	var result []string
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("file_name").Find(&result).Error
+	return result, err
+}
 func (m *fileInfoDao) ItemByID(ctx context.Context, id int64) (*model.FileInfo, error) {
 	var result model.FileInfo
 	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Find(&result)

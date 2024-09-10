@@ -38,7 +38,10 @@ func ShareOpen(port int, code int64) *C.char {
 
 //export GetShareInfo
 func GetShareInfo() *C.char {
-	info := serverGlobal.GetShareInfo()
+	info, err := serverGlobal.AllDao().KeyValueDao.QueryShareInfo(ctx)
+	if err != nil {
+		return CharErr(err.Error())
+	}
 	return CharOk(info)
 }
 
@@ -205,13 +208,13 @@ func ArticleFromFileInfo(fileInfoC *C.char) *C.char {
 	return CharOk(art)
 }
 
-//export GetFileNameBySourceUrl
-func GetFileNameBySourceUrl(sourceUrl *C.char) *C.char {
+//export GetFileInfoBySourceURL
+func GetFileInfoBySourceURL(sourceUrl *C.char) *C.char {
 	item, err := serverGlobal.AllDao().FileInfoDao.ItemBySourceUrl(ctx, C.GoString(sourceUrl))
 	if err != nil {
-		return CharOk("")
+		return CharErr(err.Error())
 	}
-	return CharOk(item.FileName)
+	return CharOk(item)
 
 }
 

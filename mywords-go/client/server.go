@@ -255,7 +255,7 @@ func (s *Client) FixMyKnownWords() error {
 
 // SetProxyUrl .
 func (s *Client) SetProxyUrl(proxyUrl string) error {
-	return s.AllDao().KeyValueDao.UpdateOrCreateByKeyId(ctx, mtype.KeyIdProxy, proxyUrl)
+	return s.AllDao().KeyValueDao.SetProxyURL(ctx, proxyUrl)
 
 }
 

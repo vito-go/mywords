@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"mywords/model"
+	"mywords/model/mtype"
 	"mywords/mylog"
 	"net"
 	"net/http"
@@ -63,12 +63,13 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 		if _, ok := param.AllExistGobGzFileMap[pathBase]; ok {
 			return nil
 		}
-		if pathBase == chartDataJsonFile && !param.SyncToadyWordCount {
-			return nil
-		}
-		if pathBase == knownWordsFile && !param.SyncKnownWords {
-			return nil
-		}
+		// TODO 数据同步重新改造
+		//if pathBase == chartDataJsonFile && !param.SyncToadyWordCount {
+		//	return nil
+		//}
+		//if pathBase == knownWordsFile && !param.SyncKnownWords {
+		//	return nil
+		//}
 		relPath, err := filepath.Rel(zipDir, path)
 		if err != nil {
 			return err
@@ -126,16 +127,15 @@ type ShareFileParam struct {
 }
 
 func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
-	allExistGobGzFileMap := make(map[string]bool, s.fileInfoMap.Len()+s.fileInfoMap.Len())
-	s.fileInfoMap.Range(func(key string, value model.FileInfo) bool {
-		allExistGobGzFileMap[key] = true
-		return true
-	})
 
-	s.fileInfoArchivedMap.Range(func(key string, value model.FileInfo) bool {
-		allExistGobGzFileMap[key] = true
-		return true
-	})
+	allFileNames, err := s.allDao.FileInfoDao.AllFileNames(ctx)
+	if err != nil {
+		return 0, err
+	}
+	allExistGobGzFileMap := make(map[string]bool, len(allFileNames))
+	for _, name := range allFileNames {
+		allExistGobGzFileMap[name] = true
+	}
 	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount, SyncKnownWords: syncKnownWords}
 	fileInfoBytes, _ := json.Marshal(param)
 	cli := http.Client{}
@@ -173,22 +173,6 @@ func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	return n, nil
 }
 
-type ShareInfo struct {
-	Port int   `json:"port"`
-	Code int64 `json:"code"`
-	Open bool  `json:"open"`
-}
-
-// GetShareInfo .
-func (s *Client) GetShareInfo() *ShareInfo {
-	cfg := s.cfg.Load()
-	info := ShareInfo{
-		Port: cfg.SharePort,
-		Code: cfg.ShareCode,
-		Open: s.shareOpen.Load(),
-	}
-	return &info
-}
 func (s *Client) ShareOpen(port int, code int64) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -203,17 +187,17 @@ func (s *Client) ShareOpen(port int, code int64) error {
 	}
 	s.shareListener = lis
 	s.shareOpen.Store(true)
-	c := s.cfg.Load().Clone()
-	c.ShareCode = code
-	c.SharePort = port
-	s.cfg.Store(c)
-	err = s.saveConfig()
+	shareInfo := &mtype.ShareInfo{
+		Port: port,
+		Code: code,
+		Open: true,
+	}
+	err = s.allDao.KeyValueDao.SetShareInfo(ctx, shareInfo)
 	if err != nil {
 		return err
 	}
 	mylog.Info("StartServer success", `port`, port)
 	go func() {
-
 		err := http.Serve(lis, mux)
 		if err != nil {
 			mylog.Warn(err.Error())
