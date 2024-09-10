@@ -6,6 +6,8 @@ import (
 	"gorm.io/gorm/clause"
 	"mywords/model"
 	"mywords/model/mtype"
+	"strconv"
+	"time"
 )
 
 type knownWordsDao struct {
@@ -41,6 +43,46 @@ func (m *knownWordsDao) Update(ctx context.Context, msg *model.KnownWords) error
 	return m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID).Updates(msg).Error
 }
 
+// UpdateOrCreate .
+func (m *knownWordsDao) UpdateOrCreate(ctx context.Context, word string, level mtype.WordKnownLevel) (err error) {
+	TX := m.Gdb.WithContext(ctx).Begin()
+	defer func() {
+		if err != nil {
+			TX.Rollback()
+			return
+		}
+		err = TX.Commit().Error
+	}()
+	// https://gorm.io/zh_CN/docs/update.html#%E6%9B%B4%E6%96%B0%E9%80%89%E5%AE%9A%E5%AD%97%E6%AE%B5
+	// 如果您想要在更新时选择、忽略某些字段，您可以使用 Select、Omit
+	// If you want to select, update some fields, you can use Select, Omit
+	now := time.Now().UnixMilli()
+	var updates = map[string]interface{}{
+		"update_at": now,
+		"level":     level,
+	}
+	tx := TX.Table(m.Table()).Where("word = ?", word).Updates(updates)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected > 0 {
+		return nil
+	}
+	createDay, _ := strconv.ParseInt(time.Now().Format("20060102"), 10, 64)
+	err = TX.Table(m.Table()).Create(&model.KnownWords{
+		ID:        0,
+		Word:      word,
+		CreateDay: createDay,
+		Level:     level,
+		CreateAt:  now,
+		UpdateAt:  now,
+	}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CreateBatch .
 func (m *knownWordsDao) CreateBatch(ctx context.Context, msgs ...model.KnownWords) error {
 	if len(msgs) == 0 {
@@ -54,6 +96,12 @@ func (m *knownWordsDao) CreateBatch(ctx context.Context, msgs ...model.KnownWord
 func (m *knownWordsDao) AllItems(ctx context.Context) ([]model.KnownWords, error) {
 	var msgs []model.KnownWords
 	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
+	return msgs, err
+}
+
+func (m *knownWordsDao) AllItemsByCreateDay(ctx context.Context, createDay int64) ([]model.KnownWords, error) {
+	var msgs []model.KnownWords
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("create_day = ?", createDay).Order("update_at DESC").Find(&msgs).Error
 	return msgs, err
 }
 

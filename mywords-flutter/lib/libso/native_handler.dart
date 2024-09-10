@@ -54,9 +54,9 @@ class NativeHandler implements Handler {
       void Function(Pointer<Utf8>)>('Init');
 
 //func UpdateKnownWords(level int, c *C.char) *C.char
-  final _updateKnownWords = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>)>('UpdateKnownWords');
+  final UpdateKnownWordLevel = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Int64),
+      Pointer<Utf8> Function(Pointer<Utf8>, int)>('UpdateKnownWordLevel');
 
 // func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
   final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
@@ -84,11 +84,11 @@ class NativeHandler implements Handler {
   @override
   RespData<void> deleteGobFile(int id) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-     final resultC = _deleteGobFile(id);
+    final resultC = _deleteGobFile(id);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);
-     return respData;
+    return respData;
   }
 
 // func ArchiveGobFile(fileName *C.char) *C.char
@@ -138,19 +138,19 @@ class NativeHandler implements Handler {
   }
 
 // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-  final _articleFromGobFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Int64),
-      Pointer<Utf8> Function(Pointer<Utf8>, int)>('ArticleFromGobFile');
+  final ArticleFromFileInfo = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('ArticleFromFileInfo');
 
   @override
-  RespData<Article> articleFromGobFile(String fileName) {
+  RespData<Article> articleFromFileInfo(FileInfo fileInfo) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final fileNameC = fileName.toNativeUtf8();
-    final c = _articleFromGobFile(fileNameC, 3);
+    final info = fileInfo.toRawJson().toNativeUtf8();
+    final c = ArticleFromFileInfo(info);
     final RespData<Article> respData = RespData.fromJson(
         jsonDecode(c.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(info);
     malloc.free(c);
-    malloc.free(fileNameC);
     return respData;
   }
 
@@ -499,9 +499,9 @@ class NativeHandler implements Handler {
   }
 
   @override
-  RespData<void> updateKnownWords(int level, String word) {
-    final wordC = jsonEncode([word]).toNativeUtf8();
-    final resultC = _updateKnownWords(level, wordC);
+  RespData<void> updateKnownWordLevel(String word, int level) {
+    final wordC = word.toNativeUtf8();
+    final resultC = UpdateKnownWordLevel(wordC, level);
     final respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(wordC);

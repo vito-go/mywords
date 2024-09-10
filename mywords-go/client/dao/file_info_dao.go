@@ -69,6 +69,18 @@ func (m *fileInfoDao) ItemByID(ctx context.Context, id int64) (*model.FileInfo, 
 	}
 	return &result, err
 }
+func (m *fileInfoDao) ItemBySourceUrl(ctx context.Context, sourceUrl string) (*model.FileInfo, error) {
+	var result model.FileInfo
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("source_url = ?", sourceUrl).Find(&result)
+	err := tx.Error
+	if err != nil {
+		return nil, err
+	}
+	if tx.RowsAffected == 0 {
+		return nil, db.DataNotFound
+	}
+	return &result, err
+}
 
 // DeleteById .
 func (m *fileInfoDao) DeleteById(ctx context.Context, id int64) (int64, error) {

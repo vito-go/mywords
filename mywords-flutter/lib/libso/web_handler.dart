@@ -55,8 +55,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<Article>> articleFromGobFile(String fileName) async {
-    final result = await call("ArticleFromGobFile", [fileName]);
+  Future<RespData<Article>> articleFromFileInfo(FileInfo fileInfo) async {
+
+    final result = await call("ArticleFromFileInfo", [fileInfo]);
 
     final RespData<Article> respData =
         RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
@@ -351,10 +352,10 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> updateKnownWords(int level, String word) async {
-    final result = await call("UpdateKnownWords", [
+  Future<RespData<void>> updateKnownWordLevel(String word,int level, ) async {
+    final result = await call("UpdateKnownWordLevel", [
+      word,
       level,
-      [word]
     ]);
 
     final respData = RespData.fromJson(jsonDecode(result), (json) => null);

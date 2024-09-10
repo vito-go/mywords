@@ -43,7 +43,7 @@ abstract class Handler {
 
   FutureOr<Map<String, dynamic>> knownWordsCountMap();
 
-  FutureOr<RespData<Article>> articleFromGobFile(String fileName);
+  FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
 
   FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
 
@@ -87,7 +87,7 @@ abstract class Handler {
 
   FutureOr<RespData<Map<int, List<String>>>> todayKnownWordMap();
 
-  FutureOr<RespData<void>> updateKnownWords(int level, String word);
+  FutureOr<RespData<void>> updateKnownWordLevel( String word,int level);
 
   FutureOr<int> queryWordLevel(String word);
 

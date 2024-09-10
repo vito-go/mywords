@@ -282,7 +282,7 @@ InkWell buildInkWell(
             child: Text(showLevel.toString()),
           )),
       onTap: () async {
-        final respData = await handler.updateKnownWords(showLevel, word);
+        final respData = await handler.updateKnownWordLevel(word,showLevel );
         if (respData.code != 0) {
           myToast(context, respData.message);
           return;

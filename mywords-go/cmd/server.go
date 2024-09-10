@@ -9,7 +9,6 @@ import (
 	"mywords/dict"
 	"mywords/model"
 	"mywords/model/mtype"
-	"mywords/mylog"
 	"mywords/pkg/util"
 	"net"
 	"sort"
@@ -18,15 +17,10 @@ import (
 
 var serverGlobal *client.Client
 
-//export UpdateKnownWords
-func UpdateKnownWords(level int, c *C.char) *C.char {
-	var words []string
-	err := json.Unmarshal([]byte(C.GoString(c)), &words)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	mylog.Info("UpdateKnownWords", "level", level, "words", words)
-	err = serverGlobal.UpdateKnownWords(mtype.WordKnownLevel(level), words...)
+//export UpdateKnownWordLevel
+func UpdateKnownWordLevel(c *C.char, level int) *C.char {
+	word := C.GoString(c)
+	err := serverGlobal.AllDao().KnownWordsDao.UpdateOrCreate(ctx, word, mtype.WordKnownLevel(level))
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -197,9 +191,14 @@ func GetArchivedFileInfoList() *C.char {
 	return CharOk(result)
 }
 
-//export ArticleFromGobFile
-func ArticleFromGobFile(fileName *C.char) *C.char {
-	art, err := serverGlobal.ArticleFromGobFile(C.GoString(fileName))
+//export ArticleFromFileInfo
+func ArticleFromFileInfo(fileInfoC *C.char) *C.char {
+	var fileInfo model.FileInfo
+	err := json.Unmarshal([]byte(C.GoString(fileInfoC)), &fileInfo)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	art, err := serverGlobal.ArticleFromFileInfo(&fileInfo)
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -208,11 +207,12 @@ func ArticleFromGobFile(fileName *C.char) *C.char {
 
 //export GetFileNameBySourceUrl
 func GetFileNameBySourceUrl(sourceUrl *C.char) *C.char {
-	fileName, ok := serverGlobal.GetFileNameBySourceUrl(C.GoString(sourceUrl))
-	if !ok {
+	item, err := serverGlobal.AllDao().FileInfoDao.ItemBySourceUrl(ctx, C.GoString(sourceUrl))
+	if err != nil {
 		return CharOk("")
 	}
-	return CharOk(fileName)
+	return CharOk(item.FileName)
+
 }
 
 //export DeleteGobFile
@@ -289,12 +289,12 @@ func QueryWordsLevel(wordC *C.char) *C.char {
 
 //export LevelDistribute
 func LevelDistribute(artC *C.char) *C.char {
-	var wordInfos []string
-	err := json.Unmarshal([]byte(C.GoString(artC)), &wordInfos)
+	var words []string
+	err := json.Unmarshal([]byte(C.GoString(artC)), &words)
 	if err != nil {
 		return CharErr(err.Error())
 	}
-	l := serverGlobal.LevelDistribute(wordInfos)
+	l := serverGlobal.LevelDistribute(words)
 	return CharOk(l)
 }
 
