@@ -16,9 +16,9 @@ import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/widgets/word_list.dart';
 
 class ArticlePage extends StatefulWidget {
-  final String fileName;
+  final FileInfo fileInfo;
 
-  const ArticlePage({super.key, required this.fileName});
+  const ArticlePage({super.key, required this.fileInfo});
 
   @override
   State<StatefulWidget> createState() {
@@ -29,7 +29,7 @@ class ArticlePage extends StatefulWidget {
 enum ContentPreview { words, htmlContent }
 
 class ArticlePageState extends State<ArticlePage> {
-  late final String fileName = widget.fileName;
+  late final FileInfo fileInfo = widget.fileInfo;
   int showLevel = 0;
   Article? article;
   bool preview = false;
@@ -37,7 +37,7 @@ class ArticlePageState extends State<ArticlePage> {
   Map<String, int> artWordLevelMap = {};
 
   void initArticle() async {
-    compute(computeArticleFromGobFile, fileName).then((respData) async {
+    compute(computeArticleFromGobFile, fileInfo).then((respData) async {
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
@@ -419,8 +419,8 @@ Future<RespData<Article>> computeParseAndSaveArticleFromSourceUrlAndContent(
       www, htmlContent, lastModified);
 }
 
-Future<RespData<Article>> computeArticleFromGobFile(String fileName) async {
-  return handler.articleFromGobFile(fileName);
+Future<RespData<Article>> computeArticleFromGobFile(FileInfo f) async {
+  return handler.articleFromFileInfo(f);
 }
 
 Widget contextMenuBuilder(

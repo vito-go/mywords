@@ -713,15 +713,15 @@ class NativeHandler implements Handler {
   }
 
   @override
-  String getFileNameBySourceUrl(String word) {
-    final wordC = word.toNativeUtf8();
-    final resultC = _getFileNameBySourceUrl(wordC);
-    malloc.free(wordC);
+  FileInfo? getFileInfoBySourceURL(String sourceURL) {
+    final sourceURLC = sourceURL.toNativeUtf8();
+    final resultC = _getFileNameBySourceUrl(sourceURLC);
+    malloc.free(sourceURLC);
     final result = resultC.toDartString();
     malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
+    final RespData<FileInfo> respData = RespData.fromJson(
+        jsonDecode(result), (json) => FileInfo.fromJson(json));
+    return respData.data;
   }
 
   final _fixMyKnownWords = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),

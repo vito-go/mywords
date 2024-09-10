@@ -160,7 +160,7 @@ class _State extends State<ArticleListView> {
                   maxLines: 2, overflow: TextOverflow.ellipsis),
               trailing: trailing,
               onTap: () {
-                pushTo(context, ArticlePage(fileName: item.fileName));
+                pushTo(context, ArticlePage(fileInfo: item));
               },
               minLeadingWidth: 0,
               leading: Text("[${index + 1}]",

@@ -15,6 +15,7 @@ import 'package:mywords/common/global_event.dart';
 import 'package:mywords/widgets/article_list.dart';
 
 import '../libso/resp_data.dart';
+import '../libso/types.dart';
 
 class ArticleListPage extends StatefulWidget {
   const ArticleListPage({super.key});
@@ -73,10 +74,10 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     if (www != controller.text) {
       controller.text = www;
     }
-    final fileName = await handler.getFileNameBySourceUrl(www);
+    final FileInfo? fInfo = await handler.getFileInfoBySourceURL(www);
 
-    if (fileName != "") {
-      if (!mounted)return;
+    if (fInfo != null) {
+      if (!mounted) return;
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -90,7 +91,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                     TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          pushTo(context, ArticlePage(fileName: fileName));
+                          pushTo(context, ArticlePage(fileInfo: fInfo));
                         },
                         child: const Text("查看")),
                     TextButton(

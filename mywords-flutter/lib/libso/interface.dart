@@ -53,7 +53,7 @@ abstract class Handler {
 
   FutureOr<String> dictWordQueryLink(String word);
 
-  FutureOr<String> getFileNameBySourceUrl(String word);
+  FutureOr< FileInfo? > getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
 
