@@ -74,8 +74,8 @@ func (m *knownWordsDao) UpdateOrCreate(ctx context.Context, word string, level m
 		Word:      word,
 		CreateDay: createDay,
 		Level:     level,
-		CreateAt:  now,
-		UpdateAt:  now,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}).Error
 	if err != nil {
 		return err

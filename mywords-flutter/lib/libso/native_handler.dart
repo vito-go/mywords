@@ -696,9 +696,9 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('GetHTMLRenderContentByWord');
 
-  final _getFileNameBySourceUrl = nativeAddLib.lookupFunction<
+  final GetFileInfoBySourceURL = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('GetFileNameBySourceUrl');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('GetFileInfoBySourceURL');
 
   @override
   RespData<String> getHTMLRenderContentByWord(String word) {
@@ -715,7 +715,7 @@ class NativeHandler implements Handler {
   @override
   FileInfo? getFileInfoBySourceURL(String sourceURL) {
     final sourceURLC = sourceURL.toNativeUtf8();
-    final resultC = _getFileNameBySourceUrl(sourceURLC);
+    final resultC = GetFileInfoBySourceURL(sourceURLC);
     malloc.free(sourceURLC);
     final result = resultC.toDartString();
     malloc.free(resultC);

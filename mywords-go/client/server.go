@@ -353,8 +353,8 @@ func (s *Client) saveArticle(art *artical.Article) error {
 		TotalCount:   art.TotalCount,
 		NetCount:     art.NetCount,
 		Archived:     false,
-		CreateAt:     time.Now().UnixMilli(),
-		UpdateAt:     time.Now().UnixMilli(),
+		CreatedAt:    time.Now().UnixMilli(),
+		UpdatedAt:    time.Now().UnixMilli(),
 	}
 	_, err = s.AllDao().FileInfoDao.Create(ctx, &fileInfo)
 	return err

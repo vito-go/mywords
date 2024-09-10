@@ -67,11 +67,11 @@ func (m *keyValueDao) UpdateOrCreateByKeyId(ctx context.Context, keyId mtype.Key
 	}
 	if tx.RowsAffected == 0 {
 		err = TX.Table(m.Table()).Create(&model.KeyValue{
-			ID:       0,
-			KeyId:    keyId,
-			Value:    value,
-			CreateAt: now,
-			UpdateAt: now,
+			ID:        0,
+			KeyId:     keyId,
+			Value:     value,
+			CreatedAt: now,
+			UpdatedAt: now,
 		}).Error
 		if err != nil {
 			return err

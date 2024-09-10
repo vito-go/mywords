@@ -425,7 +425,7 @@ class WebHandler implements Handler {
 
   @override
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceUrl) async {
-    final result = await call("GetFileNameBySourceUrl", [sourceUrl]);
+    final result = await call("GetFileInfoBySourceURL", [sourceUrl]);
     final respData = RespData.fromJson(
         jsonDecode(result), (json) => FileInfo.fromJson(json));
     return respData.data;
