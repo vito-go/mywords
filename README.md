@@ -1,6 +1,6 @@
 ## [English Version](README.md) | [中文版](README-zh-hans.md)
 
-
+## Important: Waiting for the new version, refactored using sqlite, stay tuned!
 ## Project Overview
 This project provides a tool for learning English vocabulary, designed specifically for English learners, by expanding their vocabulary through reading English or bilingual articles. Users can automatically extract words from the learning articles, analyze word frequency, filter words, and track and record their mastery level.
 
