@@ -30,7 +30,7 @@ type KnownWords struct {
 }
 
 // DictInfo 单词字典信息
-// name ,path, createAt, updateAt, size
+// name ,path, createAt, updatedAt, size
 type DictInfo struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`

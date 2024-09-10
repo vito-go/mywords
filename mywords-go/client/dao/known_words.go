@@ -43,6 +43,13 @@ func (m *knownWordsDao) Update(ctx context.Context, msg *model.KnownWords) error
 	return m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID).Updates(msg).Error
 }
 
+// ShowCreateTable .
+func (m *knownWordsDao) ShowCreateTable(ctx context.Context) (string, error) {
+	var result string
+	err := m.Gdb.WithContext(ctx).Exec(`select * from sqlite_master where type="?"`, m.Table()).Scan(&result).Error
+	return result, err
+}
+
 // UpdateOrCreate .
 func (m *knownWordsDao) UpdateOrCreate(ctx context.Context, word string, level mtype.WordKnownLevel) (err error) {
 	TX := m.Gdb.WithContext(ctx).Begin()
@@ -58,8 +65,8 @@ func (m *knownWordsDao) UpdateOrCreate(ctx context.Context, word string, level m
 	// If you want to select, update some fields, you can use Select, Omit
 	now := time.Now().UnixMilli()
 	var updates = map[string]interface{}{
-		"update_at": now,
-		"level":     level,
+		"updated_at": now,
+		"level":      level,
 	}
 	tx := TX.Table(m.Table()).Where("word = ?", word).Updates(updates)
 	if tx.Error != nil {
@@ -95,13 +102,13 @@ func (m *knownWordsDao) CreateBatch(ctx context.Context, msgs ...model.KnownWord
 
 func (m *knownWordsDao) AllItems(ctx context.Context) ([]model.KnownWords, error) {
 	var msgs []model.KnownWords
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("updated_at DESC").Find(&msgs).Error
 	return msgs, err
 }
 
 func (m *knownWordsDao) AllItemsByCreateDay(ctx context.Context, createDay int64) ([]model.KnownWords, error) {
 	var msgs []model.KnownWords
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("create_day = ?", createDay).Order("update_at DESC").Find(&msgs).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("create_day = ?", createDay).Order("updated_at DESC").Find(&msgs).Error
 	return msgs, err
 }
 
@@ -110,7 +117,7 @@ func (m *knownWordsDao) ItemsByWords(ctx context.Context, words ...string) ([]mo
 		return nil, nil
 	}
 	var msgs []model.KnownWords
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("word in ?", words).Order("update_at DESC").Find(&msgs).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("word in ?", words).Order("updated_at DESC").Find(&msgs).Error
 	return msgs, err
 }
 

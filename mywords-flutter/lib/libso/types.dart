@@ -11,8 +11,8 @@ class FileInfo {
   final bool archived;
   final int totalCount;
   final int netCount;
-  final int updateAt;
-  final int createAt;
+  final int updatedAt;
+  final int createdAt;
 
   FileInfo({
     required this.sourceUrl,
@@ -25,8 +25,8 @@ class FileInfo {
     required this.totalCount,
     required this.archived,
     required this.netCount,
-    required this.updateAt,
-    required this.createAt,
+    required this.updatedAt,
+    required this.createdAt,
   });
 
   factory FileInfo.fromRawJson(String str) =>
@@ -42,9 +42,9 @@ class FileInfo {
     bool? isDir,
     int? totalCount,
     int? netCount,
-    int? updateAt,
+    int? updatedAt,
     bool? archived,
-    int? createAt,
+    int? createdAt,
     int? id,
   }) {
     return FileInfo(
@@ -56,10 +56,10 @@ class FileInfo {
       isDir: isDir ?? this.isDir,
       totalCount: totalCount ?? this.totalCount,
       netCount: netCount ?? this.netCount,
-      updateAt: updateAt ?? this.updateAt,
-      createAt: createAt ?? this.createAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
       archived: archived ?? this.archived,
-      id: id?? this.id,
+      id: id ?? this.id,
     );
   }
 
@@ -74,10 +74,10 @@ class FileInfo {
         isDir: json["isDir"],
         totalCount: json["totalCount"],
         netCount: json["netCount"],
-        updateAt: json["updateAt"],
-        createAt: json["createAt"],
+        updatedAt: json["updatedAt"],
+        createdAt: json["createdAt"],
         archived: json["archived"],
-    id: json["id"],
+        id: json["id"],
       );
 
   Map<String, dynamic> toJson() => {

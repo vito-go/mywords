@@ -53,7 +53,7 @@ func (m *fileInfoDao) CreateBatch(ctx context.Context, msgs ...model.FileInfo) e
 
 func (m *fileInfoDao) AllItemsByArchived(ctx context.Context, archived bool) ([]model.FileInfo, error) {
 	var items []model.FileInfo
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("archived = ?", archived).Order("update_at DESC").Find(&items).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("archived = ?", archived).Order("updated_at DESC").Find(&items).Error
 	return items, err
 }
 

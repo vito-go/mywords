@@ -52,7 +52,7 @@ func (m *dictInfoDao) CreateBatch(ctx context.Context, msgs ...model.DictInfo) e
 
 func (m *dictInfoDao) AllItems(ctx context.Context) ([]model.DictInfo, error) {
 	var msgs []model.DictInfo
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("updated_at DESC").Find(&msgs).Error
 	return msgs, err
 }
 

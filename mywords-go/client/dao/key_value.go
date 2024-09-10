@@ -59,7 +59,7 @@ func (m *keyValueDao) UpdateOrCreateByKeyId(ctx context.Context, keyId mtype.Key
 	// If you want to select, update some fields, you can use Select, Omit
 	now := time.Now().UnixMilli()
 	var updates = map[string]interface{}{"value": value,
-		"update_at": now,
+		"updated_at ": now,
 	}
 	tx := TX.Table(m.Table()).Where("key_id = ?", keyId).Updates(updates)
 	if tx.Error != nil {
@@ -93,7 +93,7 @@ func (m *keyValueDao) CreateBatch(ctx context.Context, msgs ...model.KeyValue) e
 
 func (m *keyValueDao) AllItems(ctx context.Context) ([]model.KeyValue, error) {
 	var msgs []model.KeyValue
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("updated_at DESC").Find(&msgs).Error
 	return msgs, err
 }
 func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
