@@ -43,13 +43,6 @@ func (m *knownWordsDao) Update(ctx context.Context, msg *model.KnownWords) error
 	return m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID).Updates(msg).Error
 }
 
-// ShowCreateTable .
-func (m *knownWordsDao) ShowCreateTable(ctx context.Context) (string, error) {
-	var result string
-	err := m.Gdb.WithContext(ctx).Exec(`select * from sqlite_master where type="?"`, m.Table()).Scan(&result).Error
-	return result, err
-}
-
 // UpdateOrCreate .
 func (m *knownWordsDao) UpdateOrCreate(ctx context.Context, word string, level mtype.WordKnownLevel) (err error) {
 	TX := m.Gdb.WithContext(ctx).Begin()

@@ -98,6 +98,8 @@ const (
 	gobGzFileSuffix = ".gob.gz"      // file_infos.json index file
 )
 
+const dbName = "mywords.db"
+
 func NewServer(rootDataDir string) (*Client, error) {
 	rootDataDir = filepath.ToSlash(rootDataDir)
 	if err := os.MkdirAll(rootDataDir, 0755); err != nil {
@@ -109,7 +111,7 @@ func NewServer(rootDataDir string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbPath := filepath.ToSlash(filepath.Join(dbDir, "myproxy.db"))
+	dbPath := filepath.ToSlash(filepath.Join(dbDir, dbName))
 	gdb, err := db.NewDB(dbPath)
 	if err != nil {
 		return nil, err
