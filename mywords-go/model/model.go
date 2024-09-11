@@ -6,6 +6,7 @@ type FileInfo struct {
 	ID        int64  `json:"id"`
 	Title     string `json:"title"`
 	SourceUrl string `json:"sourceUrl"`
+	Host      string `json:"host"`
 	FileName  string `json:"fileName"`
 	Size      int64  `json:"size"` // bytes
 	// LastModified

@@ -349,6 +349,7 @@ func (s *Client) saveArticle(art *artical.Article) error {
 		Title:        art.Title,
 		SourceUrl:    sourceUrl,
 		FileName:     fileName,
+		Host:         "", // FIXME
 		Size:         int64(fileSize),
 		LastModified: lastModified,
 		IsDir:        false,

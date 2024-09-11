@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS file_info (
     "id"            INTEGER PRIMARY KEY AUTOINCREMENT,
     "source_url"    TEXT,
+    "host"          TEXT,
     "title"        TEXT,
     "file_name"     TEXT,
     "size"         INTEGER DEFAULT 0,
@@ -15,9 +16,8 @@ CREATE TABLE IF NOT EXISTS file_info (
 );
 -- sourceUrl is unique
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sourceUrl ON file_info ("sourceUrl");
-
-
-
+-- host is index
+CREATE INDEX IF NOT EXISTS idx_host ON file_info ("host");
 
 
 
