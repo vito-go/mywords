@@ -10,8 +10,10 @@ import 'package:mywords/widgets/line_chart.dart';
 
 import 'package:mywords/environment.dart';
 
-import 'package:mywords/util/local_cache.dart';
+
 import 'package:url_launcher/url_launcher_string.dart';
+
+import '../common/global.dart';
 
 final Handler handlerImplement = WebHandler();
 
@@ -65,7 +67,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> delDict(String basePath) async {
-    LocalCache.defaultDictBasePath = null;
+    Global.defaultDictBasePath = '';
     final result = await call("DelDict", [basePath]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
@@ -264,7 +266,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> setDefaultDict(String basePath) async {
-    LocalCache.defaultDictBasePath = null;
+    Global.defaultDictBasePath = '';
     final result = await call("SetDefaultDict", [basePath]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
@@ -373,8 +375,6 @@ class WebHandler implements Handler {
     return respData.data ?? {};
   }
 
-
-
   @override
   Future<RespData<void>> setProxyUrl(String netProxy) async {
     final result = await call("SetProxyUrl", [netProxy]);
@@ -433,26 +433,36 @@ class WebHandler implements Handler {
   }
 
   @override
-  FutureOr<RespData<Article>> newArticleFileInfoBySourceURL(String www) async{
+  FutureOr<RespData<Article>> newArticleFileInfoBySourceURL(String www) async {
     final result = await call("NewArticleFileInfoBySourceURL", [www]);
-    final RespData<Article> respData = RespData.fromJson(
-        jsonDecode(result), (json) => Article.fromJson(json));
+    final RespData<Article> respData =
+        RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
     return respData;
   }
 
   @override
-  FutureOr<RespData<Article>> renewArticleFileInfo(int id) async{
+  FutureOr<RespData<Article>> renewArticleFileInfo(int id) async {
     final result = await call("RenewArticleFileInfo", [id]);
-    final RespData<Article> respData = RespData.fromJson(
-        jsonDecode(result), (json) => Article.fromJson(json));
+    final RespData<Article> respData =
+        RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
     return respData;
   }
 
   @override
-  FutureOr<RespData<Article>> reparseArticleFileInfo(int id) async{
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int id) async {
     final result = await call("RenewArticleFileInfo", [id]);
-    final RespData<Article> respData = RespData.fromJson(
-        jsonDecode(result), (json) => Article.fromJson(json));
+    final RespData<Article> respData =
+        RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Map<String, int>>> allKnownWordsMap() async {
+    final resultC = await call("AllKnownWordsMap", []);
+    final respData = RespData.fromJson(jsonDecode(resultC), (json) {
+      return (json as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as int));
+    });
     return respData;
   }
 }

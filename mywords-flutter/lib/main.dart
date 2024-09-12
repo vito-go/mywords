@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:mywords/common/global.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/home.dart';
 import 'package:mywords/widgets/restart_app.dart';
@@ -11,6 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
   await handler.initLib();
+  await Global.init();
   runApp(const RestartApp(child: MyApp()));
 }
 

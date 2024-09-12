@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:mywords/util/util.dart';
+
 class FileInfo {
   final String title;
   final String filePath;
@@ -98,6 +100,7 @@ class Article {
   int minLen;
   int totalCount;
   int netCount;
+  List<String> allSentences;
   List<WordInfo> wordInfos;
 
   Article({
@@ -109,6 +112,7 @@ class Article {
     required this.totalCount,
     required this.netCount,
     required this.wordInfos,
+    required this.allSentences,
   });
 
   factory Article.fromRawJson(String str) => Article.fromJson(json.decode(str));
@@ -117,6 +121,7 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) {
     final List<dynamic> ws = json["wordInfos"] ?? [];
+    final List<dynamic> allSentences = json["allSentences"] ?? [];
     return Article(
       title: json["title"].toString(),
       version: json["version"].toString(),
@@ -129,6 +134,9 @@ class Article {
       //     json["wordInfos"]??[].map((x) => WordInfo.fromJson(x))),
       wordInfos: List<WordInfo>.generate(
           ws.length, (index) => WordInfo.fromJson(ws[index])),
+      // allSentences: List<String>.from(json["allSentences"]??[].map((x) => x)),
+      allSentences: List<String>.generate(
+          allSentences.length, (index) => allSentences[index]),
     );
   }
 
@@ -145,16 +153,16 @@ class Article {
 }
 
 class WordInfo {
-  String text;
+  String text; //就是word
   String wordLink;
   int count;
-  List<String> sentence;
+  List<int> sentenceIds;
 
   WordInfo({
     required this.text,
     required this.wordLink,
     required this.count,
-    required this.sentence,
+    required this.sentenceIds,
   });
 
   factory WordInfo.fromRawJson(String str) =>
@@ -166,14 +174,15 @@ class WordInfo {
         text: json["text"] ?? "",
         wordLink: json["wordLink"] ?? "",
         count: json["count"] ?? 0,
-        sentence: List<String>.from((json["sentence"] ?? []).map((x) => x)),
+        sentenceIds:
+            List<int>.from((json["sentenceIds"] ?? []).map((x) => x as int)),
       );
 
   Map<String, dynamic> toJson() => {
         "text": text,
         "wordLink": wordLink,
         "count": count,
-        "sentence": List<dynamic>.from(sentence.map((x) => x)),
+        "sentenceIds": sentenceIds,
       };
 }
 

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
-import 'package:mywords/util/local_cache.dart';
+
 import 'package:mywords/widgets/word_default_meaning.dart';
 
 import 'package:mywords/widgets/word_webview_for_mobile.dart'
@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'dart:io';
 
+import '../common/global.dart';
 import '../common/global_event.dart';
 import '../util/util.dart';
 
@@ -109,10 +110,9 @@ void showWordWithDefault(BuildContext context, String word) async {
 
 void showWord(BuildContext context, String word) async {
   FocusManager.instance.primaryFocus?.unfocus();
-  LocalCache.defaultDictBasePath ??=
-      ((await handler.getDefaultDict()).data ?? '');
+
   if (!context.mounted) return;
-  if (LocalCache.defaultDictBasePath == "") {
+  if (Global.defaultDictBasePath == "") {
     return showWordWithDefault(context, word);
   }
   queryWordInDict(context, word);

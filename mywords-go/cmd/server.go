@@ -301,6 +301,19 @@ func LevelDistribute(artC *C.char) *C.char {
 	return CharOk(l)
 }
 
+//export AllKnownWordsMap
+func AllKnownWordsMap() *C.char {
+	items, err := serverGlobal.AllDao().KnownWordsDao.AllItems(ctx)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	var result = make(map[string]mtype.WordKnownLevel)
+	for _, item := range items {
+		result[item.Word] = item.Level
+	}
+	return CharOk(result)
+}
+
 //export SearchByKeyWordWithDefault
 func SearchByKeyWordWithDefault(keyWordC *C.char) *C.char {
 	items := dict.SearchByKeyWord(C.GoString(keyWordC), dict.DefaultDictWordMap)

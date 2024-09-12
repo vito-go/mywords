@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:mywords/common/global.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/libso/handler.dart';
-import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/libso/types.dart';
-import 'package:mywords/util/local_cache.dart';
+
 import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/util/util.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -34,32 +34,29 @@ class ArticlePageState extends State<ArticlePage> {
   Article? article;
   bool preview = false;
   bool showSentence = true;
-  Map<String, int> artWordLevelMap = {};
 
   void initArticle() async {
-    compute(computeArticleFromGobFile, fileInfo).then((respData) async {
+    compute(handler.articleFromFileInfo, fileInfo).then((respData) async {
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
       }
       article = respData.data!;
-      LocalCache.parseVersion ??= await handler.parseVersion();
-      parseVersion = LocalCache.parseVersion!;
-      if (article!.version != parseVersion) {
-        reParseArticle(false);
+      if (article!.version != Global.parseVersion) {
+        reParseArticle();
         return;
       }
-      List<String> allWordLink = List<String>.generate(
-          wordInfos.length, (index) => wordInfos[index].wordLink);
-      artWordLevelMap = await handler.queryWordsLevel(allWordLink);
-      levelCountMap = await _levelDistribute();
+      final words = article!.wordInfos.map((e) {
+        return e.wordLink == "" ? e.text : e.wordLink;
+      }).toList();
+      levelCountMap = Global.levelDistribute(words);
       if (mounted) {
         setState(() {});
       }
     });
   }
 
-  void reParseArticle(bool updateLastModified) {
+  void reParseArticle() {
     final art = article;
     if (art == null) {
       if (!context.mounted) return;
@@ -76,9 +73,7 @@ class ArticlePageState extends State<ArticlePage> {
       addToGlobalEvent(
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
-      List<String> allWordLink = List<String>.generate(
-          wordInfos.length, (index) => wordInfos[index].wordLink);
-      artWordLevelMap = await handler.queryWordsLevel(allWordLink);
+
       levelCountMap = await _levelDistribute();
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -94,9 +89,9 @@ class ArticlePageState extends State<ArticlePage> {
         if (event.param["word"] != null && event.param["level"] != null) {
           final word = event.param["word"].toString();
           final level = event.param["level"] as int;
-          final oldLevel = artWordLevelMap[word] ?? 0;
+          final oldLevel = Global.allKnownWordsMap[word] ?? 0;
           final oldCount = levelCountMap[oldLevel] ?? 0;
-          artWordLevelMap[word] = level;
+          Global.allKnownWordsMap[word] = level;
           levelCountMap[oldLevel] = oldCount - 1;
           setState(() {});
         }
@@ -151,12 +146,18 @@ class ArticlePageState extends State<ArticlePage> {
     return art.wordInfos;
   }
 
+  List<String> get allSentences {
+    final art = article;
+    if (art == null) return [];
+    return art.allSentences;
+  }
+
   Widget buildWords(List<WordInfo> infos) {
     List<Widget> items = [];
     for (int i = 0; i < infos.length; i++) {
       final info = infos[i];
       final wordLink = info.wordLink;
-      final int realLevel = artWordLevelMap[wordLink] ?? 0;
+      final int realLevel = Global.allKnownWordsMap[wordLink] ?? 0;
       if (realLevel != showLevel) {
         continue;
       }
@@ -189,10 +190,15 @@ class ArticlePageState extends State<ArticlePage> {
       if (!showSentence) {
         continue;
       }
-      items.add(const SizedBox(height: 5));
+
+      final List<String> sentences = [];
+      for (var sentenceId in info.sentenceIds) {
+        final sentence = allSentences[sentenceId];
+        sentences.add(sentence);
+      }
       // 前面带的空格是为了避免中间行单词粘在一起
       items.add(highlightTextSplitBySpace(
-          context, info.sentence.join(' \n\n'), [info.text], contextMenuBuilder:
+          context, sentences.join(' \n\n'), [info.text], contextMenuBuilder:
               (BuildContext context, EditableTextState editableTextState) {
         return contextMenuBuilder(context, editableTextState);
       }));
@@ -211,7 +217,7 @@ class ArticlePageState extends State<ArticlePage> {
     return [
       IconButton(
           onPressed: () {
-            reParseArticle(true);
+            reParseArticle();
           },
           icon: const Icon(Icons.refresh)),
       previewIcon,
@@ -260,15 +266,13 @@ class ArticlePageState extends State<ArticlePage> {
     );
   }
 
-  String parseVersion = "";
-
   Widget get getHeaderRow => Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Tooltip(
             showDuration: const Duration(seconds: 30),
             message:
-                "解析器版本: $parseVersion\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第3个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
+                "解析器版本: ${Global.parseVersion}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第3个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
             triggerMode: TooltipTriggerMode.tap,
             child: const Icon(Icons.info),
           ),
@@ -400,12 +404,6 @@ class ArticlePageState extends State<ArticlePage> {
     );
     return getScaffold(context, appBar: appBar, body: body);
   }
-}
-
-
-
-Future<RespData<Article>> computeArticleFromGobFile(FileInfo f) async {
-  return handler.articleFromFileInfo(f);
 }
 
 Widget contextMenuBuilder(

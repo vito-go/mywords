@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:mywords/common/global.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/line_chart.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
-import '../util/local_cache.dart';
 import 'types.dart';
 import 'dart:io';
 
@@ -68,14 +68,15 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Int64),
       Pointer<Utf8> Function(int)>('RenewArticleFileInfo');
 
+  final AllKnownWordsMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('AllKnownWordsMap');
+
 //func UpdateKnownWords(level int, c *C.char) *C.char
   final ReparseArticleFileInfo = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Int64),
       Pointer<Utf8> Function(int)>('ReparseArticleFileInfo');
 
-
-
-   final _deleteGobFile = nativeAddLib.lookupFunction<
+  final _deleteGobFile = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Int64),
       Pointer<Utf8> Function(int)>('DeleteGobFile');
 
@@ -496,7 +497,6 @@ class NativeHandler implements Handler {
     return l;
   }
 
-
 // func SearchByKeyWord(keyWordC *C.char) *C.char {}
   final _searchByKeyWordWithDefault = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
@@ -560,7 +560,7 @@ class NativeHandler implements Handler {
 
   @override
   RespData<void> setDefaultDict(String basePath) {
-    LocalCache.defaultDictBasePath = null;
+    Global.defaultDictBasePath = '';
     final basePathC = basePath.toNativeUtf8();
     final resultC = _setDefaultDict(basePathC);
     malloc.free(basePathC);
@@ -610,7 +610,7 @@ class NativeHandler implements Handler {
 
   @override
   RespData<void> delDict(String basePath) {
-    LocalCache.defaultDictBasePath = null;
+    Global.defaultDictBasePath = '';
     final basePathC = basePath.toNativeUtf8();
     final resultC = _delDict(basePathC);
     malloc.free(basePathC);
@@ -839,6 +839,18 @@ class NativeHandler implements Handler {
     final resultC = ReparseArticleFileInfo(id);
     final respData = RespData.fromJson(
         jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Map<String, int>>> allKnownWordsMap() {
+    final resultC = AllKnownWordsMap();
+    final respData =
+        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
+      return (json as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as int));
+    });
     malloc.free(resultC);
     return respData;
   }

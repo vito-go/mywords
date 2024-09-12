@@ -35,6 +35,7 @@ var exportedFuncMap = map[string]any{
 	"Init":                           Init,
 	"KnownWordsCountMap":             KnownWordsCountMap,
 	"LevelDistribute":                LevelDistribute,
+	"AllKnownWordsMap":               AllKnownWordsMap,
 	"ReparseArticleFileInfo":         ReparseArticleFileInfo,
 	"RenewArticleFileInfo":           RenewArticleFileInfo,
 	"NewArticleFileInfoBySourceURL":  NewArticleFileInfoBySourceURL,

@@ -83,6 +83,7 @@ abstract class Handler {
   FutureOr<RespData<ChartLineData>> getChartDataAccumulate();
 
   FutureOr<RespData<Map<String, dynamic>>> getToadyChartDateLevelCountMap();
+  FutureOr<RespData<Map<String, int>>> allKnownWordsMap();
 
   FutureOr<RespData<Map<int, List<String>>>> allKnownWordMap();
 

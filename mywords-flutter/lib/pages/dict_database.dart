@@ -7,9 +7,11 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
-import 'package:mywords/util/local_cache.dart';
+
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
+
+import '../common/global.dart';
 
 class _DictDirName {
   String basePath = '';
@@ -237,7 +239,7 @@ class _State extends State<DictDatabase> {
     initDictDirNames();
     zipFilePath = '';
     defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
-    LocalCache.defaultDictBasePath = null;
+    Global.defaultDictBasePath = '';
     setState(() {});
   }
 
