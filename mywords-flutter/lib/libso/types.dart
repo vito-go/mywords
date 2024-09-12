@@ -6,7 +6,7 @@ class FileInfo {
   final String sourceUrl;
   final int id;
   final int size;
-   final bool archived;
+  final bool archived;
   final int totalCount;
   final int netCount;
   final int updatedAt;
@@ -18,7 +18,7 @@ class FileInfo {
     required this.id,
     required this.filePath,
     required this.size,
-     required this.totalCount,
+    required this.totalCount,
     required this.archived,
     required this.netCount,
     required this.updatedAt,
@@ -34,8 +34,7 @@ class FileInfo {
     String? title,
     String? filePath,
     int? size,
-    int? lastModified,
-     int? totalCount,
+    int? totalCount,
     int? netCount,
     int? updatedAt,
     bool? archived,
@@ -63,7 +62,7 @@ class FileInfo {
         title: json["title"].toString(),
         filePath: json["filePath"],
         size: json["size"],
-         totalCount: json["totalCount"],
+        totalCount: json["totalCount"],
         netCount: json["netCount"],
         updatedAt: json["updatedAt"],
         createdAt: json["createdAt"],
