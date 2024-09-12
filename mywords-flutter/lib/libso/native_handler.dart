@@ -153,10 +153,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-// func QueryWordLevel(wordC *C.char) *C.char
-  final _queryWordLevel = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('QueryWordLevel');
 
 // func BackUpData(targetZipPath, srcDataPath string) error
   final _backUpData = nativeAddLib.lookupFunction<
@@ -187,15 +183,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-// func LevelDistribute(artC *C.char) *C.char param []string
-  final _levelDistribute = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('LevelDistribute');
-
-  //  QueryWordsLevel(words ...string) map[string]WordKnownLevel
-  final _queryWordsLevel = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('QueryWordsLevel');
 
 // func SetProxyUrl(netProxy *C.char) *C.char {
   final _setProxyUrl = nativeAddLib.lookupFunction<
@@ -218,32 +205,7 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
 
-  @override
-  RespData<Map<int, int>> levelDistribute(List<String> words) {
-    final c = jsonEncode(words).toNativeUtf8();
-    final resultC = _levelDistribute(c);
-    final respData = RespData.fromJson(
-        jsonDecode(resultC.toDartString()),
-        (json) => (json as Map<String, dynamic>).map(
-            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
-    malloc.free(c);
-    malloc.free(resultC);
-    return respData;
-  }
 
-  @override
-  Map<String, int> queryWordsLevel(List<String> words) {
-    final c = jsonEncode(words).toNativeUtf8();
-    final resultC = _queryWordsLevel(c);
-    final respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
-      return (json as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, value as int));
-    });
-    malloc.free(c);
-    malloc.free(resultC);
-    return respData.data ?? {};
-  }
 
   @override
   String dictWordQuery(String word) {
@@ -251,7 +213,6 @@ class NativeHandler implements Handler {
     final resultC = _dictWordQuery(wordC);
     final respData = RespData.fromJson(
         jsonDecode(resultC.toDartString()), (json) => json.toString());
-    myPrint(resultC.toDartString());
     malloc.free(wordC);
     malloc.free(resultC);
     String define = respData.data ?? '';
@@ -484,18 +445,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  @override
-  int queryWordLevel(String word) {
-    final wordC = word.toNativeUtf8();
-    final resultC = _queryWordLevel(wordC);
-    malloc.free(wordC);
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<int> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as int);
-    final int l = respData.data ?? 0;
-    return l;
-  }
 
 // func SearchByKeyWord(keyWordC *C.char) *C.char {}
   final _searchByKeyWordWithDefault = nativeAddLib.lookupFunction<
@@ -709,64 +658,6 @@ class NativeHandler implements Handler {
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? "";
-  }
-
-  final _setLogUrl = nativeAddLib.lookupFunction<
-      Void Function(Pointer<Utf8>, Pointer<Utf8>, Bool),
-      void Function(Pointer<Utf8>, Pointer<Utf8>, bool)>('SetLogUrl');
-
-  @override
-  void setLogUrl(String logUrl, String logNonce) {
-    final logUrlC = logUrl.toNativeUtf8();
-    final logNonceC = logNonce.toNativeUtf8();
-    _setLogUrl(logUrlC, logNonceC, false);
-    malloc.free(logUrlC);
-    malloc.free(logNonceC);
-    return;
-  }
-
-// _println equal to _printInfo
-  final _println = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('Println');
-
-  final _printWarn = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('PrintWarn');
-
-  final _printInfo = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('PrintInfo');
-
-  final _printError = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('PrintError');
-  final setLogDebug = nativeAddLib
-      .lookupFunction<Void Function(Bool), void Function(bool)>('SetLogDebug');
-  final setLogCallerSkip =
-      nativeAddLib.lookupFunction<Void Function(Int64), void Function(int)>(
-          'SetLogCallerSkip');
-
-  void printWarn(String msg) {
-    final c = msg.toNativeUtf8();
-    _printWarn(c);
-    malloc.free(c);
-  }
-
-  void printInfo(String msg) {
-    final c = msg.toNativeUtf8();
-    _printInfo(c);
-    malloc.free(c);
-  }
-
-// equal to printInfo
-  @override
-  void println(String msg) {
-    final c = msg.toNativeUtf8();
-    _println(c);
-    malloc.free(c);
-  }
-
-  void printError(String msg) {
-    final c = msg.toNativeUtf8();
-    _printError(c);
-    malloc.free(c);
   }
 
   @override

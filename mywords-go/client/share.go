@@ -8,7 +8,8 @@ import (
 	"io"
 	"io/fs"
 	"mywords/model/mtype"
-	"mywords/mylog"
+	"mywords/pkg/log"
+
 	"net"
 	"net/http"
 	"os"
@@ -32,16 +33,16 @@ func (s *Client) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Reques
 	if remoteHost == "" {
 		remoteHost = r.RemoteAddr
 	}
-	mylog.Info("share data begin", "remoteHost", remoteHost)
+	log.Println("share data begin", "remoteHost", remoteHost)
 	// download when it's false
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename=%s`, "mywords-backupdata.zip"))
 	err := ZipToWriterWithFilter(w, srcDataPath, &param)
 	if err != nil {
-		mylog.Error("share data error", "remoteHost", remoteHost, "err", err.Error())
+		log.Println("share data error", "remoteHost", remoteHost, "err", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
-	mylog.Info("share data done", "remoteHost", remoteHost)
+	log.Println("share data done", "remoteHost", remoteHost)
 }
 
 // ZipToWriterWithFilter copy from util.ZipToWriter
@@ -151,11 +152,11 @@ func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNoContent {
-		mylog.Info("nothing new to download", "httpUrl", httpUrl, "statusCode", resp.StatusCode)
+		log.Println("nothing new to download", "httpUrl", httpUrl, "statusCode", resp.StatusCode)
 		return 0, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		mylog.Error("download error", "httpUrl", httpUrl, "statusCode", resp.StatusCode)
+		log.Println("download error", "httpUrl", httpUrl, "statusCode", resp.StatusCode)
 		return 0, fmt.Errorf("http status code %d", resp.StatusCode)
 	}
 
@@ -196,11 +197,11 @@ func (s *Client) ShareOpen(port int, code int64) error {
 	if err != nil {
 		return err
 	}
-	mylog.Info("StartServer success", `port`, port)
+	log.Println("StartServer success", `port`, port)
 	go func() {
 		err := http.Serve(lis, mux)
 		if err != nil {
-			mylog.Warn(err.Error())
+			log.Ctx(ctx).Warn(err.Error())
 		}
 	}()
 	return nil

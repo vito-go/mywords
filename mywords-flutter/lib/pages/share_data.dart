@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/libso/handler.dart';
-import 'package:mywords/widgets/stream_log.dart';
-import 'package:path_provider/path_provider.dart';
+ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
 
@@ -123,7 +122,7 @@ class _SyncDataState extends State<SyncData> {
     }
     shareInfo.open = false;
     setState(() {});
-    handler.println("share server closed!");
+    myPrint("share server closed!");
     return;
   }
 
@@ -226,9 +225,7 @@ class _SyncDataState extends State<SyncData> {
       ),
       trailing: switchBuild(),
     ));
-    if (!kIsWeb) {
-      children.add(const Flexible(child: StreamLog(maxLines: 200)));
-    }
+
     final body = Column(children: children);
     final appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,

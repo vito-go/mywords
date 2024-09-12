@@ -10,6 +10,8 @@ import 'package:mywords/common/global_event.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import 'package:webview_flutter_web/webview_flutter_web.dart';
 
+import '../common/global.dart';
+
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
 
@@ -81,7 +83,7 @@ class _State extends State<WordWebView> {
   void initOpenWithHtmlFilePath() async {
     word = widget.word;
     _loadRequest(word);
-    realLevel = await handler.queryWordLevel(word);
+    realLevel = Global.allKnownWordsMap[word]??0;
     setState(() {});
   }
 

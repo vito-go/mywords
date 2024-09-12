@@ -10,7 +10,7 @@ import (
 	htmlquery "github.com/antchfx/xquery/html"
 	"golang.org/x/net/html"
 	"io"
-	"mywords/mylog"
+	"mywords/pkg/log"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -212,7 +212,7 @@ func (d *OneDict) replaceMP3WithSourceBase64(htmlNode *html.Node) {
 				mp3Href := strings.TrimPrefix(strings.TrimSpace(div.Attr[i].Val), "sound://")
 				b, err := d.originalContentByBasePath(mp3Href)
 				if err != nil {
-					mylog.Error(err.Error())
+					log.Println(err.Error())
 					continue
 				}
 				// x-wav可以播放
@@ -233,7 +233,7 @@ func (d *OneDict) replacePng(htmlNode *html.Node) {
 				mp3Href := strings.TrimSpace(div.Attr[i].Val)
 				b, err := d.originalContentByBasePath(mp3Href)
 				if err != nil {
-					mylog.Error(err.Error())
+					log.Println(err.Error())
 					continue
 				}
 				// set png href with base64
@@ -251,7 +251,7 @@ func (d *OneDict) replaceJPG(htmlNode *html.Node) {
 				val := strings.TrimSpace(div.Attr[i].Val)
 				b, err := d.originalContentByBasePath(val)
 				if err != nil {
-					mylog.Error(err.Error())
+					log.Println(err.Error())
 					continue
 				}
 				// set png href with base64

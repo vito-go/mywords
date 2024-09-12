@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"mywords/mylog"
+
 	"net"
 	"net/http"
 	"os"
@@ -42,7 +42,7 @@ func main() {
 	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
 	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)
 	mux.Handle("/", http.FileServer(http.FS(&webEmbedHandler{webEmbed: webEmbed})))
-	mylog.Info("client start", "port", *port, "rootDir", *rootDir)
+	log.Println("client start", "port", *port, "rootDir", *rootDir)
 	go func() {
 		time.Sleep(time.Second)
 		openBrowser(fmt.Sprintf("http://localhost:%d", *port))

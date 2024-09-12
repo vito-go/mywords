@@ -1,7 +1,7 @@
 package main
 
 import (
-	"mywords/mylog"
+	"mywords/pkg/log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,10 +20,10 @@ func killOldPidAndGenNewPid(rootDir string) {
 		pid := os.Getpid()
 		err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), os.ModePerm)
 		if err != nil {
-			mylog.Error("write pid file error", "err", err)
+			log.Println("write pid file error", "err", err)
 			return
 		}
-		mylog.Info("write pid file", "pid", pid)
+		log.Println("write pid file", "pid", pid)
 	}()
 	data, err := os.ReadFile(pidFile)
 	if err != nil {
@@ -48,6 +48,6 @@ func killOldPidAndGenNewPid(rootDir string) {
 		// wait for old process to exit
 	}
 	// kill log
-	mylog.Info("kill old pid", "pid", pid)
+	log.Println("kill old pid", "pid", pid)
 	return
 }

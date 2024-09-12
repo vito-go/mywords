@@ -50,7 +50,6 @@ abstract class Handler {
 
   FutureOr<String> dictWordQuery(String word);
 
-  FutureOr<RespData<Map<int, int>>> levelDistribute(List<String> words);
 
   FutureOr<String> dictWordQueryLink(String word);
 
@@ -91,9 +90,7 @@ abstract class Handler {
 
   FutureOr<RespData<void>> updateKnownWordLevel( String word,int level);
 
-  FutureOr<int> queryWordLevel(String word);
 
-  FutureOr<Map<String, int>> queryWordsLevel(List<String> words);
 
   FutureOr<List<String>?> getIPv4s(); // null mean error
 
@@ -103,9 +100,6 @@ abstract class Handler {
 
   FutureOr<ShareInfo> getShareInfo();
 
-  void setLogUrl(String logUrl, String logNonce);
-
-  void println(String msg);
 
   String getHostName();
 }

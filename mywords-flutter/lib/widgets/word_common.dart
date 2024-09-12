@@ -48,8 +48,8 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
 }
 
 void _queryWordInDictNotMobile(BuildContext context, String word) async {
-  final hostname=handler.getHostName();
-  String url = await handler.getUrlByWord(hostname,word);
+  final hostname = handler.getHostName();
+  String url = await handler.getUrlByWord(hostname, word);
   if (url.isEmpty) {
     word = await handler.dictWordQueryLink(word);
     url = await handler.finalHtmlBasePathWithOutHtml(word);
@@ -92,7 +92,7 @@ void showWordWithDefault(BuildContext context, String word) async {
     ));
     return;
   }
-  final realLevel = await handler.queryWordLevel(word);
+  final realLevel = Global.allKnownWordsMap[word]??0;
   meaning = fixDefaultMeaning(meaning);
   if (!context.mounted) return;
   showModalBottomSheet(
@@ -282,11 +282,12 @@ InkWell buildInkWell(
             child: Text(showLevel.toString()),
           )),
       onTap: () async {
-        final respData = await handler.updateKnownWordLevel(word,showLevel );
+        final respData = await handler.updateKnownWordLevel(word, showLevel);
         if (respData.code != 0) {
           myToast(context, respData.message);
           return;
         }
+        Global.allKnownWordsMap[word] = showLevel;
         addToGlobalEvent(GlobalEvent(
             eventType: GlobalEventType.updateKnownWord,
             param: <String, dynamic>{"word": word, "level": showLevel}));

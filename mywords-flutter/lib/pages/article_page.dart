@@ -46,10 +46,7 @@ class ArticlePageState extends State<ArticlePage> {
         reParseArticle();
         return;
       }
-      final words = article!.wordInfos.map((e) {
-        return e.wordLink == "" ? e.text : e.wordLink;
-      }).toList();
-      levelCountMap = Global.levelDistribute(words);
+
       if (mounted) {
         setState(() {});
       }
@@ -74,8 +71,7 @@ class ArticlePageState extends State<ArticlePage> {
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
 
-      levelCountMap = await _levelDistribute();
-      if (!mounted) return;
+       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       setState(() {});
@@ -108,7 +104,17 @@ class ArticlePageState extends State<ArticlePage> {
     globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
   }
 
-  Map<int, int> levelCountMap = {}; //level: count
+  Map<int, int> get levelCountMap {
+    final art = article;
+    if (art == null) return {};
+    final words = List<String>.generate(
+        art.wordInfos.length,
+        (index) => art.wordInfos[index].wordLink == ""
+            ? art.wordInfos[index].text
+            : art.wordInfos[index].wordLink);
+    return Global.levelDistribute(words);
+  } //level: count
+
   int get count0 => levelCountMap[0] ?? 0;
 
   int get count1 => levelCountMap[1] ?? 0;
@@ -124,21 +130,6 @@ class ArticlePageState extends State<ArticlePage> {
 
   int get count3 => levelCountMap[3] ?? 0;
 
-  Future<Map<int, int>> _levelDistribute() async {
-    final art = article;
-    if (art == null) return {};
-    final words = List<String>.generate(
-        art.wordInfos.length,
-        (index) => art.wordInfos[index].wordLink == ""
-            ? art.wordInfos[index].text
-            : art.wordInfos[index].wordLink);
-    final respData = await handler.levelDistribute(words);
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return {};
-    }
-    return respData.data ?? {};
-  }
 
   List<WordInfo> get wordInfos {
     final art = article;

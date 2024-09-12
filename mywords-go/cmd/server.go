@@ -270,37 +270,6 @@ func RestoreFromShareServer(ipC *C.char, port int, code int64, syncKnownWords bo
 	return CharSuccess()
 }
 
-//export QueryWordLevel
-func QueryWordLevel(wordC *C.char) *C.char {
-	l, _ := serverGlobal.QueryWordLevel(C.GoString(wordC))
-	return CharOk(l)
-}
-
-//export QueryWordsLevel
-func QueryWordsLevel(wordC *C.char) *C.char {
-	var words []string
-	err := json.Unmarshal([]byte(C.GoString(wordC)), &words)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	result, err := serverGlobal.QueryWordsLevel(words...)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharOk(result)
-}
-
-//export LevelDistribute
-func LevelDistribute(artC *C.char) *C.char {
-	var words []string
-	err := json.Unmarshal([]byte(C.GoString(artC)), &words)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	l := serverGlobal.LevelDistribute(words)
-	return CharOk(l)
-}
-
 //export AllKnownWordsMap
 func AllKnownWordsMap() *C.char {
 	items, err := serverGlobal.AllDao().KnownWordsDao.AllItems(ctx)

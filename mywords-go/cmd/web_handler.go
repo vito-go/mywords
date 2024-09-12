@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mywords/mylog"
+	"mywords/pkg/log"
+
 	"mywords/pkg/util"
 	"net/http"
 	"os"
@@ -194,7 +195,7 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please send a functionName", http.StatusBadRequest)
 		return
 	}
-	mylog.Info("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
+	log.Println("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
 	fn, ok := exportedFuncMap[funcName]
 	if !ok {
 		http.Error(w, "Function not found: "+funcName, http.StatusNotFound)

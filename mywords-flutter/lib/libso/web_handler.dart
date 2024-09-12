@@ -192,21 +192,7 @@ class WebHandler implements Handler {
     return respData.data!;
   }
 
-  @override
-  void println(String msg) {
-    // TODO: implement println
-    // console.log
-  }
 
-  // Deprecated please use queryWordsLevel
-  @override
-  Future<int> queryWordLevel(String word) async {
-    final result = await call("QueryWordLevel", [word]);
-    final RespData<int> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as int);
-    final int l = respData.data ?? 0;
-    return l;
-  }
 
   @override
   Future<RespData<void>> restoreFromBackUpData(
@@ -273,11 +259,6 @@ class WebHandler implements Handler {
     return respData;
   }
 
-  @override
-  void setLogUrl(String logUrl, String logNonce) {
-    // TODO: implement setLogUrl
-    // not supported web
-  }
 
   @override
   Future<RespData<void>> shareClosed() async {
@@ -353,17 +334,7 @@ class WebHandler implements Handler {
     return;
   }
 
-  @override
-  Future<RespData<Map<int, int>>> levelDistribute(List<String> words) async {
-    final result = await call("LevelDistribute", [words]);
 
-    final respData = RespData.fromJson(
-        jsonDecode(result),
-        (json) => (json as Map<String, dynamic>).map(
-            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
-
-    return respData;
-  }
 
   @override
   Future<Map<String, dynamic>> knownWordsCountMap() async {
@@ -384,15 +355,6 @@ class WebHandler implements Handler {
     return respData;
   }
 
-  @override
-  FutureOr<Map<String, int>> queryWordsLevel(List<String> words) async {
-    final result = await call("QueryWordsLevel", [words]);
-    final respData = RespData.fromJson(jsonDecode(result), (json) {
-      return (json as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, value as int));
-    });
-    return respData.data ?? {};
-  }
 
   @override
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceUrl) async {

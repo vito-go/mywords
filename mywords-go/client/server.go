@@ -372,20 +372,6 @@ func (s *Client) QueryWordsLevel(words ...string) (map[string]mtype.WordKnownLev
 	return resultMap, nil
 }
 
-func (s *Client) LevelDistribute(words []string) map[mtype.WordKnownLevel]int {
-	var m = make(map[mtype.WordKnownLevel]int, 3)
-	items, err := s.allDao.KnownWordsDao.ItemsByWords(ctx, words...)
-	if err != nil {
-		return nil
-	}
-	for _, item := range items {
-		if item.Level == 0 {
-			continue
-		}
-		m[item.Level]++
-	}
-	return m
-}
 func (s *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
 	items, err := s.allDao.KnownWordsDao.AllItems(ctx)
 	if err != nil {

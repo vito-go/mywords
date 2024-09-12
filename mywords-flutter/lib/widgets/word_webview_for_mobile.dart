@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/global.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -41,7 +42,7 @@ class _State extends State<WordWebView> {
     if (ss.isEmpty) return;
     final w = Uri.decodeComponent(ss[0]);
     word = w;
-    realLevel = await handler.queryWordLevel(word);
+    realLevel = Global.allKnownWordsMap[word]??0;
     setState(() {});
     _loadHtmlStringByWord(word);
     return;
@@ -128,7 +129,7 @@ class _State extends State<WordWebView> {
 
   void initOpenWithHtmlFilePath() async {
     word = widget.word;
-    realLevel = await handler.queryWordLevel(word);
+    realLevel = Global.allKnownWordsMap[word]??0;
     setState(() {});
     initControllerSet();
     _loadHtmlStringByWord(word);

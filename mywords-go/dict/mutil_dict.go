@@ -8,7 +8,7 @@ import (
 	htmlquery "github.com/antchfx/xquery/html"
 	"golang.org/x/net/html"
 	"io"
-	"mywords/mylog"
+	"mywords/pkg/log"
 	"net"
 	"net/http"
 	"net/url"
@@ -169,7 +169,7 @@ func (m *MultiDict) serveEntry(w http.ResponseWriter, r *http.Request) {
 func (m *MultiDict) serverHTTPIndex(w http.ResponseWriter, r *http.Request) {
 	// html
 	urlPath := strings.TrimPrefix(r.URL.Path, "/")
-	mylog.Info("serverHTTPIndex", "path", r.URL.Path, "isHtml", strings.HasSuffix(urlPath, ".html"))
+	log.Println("serverHTTPIndex", "path", r.URL.Path, "isHtml", strings.HasSuffix(urlPath, ".html"))
 	if strings.HasSuffix(urlPath, ".html") {
 		m.serverHTTPHtml(w, r)
 		return
