@@ -2,7 +2,9 @@ package artical
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/sha1"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/antchfx/xpath"
@@ -21,26 +23,55 @@ import (
 )
 
 type Article struct {
-	Version      string     `json:"version"`
-	LastModified int64      `json:"lastModified"`
-	Title        string     `json:"title"`
-	SourceUrl    string     `json:"sourceUrl"`
-	HTMLContent  string     `json:"htmlContent"`
-	MinLen       int        `json:"minLen"`
-	TotalCount   int        `json:"totalCount"`
-	NetCount     int        `json:"netCount"`
-	WordInfos    []WordInfo `json:"wordInfos"`
+	Version     string `json:"version"`
+	Title       string `json:"title"`
+	SourceUrl   string `json:"sourceUrl"`
+	HTMLContent string `json:"htmlContent"`
+	MinLen      int    `json:"minLen"`
+	TotalCount  int    `json:"totalCount"`
+	NetCount    int    `json:"netCount"`
+	// todo 重复的句子改革
+	WordInfos []WordInfo `json:"wordInfos"`
 }
+
+func (art *Article) SaveToFile(path string) (int, error) {
+	//gob marshal
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(art)
+	if err != nil {
+		return 0, err
+	}
+	//save gob file
+	var bufGZ bytes.Buffer
+	gz := gzip.NewWriter(&bufGZ)
+	fileSize, err := gz.Write(buf.Bytes())
+	if err != nil {
+		return 0, err
+	}
+	err = gz.Close()
+	if err != nil {
+		return 0, err
+	}
+	err = os.WriteFile(path, bufGZ.Bytes(), 0644)
+	if err != nil {
+		return 0, err
+	}
+	return fileSize, nil
+}
+
+const gobGzFileSuffix = ".gob.gz" // file_infos.json index file
+
+func (art *Article) GenFileName() string {
+	fileName := fmt.Sprintf("%x%s", sha1.Sum([]byte(art.HTMLContent)), gobGzFileSuffix)
+	return fileName
+
+}
+
 type WordInfo struct {
 	Text     string    `json:"text"`
 	WordLink string    `json:"wordLink"` // real word
 	Count    int64     `json:"count"`
 	Sentence []*string `json:"sentence"`
-}
-
-func ParseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (*Article, error) {
-
-	return parseContent(sourceUrl, filepath.Base(sourceUrl), expr, respBody, lastModified)
 }
 
 // //div/p//text()[not(ancestor::style or ancestor::a)]
@@ -303,15 +334,14 @@ loopSentences:
 		}
 	})
 	c := Article{
-		Title:        title,
-		SourceUrl:    sourceUrl,
-		HTMLContent:  HTMLContent,
-		MinLen:       minLen,
-		TotalCount:   totalCount,
-		NetCount:     len(wordsMap),
-		WordInfos:    WordInfos,
-		Version:      ParseVersion,
-		LastModified: lastModified,
+		Title:       title,
+		SourceUrl:   sourceUrl,
+		HTMLContent: HTMLContent,
+		MinLen:      minLen,
+		TotalCount:  totalCount,
+		NetCount:    len(wordsMap),
+		WordInfos:   WordInfos,
+		Version:     ParseVersion,
 	}
 	return &c, nil
 }

@@ -183,27 +183,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> parseAndSaveArticleFromSourceUrl(String www) async {
-    final result = await call("ParseAndSaveArticleFromSourceUrl", [www]);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
-
-  @override
-  Future<RespData<Article>> parseAndSaveArticleFromSourceUrlAndContent(
-      String www, String htmlContent, int lastModified) async {
-    final result = await call("ParseAndSaveArticleFromSourceUrlAndContent",
-        [www, htmlContent, lastModified]);
-
-    final RespData<Article> respData = RespData<Article>.fromJson(
-        jsonDecode(result), (json) => Article.fromJson(json));
-
-    return respData;
-  }
-
-  @override
   Future<String> parseVersion() async {
     final result = await call("ParseVersion", []);
     final RespData<String> respData =
@@ -394,15 +373,7 @@ class WebHandler implements Handler {
     return respData.data ?? {};
   }
 
-  @override
-  Future<RespData<void>> parseAndSaveArticleFromFile(String path) async {
-    final result = await call("ParseAndSaveArticleFromFile", [path]);
 
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
 
   @override
   Future<RespData<void>> setProxyUrl(String netProxy) async {
@@ -459,6 +430,30 @@ class WebHandler implements Handler {
     final RespData<ShareInfo> respData = RespData.fromJson(
         jsonDecode(result), (json) => ShareInfo.fromJson(json));
     return respData.data!;
+  }
+
+  @override
+  FutureOr<RespData<Article>> newArticleFileInfoBySourceURL(String www) async{
+    final result = await call("NewArticleFileInfoBySourceURL", [www]);
+    final RespData<Article> respData = RespData.fromJson(
+        jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> renewArticleFileInfo(int id) async{
+    final result = await call("RenewArticleFileInfo", [id]);
+    final RespData<Article> respData = RespData.fromJson(
+        jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int id) async{
+    final result = await call("RenewArticleFileInfo", [id]);
+    final RespData<Article> respData = RespData.fromJson(
+        jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
   }
 }
 

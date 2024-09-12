@@ -66,16 +66,8 @@ class ArticlePageState extends State<ArticlePage> {
       myToast(context, "初始化中...");
       return;
     }
-    int lastModified = 0; // update
-    if (!updateLastModified) {
-      lastModified = art.lastModified;
-    }
-    compute(
-        computeParseAndSaveArticleFromSourceUrlAndContent, <String, dynamic>{
-      "www": art.sourceUrl,
-      "lastModified": lastModified,
-      "htmlContent": art.htmlContent,
-    }).then((respData) async {
+    final id = fileInfo.id;
+    compute(handler.reparseArticleFileInfo, id).then((respData) async {
       if (respData.code != 0) {
         if (!context.mounted) return;
         myToast(context, respData.message);
@@ -399,7 +391,7 @@ class ArticlePageState extends State<ArticlePage> {
       children.add(const SizedBox(height: 8));
       children.add(Expanded(
           child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16,bottom: 10),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
               child: buildWords(wordInfos))));
     }
     final body = Column(
@@ -410,14 +402,7 @@ class ArticlePageState extends State<ArticlePage> {
   }
 }
 
-Future<RespData<Article>> computeParseAndSaveArticleFromSourceUrlAndContent(
-    Map<String, dynamic> param) async {
-  final www = param["www"].toString();
-  final lastModified = param["lastModified"] ?? 0;
-  final htmlContent = param["htmlContent"].toString();
-  return handler.parseAndSaveArticleFromSourceUrlAndContent(
-      www, htmlContent, lastModified);
-}
+
 
 Future<RespData<Article>> computeArticleFromGobFile(FileInfo f) async {
   return handler.articleFromFileInfo(f);

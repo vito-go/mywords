@@ -58,26 +58,24 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Pointer<Utf8>, Int64),
       Pointer<Utf8> Function(Pointer<Utf8>, int)>('UpdateKnownWordLevel');
 
-// func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
-  final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
+//func UpdateKnownWords(level int, c *C.char) *C.char
+  final NewArticleFileInfoBySourceURL = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(
-          Pointer<Utf8>)>('ParseAndSaveArticleFromSourceUrl');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('NewArticleFileInfoBySourceURL');
 
-// func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
-  final _parseAndSaveArticleFromFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('ParseAndSaveArticleFromFile');
+//func UpdateKnownWords(level int, c *C.char) *C.char
+  final RenewArticleFileInfo = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('RenewArticleFileInfo');
 
-// func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char,htmlContent *C.char) *C.char
-  final _parseAndSaveArticleFromSourceUrlAndContent =
-      nativeAddLib.lookupFunction<
-          Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int64),
-          Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>,
-              int)>('ParseAndSaveArticleFromSourceUrlAndContent');
+//func UpdateKnownWords(level int, c *C.char) *C.char
+  final ReparseArticleFileInfo = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('ReparseArticleFileInfo');
 
-// func DeleteGobFile(fileName *C.char) *C.char
-  final _deleteGobFile = nativeAddLib.lookupFunction<
+
+
+   final _deleteGobFile = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Int64),
       Pointer<Utf8> Function(int)>('DeleteGobFile');
 
@@ -428,30 +426,6 @@ class NativeHandler implements Handler {
 
 // compute must be top level function
   @override
-  RespData<void> parseAndSaveArticleFromSourceUrl(String www) {
-    final sourceUrl = www.toNativeUtf8();
-    final resultC = _parseAndSaveArticleFromSourceUrl(sourceUrl);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    malloc.free(sourceUrl);
-    return respData;
-  }
-
-// compute must be top level function
-  @override
-  RespData<void> parseAndSaveArticleFromFile(String path) {
-    final pathC = path.toNativeUtf8();
-    final resultC = _parseAndSaveArticleFromFile(pathC);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    malloc.free(pathC);
-    return respData;
-  }
-
-// compute must be top level function
-  @override
   RespData<Map<String, dynamic>> getToadyChartDateLevelCountMap() {
     final resultC = _getToadyChartDateLevelCountMap();
     final RespData<Map<String, dynamic>> respData = RespData.fromJson(
@@ -522,21 +496,6 @@ class NativeHandler implements Handler {
     return l;
   }
 
-// compute must be top level function
-  @override
-  RespData<Article> parseAndSaveArticleFromSourceUrlAndContent(
-      String www, String htmlContent, int lastModified) {
-    final sourceUrlC = www.toNativeUtf8();
-    final htmlContentC = htmlContent.toNativeUtf8();
-    final resultC = _parseAndSaveArticleFromSourceUrlAndContent(
-        sourceUrlC, htmlContentC, lastModified);
-    final RespData<Article> respData = RespData<Article>.fromJson(
-        jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
-    malloc.free(resultC);
-    malloc.free(sourceUrlC);
-    malloc.free(htmlContentC);
-    return respData;
-  }
 
 // func SearchByKeyWord(keyWordC *C.char) *C.char {}
   final _searchByKeyWordWithDefault = nativeAddLib.lookupFunction<
@@ -853,5 +812,34 @@ class NativeHandler implements Handler {
         jsonDecode(resultC.toDartString()), (json) => ShareInfo.fromJson(json));
     malloc.free(resultC);
     return respData.data!;
+  }
+
+  @override
+  RespData<void> newArticleFileInfoBySourceURL(String www) {
+    final wordC = www.toNativeUtf8();
+    final resultC = NewArticleFileInfoBySourceURL(wordC);
+    final respData =
+        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
+    malloc.free(wordC);
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> renewArticleFileInfo(int id) {
+    final resultC = RenewArticleFileInfo(id);
+    final respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int id) {
+    final resultC = ReparseArticleFileInfo(id);
+    final respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(resultC);
+    return respData;
   }
 }

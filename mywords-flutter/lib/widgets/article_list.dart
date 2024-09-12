@@ -167,7 +167,7 @@ class _State extends State<ArticleListView> {
                   style: TextStyle(
                       fontSize: 14, color: Theme.of(context).primaryColor)),
               subtitle: Text(
-                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))}  total:${item.totalCount} net:${item.netCount}",
+                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updatedAt))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis));
           return Dismissible(

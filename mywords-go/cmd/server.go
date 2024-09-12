@@ -87,18 +87,27 @@ func ShareClosed() *C.char {
 	return CharSuccess()
 }
 
-//export ParseAndSaveArticleFromSourceUrl
-func ParseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char {
-	art, err := serverGlobal.ParseAndSaveArticleFromSourceUrl(C.GoString(sourceUrl))
+//export NewArticleFileInfoBySourceURL
+func NewArticleFileInfoBySourceURL(sourceUrl *C.char) *C.char {
+	art, err := serverGlobal.NewArticleFileInfoBySourceURL(C.GoString(sourceUrl))
 	if err != nil {
 		return CharErr(err.Error())
 	}
 	return CharOk(art)
 }
 
-//export ParseAndSaveArticleFromFile
-func ParseAndSaveArticleFromFile(pathC *C.char) *C.char {
-	art, err := serverGlobal.ParseAndSaveArticleFromFile(C.GoString(pathC))
+//export RenewArticleFileInfo
+func RenewArticleFileInfo(id int64) *C.char {
+	art, err := serverGlobal.RenewArticleFileInfo(id)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharOk(art)
+}
+
+//export ReparseArticleFileInfo
+func ReparseArticleFileInfo(id int64) *C.char {
+	art, err := serverGlobal.ReparseArticleFileInfo(id)
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -112,15 +121,6 @@ func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCo
 		return CharErr(err.Error())
 	}
 	return CharSuccess()
-}
-
-//export ParseAndSaveArticleFromSourceUrlAndContent
-func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char, htmlContentC *C.char, lastModified int64) *C.char {
-	art, err := serverGlobal.ParseAndSaveArticleFromSourceUrlAndContent(C.GoString(sourceUrl), []byte(C.GoString(htmlContentC)), lastModified)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharOk(art)
 }
 
 //export BackUpData

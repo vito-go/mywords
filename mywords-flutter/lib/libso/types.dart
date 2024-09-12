@@ -2,13 +2,11 @@ import 'dart:convert';
 
 class FileInfo {
   final String title;
-  final String fileName;
+  final String filePath;
   final String sourceUrl;
   final int id;
   final int size;
-  final int lastModified;
-  final bool isDir;
-  final bool archived;
+   final bool archived;
   final int totalCount;
   final int netCount;
   final int updatedAt;
@@ -18,11 +16,9 @@ class FileInfo {
     required this.sourceUrl,
     required this.title,
     required this.id,
-    required this.fileName,
+    required this.filePath,
     required this.size,
-    required this.lastModified,
-    required this.isDir,
-    required this.totalCount,
+     required this.totalCount,
     required this.archived,
     required this.netCount,
     required this.updatedAt,
@@ -36,11 +32,10 @@ class FileInfo {
   FileInfo copyWith({
     String? sourceUrl,
     String? title,
-    String? fileName,
+    String? filePath,
     int? size,
     int? lastModified,
-    bool? isDir,
-    int? totalCount,
+     int? totalCount,
     int? netCount,
     int? updatedAt,
     bool? archived,
@@ -50,10 +45,8 @@ class FileInfo {
     return FileInfo(
       sourceUrl: sourceUrl ?? this.sourceUrl,
       title: title ?? this.title,
-      fileName: fileName ?? this.fileName,
+      filePath: filePath ?? this.filePath,
       size: size ?? this.size,
-      lastModified: lastModified ?? this.lastModified,
-      isDir: isDir ?? this.isDir,
       totalCount: totalCount ?? this.totalCount,
       netCount: netCount ?? this.netCount,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -68,11 +61,9 @@ class FileInfo {
   factory FileInfo.fromJson(Map<String, dynamic> json) => FileInfo(
         sourceUrl: json["sourceUrl"].toString(),
         title: json["title"].toString(),
-        fileName: json["fileName"],
+        filePath: json["filePath"],
         size: json["size"],
-        lastModified: json["lastModified"],
-        isDir: json["isDir"],
-        totalCount: json["totalCount"],
+         totalCount: json["totalCount"],
         netCount: json["netCount"],
         updatedAt: json["updatedAt"],
         createdAt: json["createdAt"],
@@ -83,10 +74,8 @@ class FileInfo {
   Map<String, dynamic> toJson() => {
         "sourceUrl": sourceUrl,
         "title": title,
-        "fileName": fileName,
+        "filePath": filePath,
         "size": size,
-        "lastModified": lastModified,
-        "isDir": isDir,
         "totalCount": totalCount,
         "netCount": netCount,
       };
@@ -94,7 +83,6 @@ class FileInfo {
 
 class Article {
   String title;
-  int lastModified;
   String version;
   String sourceUrl;
   String htmlContent;
@@ -105,7 +93,6 @@ class Article {
 
   Article({
     required this.version,
-    required this.lastModified,
     required this.title,
     required this.sourceUrl,
     required this.htmlContent,
@@ -123,7 +110,6 @@ class Article {
     final List<dynamic> ws = json["wordInfos"] ?? [];
     return Article(
       title: json["title"].toString(),
-      lastModified: json["lastModified"] ?? 0,
       version: json["version"].toString(),
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
@@ -139,7 +125,6 @@ class Article {
 
   Map<String, dynamic> toJson() => {
         "title": title,
-        "lastModified": lastModified,
         "version": version,
         "sourceUrl": sourceUrl,
         "htmlContent": htmlContent,

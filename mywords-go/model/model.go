@@ -7,17 +7,15 @@ type FileInfo struct {
 	Title     string `json:"title"`
 	SourceUrl string `json:"sourceUrl"`
 	Host      string `json:"host"`
-	FileName  string `json:"fileName"`
-	Size      int64  `json:"size"` // bytes
+	//FileName  string `json:"fileName"` // 移除字段，请使用filePath
+	FilePath string `json:"filePath"` // FIXME 新增字段
+	Size     int    `json:"size"`     // bytes
 	// LastModified
-	// Deprecated: use UpdatedAt
-	LastModified int64 `json:"lastModified"` // milliseconds
-	IsDir        bool  `json:"isDir"`        // always false
-	TotalCount   int   `json:"totalCount"`   //
-	NetCount     int   `json:"netCount"`     // can be zero
-	Archived     bool  `json:"archived"`     // 是否已经归档
-	CreatedAt    int64 `json:"createdAt"`
-	UpdatedAt    int64 `json:"updatedAt"`
+	TotalCount int   `json:"totalCount"` //
+	NetCount   int   `json:"netCount"`   // can be zero
+	Archived   bool  `json:"archived"`   // 是否已经归档
+	CreatedAt  int64 `json:"createdAt"`
+	UpdatedAt  int64 `json:"updatedAt"`
 }
 
 // KnownWords 已知的单词

@@ -6,9 +6,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"crypto/sha1"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/antchfx/xpath"
 	"golang.org/x/time/rate"
@@ -18,7 +18,6 @@ import (
 	"mywords/client/dao"
 	"mywords/model"
 	"mywords/model/mtype"
-	"mywords/mylog"
 	"mywords/pkg/db"
 	"mywords/pkg/log"
 	"net"
@@ -93,9 +92,8 @@ func (c *config) Clone() *config {
 }
 
 const (
-	dataDir         = `data`         // 存放背单词的目录
-	gobFileDir      = "gob_gz_files" // a.txt.gob, b.txt.gob, c.txt.gob ...
-	gobGzFileSuffix = ".gob.gz"      // file_infos.json index file
+	dataDir    = `data`         // 存放背单词的目录
+	gobFileDir = "gob_gz_files" // a.txt.gob, b.txt.gob, c.txt.gob ...
 )
 
 const dbName = "mywords.db"
@@ -187,26 +185,6 @@ func (s *Client) ProxyURL() string {
 	return u.String()
 }
 
-// restoreFromBackUpDataFromAZipFile delete gob file and update fileInfoMap
-func (s *Client) restoreFromBackUpDataFromAZipFile(f *zip.File) error {
-	r, err := f.Open()
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, r)
-	if err != nil {
-		return err
-	}
-	art, err := s.articleFromGobGZContent(buf.Bytes())
-	if err != nil {
-		return err
-	}
-	return s.saveArticle(art)
-}
-
 func (s *Client) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]model.FileInfo, error) {
 	r, err := f.Open()
 	if err != nil {
@@ -275,92 +253,97 @@ func (s *Client) SetXpathExpr(expr string) (err error) {
 	return nil
 }
 
-func (s *Client) ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl string, htmlContent []byte, lastModified int64) (*artical.Article, error) {
-	art, err := artical.ParseContent(sourceUrl, s.xpathExpr, htmlContent, lastModified)
+var ctx = context.TODO()
+
+func (s *Client) ReparseArticleFileInfo(id int64) (*artical.Article, error) {
+	fileInfo, err := s.AllDao().FileInfoDao.ItemByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	err = s.saveArticle(art)
+	art, err := s.ArticleFromFileInfo(fileInfo)
+	if err != nil {
+		return nil, err
+	}
+	path := s.gobPathByFileName(art.GenFileName())
+	fileSize, err := art.SaveToFile(path)
+	if err != nil {
+		return nil, err
+	}
+	fileInfo.Title = art.Title
+	fileInfo.Size = fileSize
+	fileInfo.TotalCount = art.TotalCount
+	fileInfo.NetCount = art.NetCount
+	fileInfo.UpdatedAt = time.Now().UnixMilli()
+	err = s.AllDao().FileInfoDao.Update(ctx, fileInfo)
 	if err != nil {
 		return nil, err
 	}
 	return art, nil
 }
-
-var ctx = context.TODO()
-
-func (s *Client) ParseAndSaveArticleFromSourceUrl(sourceUrl string) (*artical.Article, error) {
+func (s *Client) RenewArticleFileInfo(id int64) (*artical.Article, error) {
+	fileInfo, err := s.AllDao().FileInfoDao.ItemByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	sourceUrl := fileInfo.SourceUrl
 	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.netProxy(ctx))
 	if err != nil {
 		return nil, err
 	}
-	err = s.saveArticle(art)
+	path := s.gobPathByFileName(art.GenFileName())
+	fileSize, err := art.SaveToFile(path)
 	if err != nil {
 		return nil, err
 	}
-	mylog.Info("ParseAndSaveArticleFromSourceUrl", "sourceUrl", sourceUrl, "title", art.Title)
-	return art, nil
-}
-
-func (s *Client) ParseAndSaveArticleFromFile(path string) (*artical.Article, error) {
-	art, err := artical.ParseLocalFile(path)
-	if err != nil {
-		return nil, err
-	}
-	err = s.saveArticle(art)
+	fileInfo.Title = art.Title
+	fileInfo.Size = fileSize
+	fileInfo.TotalCount = art.TotalCount
+	fileInfo.NetCount = art.NetCount
+	fileInfo.UpdatedAt = time.Now().UnixMilli()
+	err = s.AllDao().FileInfoDao.Update(ctx, fileInfo)
 	if err != nil {
 		return nil, err
 	}
 	return art, nil
 }
-
-func (s *Client) saveArticle(art *artical.Article) error {
-	lastModified := art.LastModified
-	if lastModified <= 0 {
-		lastModified = time.Now().UnixMilli()
-	}
-	sourceUrl := art.SourceUrl
-	//gob marshal
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(art)
+func (s *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Article, error) {
+	u, err := url.Parse(sourceUrl)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	//save gob file
-	fileName := fmt.Sprintf("%x%s", sha1.Sum([]byte(art.HTMLContent)), gobGzFileSuffix)
-	path := filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName)
-	var bufGZ bytes.Buffer
-	gz := gzip.NewWriter(&bufGZ)
-	fileSize, err := gz.Write(buf.Bytes())
-	if err != nil {
-		return err
+	// only support http and https
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return nil, fmt.Errorf("only support http and https")
 	}
-	err = gz.Close()
-	if err != nil {
-		return err
+	host := u.Host
+	if host == "" {
+		return nil, fmt.Errorf("host is empty")
 	}
-	err = os.WriteFile(path, bufGZ.Bytes(), 0644)
+	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.netProxy(ctx))
 	if err != nil {
-		return err
+		return nil, err
+	}
+	path := s.gobPathByFileName(art.GenFileName())
+	fileSize, err := art.SaveToFile(path)
+	if err != nil {
+		return nil, err
 	}
 	// save FileInfo
 	fileInfo := model.FileInfo{
-		ID:           0,
-		Title:        art.Title,
-		SourceUrl:    sourceUrl,
-		FileName:     fileName,
-		Host:         "", // FIXME
-		Size:         int64(fileSize),
-		LastModified: lastModified,
-		IsDir:        false,
-		TotalCount:   art.TotalCount,
-		NetCount:     art.NetCount,
-		Archived:     false,
-		CreatedAt:    time.Now().UnixMilli(),
-		UpdatedAt:    time.Now().UnixMilli(),
+		ID:         0,
+		Title:      art.Title,
+		SourceUrl:  sourceUrl,
+		FilePath:   path,
+		Host:       host, // FIXME
+		Size:       fileSize,
+		TotalCount: art.TotalCount,
+		NetCount:   art.NetCount,
+		Archived:   false,
+		CreatedAt:  time.Now().UnixMilli(),
+		UpdatedAt:  time.Now().UnixMilli(),
 	}
 	_, err = s.AllDao().FileInfoDao.Create(ctx, &fileInfo)
-	return err
+	return art, err
 }
 
 func (s *Client) QueryWordLevel(word string) (mtype.WordKnownLevel, bool) {
@@ -428,10 +411,8 @@ func (s *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
 }
 
 func (s *Client) ArticleFromFileInfo(fileInfo *model.FileInfo) (*artical.Article, error) {
-	fileName := fileInfo.FileName
 	id := fileInfo.ID
-	path := filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName)
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(fileInfo.FilePath)
 	if err != nil {
 		_ = s.deleteGobFile(id)
 		return nil, err
@@ -468,10 +449,16 @@ func (s *Client) deleteGobFile(id int64) error {
 	if err != nil {
 		return err
 	}
-	fileName := item.FileName
-	err = os.Remove(filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName))
+	err = os.Remove(item.FilePath)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+func (s *Client) gobPathByFileName(fileName string) string {
+	return filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName)
+}
+
+func (c *Client) ParseAndSaveArticleFromFile(filePath string) (*artical.Article, error) {
+	return nil, errors.New("not implemented")
 }

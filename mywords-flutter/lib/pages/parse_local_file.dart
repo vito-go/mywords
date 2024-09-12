@@ -3,7 +3,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global_event.dart';
-import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
@@ -175,7 +174,8 @@ class _State extends State<ParseLocalFile> {
 }
 
 Future<RespData<void>> computeParseAndSaveArticleFromFile(String path) async {
-  return handler.parseAndSaveArticleFromFile(path);
+// implement me
+  throw UnimplementedError();
 }
 
 Future<RespData<void>> computeWebParseAndSaveArticleFromFile(

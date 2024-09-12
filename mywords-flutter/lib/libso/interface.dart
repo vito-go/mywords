@@ -8,9 +8,8 @@ import 'package:mywords/widgets/line_chart.dart';
 abstract class Handler {
   FutureOr<void> initLib();
 
-  FutureOr<RespData<void>> parseAndSaveArticleFromSourceUrl(String www);
+  FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
 
-  FutureOr<RespData<void>> parseAndSaveArticleFromFile(String path);
 
   // hostname 可以为空，默认localhost
   FutureOr<String> getUrlByWord(String hostname, String word);
@@ -44,6 +43,8 @@ abstract class Handler {
   FutureOr<Map<String, dynamic>> knownWordsCountMap();
 
   FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
+  FutureOr<RespData<Article>> renewArticleFileInfo(int int);
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int int);
 
   FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
 
@@ -95,8 +96,7 @@ abstract class Handler {
 
   FutureOr<List<String>?> getIPv4s(); // null mean error
 
-  FutureOr<RespData<Article>> parseAndSaveArticleFromSourceUrlAndContent(
-      String www, String htmlContent, int lastModified);
+
 
   FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
 

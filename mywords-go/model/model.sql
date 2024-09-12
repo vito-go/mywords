@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS file_info (
     "source_url"    TEXT,
     "host"          TEXT,
     "title"        TEXT,
-    "file_name"     TEXT,
+    "file_path"     TEXT,
     "size"         INTEGER DEFAULT 0,
     "last_modified" INTEGER DEFAULT 0,
     "is_dir"        INTEGER DEFAULT 0,

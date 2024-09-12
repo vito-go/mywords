@@ -14,7 +14,6 @@ import 'package:mywords/util/util.dart';
 import 'package:mywords/common/global_event.dart';
 import 'package:mywords/widgets/article_list.dart';
 
-import '../libso/resp_data.dart';
 import '../libso/types.dart';
 
 class ArticleListPage extends StatefulWidget {
@@ -120,7 +119,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   void computeParse(String www) async {
     valueNotifier.value = true;
     final respData =
-        await compute(computeParseAndSaveArticleFromSourceUrl, www);
+        await compute(handler.newArticleFileInfoBySourceURL, www);
     valueNotifier.value = false;
     if (respData.code != 0) {
       myToast(context, respData.message);
@@ -274,8 +273,3 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 }
 
-Future<RespData<void>> computeParseAndSaveArticleFromSourceUrl(
-    String www) async {
-  final respData = await handler.parseAndSaveArticleFromSourceUrl(www);
-  return respData;
-}
