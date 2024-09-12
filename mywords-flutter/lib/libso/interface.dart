@@ -45,7 +45,8 @@ abstract class Handler {
   FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
   FutureOr<RespData<Article>> renewArticleFileInfo(int int);
   FutureOr<RespData<Article>> reparseArticleFileInfo(int int);
-
+  RespData<int> vacuumDB();
+  RespData<int> dbSize();
   FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
 
   FutureOr<String> dictWordQuery(String word);

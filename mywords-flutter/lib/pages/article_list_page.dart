@@ -118,8 +118,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void computeParse(String www) async {
     valueNotifier.value = true;
-    final respData =
-        await compute(handler.newArticleFileInfoBySourceURL, www);
+    final respData = await compute(handler.newArticleFileInfoBySourceURL, www);
     valueNotifier.value = false;
     if (respData.code != 0) {
       myToast(context, respData.message);
@@ -258,7 +257,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       myToast(context, respData.message);
       return;
     }
-    todayCountMap = respData.data ?? {};
+    todayCountMap = respData.data!;
     valueNotifierChart.value = UniqueKey();
     setState(() {});
   }
@@ -272,4 +271,3 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 }
-

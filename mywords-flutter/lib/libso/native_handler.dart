@@ -507,6 +507,38 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('SetDefaultDict');
 
+// VacuumDB
+  final VacuumDB = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('VacuumDB');
+
+// func DBSize() *C.char
+  final DBSize = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('DBSize');
+
+  @override
+  RespData<int> vacuumDB() {
+    final resultC = VacuumDB();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<int> respData =
+    RespData.fromJson(jsonDecode(result), (json) {
+      return json as int;
+    });
+    return respData;
+  }
+
+  //  DBSize
+  @override
+  RespData<int> dbSize() {
+    final resultC = DBSize();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<int> respData =
+    RespData.fromJson(jsonDecode(result), (json) {
+      return json as int;
+    });
+    return respData;
+  }
   @override
   RespData<void> setDefaultDict(String basePath) {
     Global.defaultDictBasePath = '';

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/article_archived_list.dart';
@@ -7,6 +8,7 @@ import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
 
+import '../util/util.dart';
 import 'dict_database.dart';
 import 'restore_data.dart';
 import 'share_data.dart';
@@ -45,12 +47,40 @@ class MyDrawerState extends State<MyDrawer> {
   }
 
   void initLevelMap() async {
-    // map[server.WordKnownLevel]int
-    final data = await handler.knownWordsCountMap();
+     final data = await handler.knownWordsCountMap();
     levelCountMap = data;
     setState(() {});
   }
-
+  Widget buildListTileVacuumDB() {
+    return ListTile(
+      title: const Text('Vacuum DB'),
+      subtitle: Text(formatSize(handler.dbSize().data ?? 0)),
+      // trailing: vacuums the database
+      onTap: () {
+        setState(() {});
+      },
+      trailing: IconButton(
+          onPressed: () async {
+            final before = handler.dbSize().data ?? 0;
+            final resp = await compute((m) => handler.vacuumDB(), null);
+            myPrint("vacuumDB: ${resp.data}");
+            final after = handler.dbSize().data ?? 0;
+            if (!context.mounted) {
+              return;
+            }
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  'Vacuum DB successfully! freed: ${formatSize(before - after)}'),
+            ));
+            Navigator.pop(context);
+            // if (before != after) {
+            //   setState(() {});
+            // }
+          },
+          icon: const Icon(Icons.cleaning_services)),
+      leading: const Icon(Icons.data_usage),
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -146,6 +176,7 @@ class MyDrawerState extends State<MyDrawer> {
             pushTo(context, const DictDatabase());
           },
         ),
+        buildListTileVacuumDB(),
       ],
     )));
   }

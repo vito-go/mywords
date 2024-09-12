@@ -55,7 +55,7 @@ func (chartData *ChartData) SetMaxY() {
 const lastDays = 20
 
 func (s *Client) GetToadyChartDateLevelCountMap() map[mtype.WordKnownLevel]int {
-	today := time.Now().Format("2006-01-02")
+	today := time.Now().Format("20060102")
 	createDay, _ := strconv.ParseInt(today, 10, 64)
 	// copy s.chartDateLevelCountMap
 	todayLevelCountMap := make(map[mtype.WordKnownLevel]int, 3)

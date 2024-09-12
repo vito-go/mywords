@@ -47,7 +47,6 @@ class MyApp extends StatelessWidget {
           colorScheme: const ColorScheme.dark(
             primary: Color(0xfff1d296),
           )),
-
       theme: ThemeData(
         drawerTheme: DrawerThemeData(
           backgroundColor: Colors.orange.shade50,

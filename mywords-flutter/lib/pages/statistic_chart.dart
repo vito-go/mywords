@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/util.dart';
 
 import 'package:mywords/widgets/line_chart.dart';
 
@@ -31,10 +32,19 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   ChartLineData? accumulateData;
   Map<String, dynamic> todayCountMap = {};
 
+  Future<void> updateTodayCountMap() async {
+    final respData = await handler.getToadyChartDateLevelCountMap();
+    if (respData.code != 0) {
+      myToast(context, respData.message);
+      return;
+    }
+    todayCountMap = respData.data!;
+  }
+
   void initData() async {
     todayData = (await handler.getChartData()).data!;
     accumulateData = (await handler.getChartDataAccumulate()).data!;
-    todayCountMap = (await handler.getToadyChartDateLevelCountMap()).data ?? {};
+    await updateTodayCountMap();
     setState(() {});
   }
 

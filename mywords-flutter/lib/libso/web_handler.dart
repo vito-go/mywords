@@ -427,6 +427,18 @@ class WebHandler implements Handler {
     });
     return respData;
   }
+
+  @override
+  RespData<int> dbSize() {
+    // TODO: implement dbSize
+    throw UnimplementedError();
+  }
+
+  @override
+  RespData<int> vacuumDB() {
+    // TODO: implement vacuumDB
+    throw UnimplementedError();
+  }
 }
 
 Future<String> call(String funcName, List<dynamic> args) async {
