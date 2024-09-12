@@ -3,6 +3,7 @@ import 'dart:convert';
 class FileInfo {
   final String title;
   final String filePath;
+  final String host;
   final String sourceUrl;
   final int id;
   final int size;
@@ -15,6 +16,7 @@ class FileInfo {
   FileInfo({
     required this.sourceUrl,
     required this.title,
+    required this.host,
     required this.id,
     required this.filePath,
     required this.size,
@@ -34,6 +36,7 @@ class FileInfo {
     String? title,
     String? filePath,
     int? size,
+    String? host,
     int? totalCount,
     int? netCount,
     int? updatedAt,
@@ -45,6 +48,7 @@ class FileInfo {
       sourceUrl: sourceUrl ?? this.sourceUrl,
       title: title ?? this.title,
       filePath: filePath ?? this.filePath,
+      host: host ?? this.host,
       size: size ?? this.size,
       totalCount: totalCount ?? this.totalCount,
       netCount: netCount ?? this.netCount,
@@ -61,6 +65,7 @@ class FileInfo {
         sourceUrl: json["sourceUrl"].toString(),
         title: json["title"].toString(),
         filePath: json["filePath"],
+        host: json["host"],
         size: json["size"],
         totalCount: json["totalCount"],
         netCount: json["netCount"],
@@ -73,10 +78,15 @@ class FileInfo {
   Map<String, dynamic> toJson() => {
         "sourceUrl": sourceUrl,
         "title": title,
+        "host": host,
         "filePath": filePath,
         "size": size,
         "totalCount": totalCount,
         "netCount": netCount,
+        "updatedAt": updatedAt,
+        "createdAt": createdAt,
+        "archived": archived,
+        "id": id,
       };
 }
 
