@@ -18,7 +18,6 @@ class ArticleArchivedPage extends StatefulWidget {
 class _State extends State<ArticleArchivedPage> {
   @override
   Widget build(BuildContext context) {
-    handler.getArchivedFileInfoList();
     return getScaffold(context,
         appBar: AppBar(
           title: const Text("已归档文章"),
@@ -34,8 +33,8 @@ class _State extends State<ArticleArchivedPage> {
                 icon: const Icon(Icons.vertical_align_top_outlined))
           ],
         ),
-        body: ArticleListView(
-          getFileInfos: handler.getArchivedFileInfoList,
+        body: const ArticleListView(
+          archived: true,
           toEndSlide: ToEndSlide.unarchive,
           leftLabel: '恢复',
           leftIconData: Icons.restore,

@@ -176,18 +176,9 @@ func ProxyURL() *C.char {
 	return CharOk(serverGlobal.ProxyURL())
 }
 
-//export ShowFileInfoList
-func ShowFileInfoList() *C.char {
-	result, err := serverGlobal.AllDao().FileInfoDao.AllItemsByArchived(context.Background(), false)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharOk(result)
-}
-
-//export GetArchivedFileInfoList
-func GetArchivedFileInfoList() *C.char {
-	result, err := serverGlobal.AllDao().FileInfoDao.AllItemsByArchived(context.Background(), true)
+//export GetFileInfoListByArchived
+func GetFileInfoListByArchived(archived bool) *C.char {
+	result, err := serverGlobal.AllDao().FileInfoDao.AllItemsByArchived(context.Background(), archived)
 	if err != nil {
 		return CharErr(err.Error())
 	}

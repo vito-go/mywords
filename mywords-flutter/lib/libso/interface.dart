@@ -10,7 +10,6 @@ abstract class Handler {
 
   FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
 
-
   // hostname 可以为空，默认localhost
   FutureOr<String> getUrlByWord(String hostname, String word);
 
@@ -36,25 +35,28 @@ abstract class Handler {
 
   FutureOr<RespData<void>> updateFileInfo(FileInfo item);
 
-  FutureOr<RespData<List<FileInfo>>> showFileInfoList();
+  FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(bool archived);
 
-  FutureOr<RespData<List<FileInfo>>> getArchivedFileInfoList();
 
   FutureOr<Map<String, dynamic>> knownWordsCountMap();
 
   FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
+
   FutureOr<RespData<Article>> renewArticleFileInfo(int int);
+
   FutureOr<RespData<Article>> reparseArticleFileInfo(int int);
+
   RespData<int> vacuumDB();
+
   RespData<int> dbSize();
+
   FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
 
   FutureOr<String> dictWordQuery(String word);
 
-
   FutureOr<String> dictWordQueryLink(String word);
 
-  FutureOr< FileInfo? > getFileInfoBySourceURL(String sourceURL);
+  FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
 
@@ -83,24 +85,20 @@ abstract class Handler {
   FutureOr<RespData<ChartLineData>> getChartDataAccumulate();
 
   FutureOr<RespData<Map<String, dynamic>>> getToadyChartDateLevelCountMap();
+
   FutureOr<RespData<Map<String, int>>> allKnownWordsMap();
 
   FutureOr<RespData<Map<int, List<String>>>> allKnownWordMap();
 
   FutureOr<RespData<Map<int, List<String>>>> todayKnownWordMap();
 
-  FutureOr<RespData<void>> updateKnownWordLevel( String word,int level);
-
-
+  FutureOr<RespData<void>> updateKnownWordLevel(String word, int level);
 
   FutureOr<List<String>?> getIPv4s(); // null mean error
-
-
 
   FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
 
   FutureOr<ShareInfo> getShareInfo();
-
 
   String getHostName();
 }

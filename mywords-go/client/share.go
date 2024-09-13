@@ -128,10 +128,13 @@ type ShareFileParam struct {
 }
 
 func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
-
-	allFileNames, err := s.allDao.FileInfoDao.AllFileNames(ctx)
+	allFilePaths, err := s.allDao.FileInfoDao.AllFilePaths(ctx)
 	if err != nil {
 		return 0, err
+	}
+	var allFileNames []string
+	for _, path := range allFilePaths {
+		allFileNames = append(allFileNames, filepath.Base(path))
 	}
 	allExistGobGzFileMap := make(map[string]bool, len(allFileNames))
 	for _, name := range allFileNames {

@@ -19,7 +19,7 @@ enum ToEndSlide { archive, unarchive }
 class ArticleListView extends StatefulWidget {
   const ArticleListView({
     super.key,
-    required this.getFileInfos,
+    required this.archived,
     required this.toEndSlide,
     required this.leftLabel,
     required this.leftIconData,
@@ -29,9 +29,8 @@ class ArticleListView extends StatefulWidget {
   final String leftLabel;
   final IconData leftIconData;
   final ToEndSlide toEndSlide;
+  final bool archived;
   final int pageNo; // 页码，用来做监听事件区分，1, 2, 3
-
-  final FutureOr<RespData<List<FileInfo>>> Function() getFileInfos;
 
   @override
   State<ArticleListView> createState() => _State();
@@ -39,6 +38,7 @@ class ArticleListView extends StatefulWidget {
 
 class _State extends State<ArticleListView> {
   List<FileInfo> fileInfos = [];
+  late final archived = widget.archived;
 
   List<FileInfo> get fileInfosFilter {
     if (kw == "") return fileInfos;
@@ -63,9 +63,9 @@ class _State extends State<ArticleListView> {
   StreamSubscription<GlobalEvent>? globalEventSubscription;
 
   void slideToUnArchive(FileInfo item) {
-     final itemNew=item.copyWith(archived: false);
+    final itemNew = item.copyWith(archived: false);
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final respData = await handler.updateFileInfo( itemNew);
+      final respData = await handler.updateFileInfo(itemNew);
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
@@ -211,7 +211,7 @@ class _State extends State<ArticleListView> {
   }
 
   Future<void> initFileInfos() async {
-    final respData = await widget.getFileInfos();
+    final respData = await handler.getFileInfoListByArchived(archived);
     if (respData.code != 0) {
       if (!mounted) return;
       myToast(context, respData.message);

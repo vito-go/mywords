@@ -121,16 +121,6 @@ class WebHandler implements Handler {
     return respData.data ?? "";
   }
 
-  @override
-  Future<RespData<List<FileInfo>>> getArchivedFileInfoList() async {
-    final result = await call("GetArchivedFileInfoList", []);
-
-    final RespData<List<FileInfo>> respData = RespData.fromJson(
-        jsonDecode(result),
-        (json) => List<FileInfo>.generate(
-            json.length, (index) => FileInfo.fromJson(json[index])));
-    return respData;
-  }
 
   @override
   Future<RespData<ChartLineData>> getChartData() async {
@@ -277,15 +267,7 @@ class WebHandler implements Handler {
     return respData;
   }
 
-  @override
-  Future<RespData<List<FileInfo>>> showFileInfoList() async {
-    final result = await call("ShowFileInfoList", []);
-    final RespData<List<FileInfo>> respData = RespData.fromJson(
-        jsonDecode(result),
-        (json) => List<FileInfo>.generate(
-            json.length, (index) => FileInfo.fromJson(json[index])));
-    return respData;
-  }
+
 
   @override
   Future<RespData<Map<int, List<String>>>> todayKnownWordMap() async {
@@ -438,6 +420,16 @@ class WebHandler implements Handler {
   RespData<int> vacuumDB() {
     // TODO: implement vacuumDB
     throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(bool archived) async{
+    final result = await call("getFileInfoListByArchived", [archived]);
+    final RespData<List<FileInfo>> respData = RespData.fromJson(
+        jsonDecode(result),
+            (json) => List<FileInfo>.generate(
+            json.length, (index) => FileInfo.fromJson(json[index])));
+    return respData;
   }
 }
 

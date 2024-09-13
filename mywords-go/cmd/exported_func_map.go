@@ -25,7 +25,6 @@ var exportedFuncMap = map[string]any{
 	"DictWordQueryLink":              DictWordQueryLink,
 	"FinalHtmlBasePathWithOutHtml":   FinalHtmlBasePathWithOutHtml,
 	"FixMyKnownWords":                FixMyKnownWords,
-	"GetArchivedFileInfoList":        GetArchivedFileInfoList,
 	"GetChartData":                   GetChartData,
 	"GetChartDataAccumulate":         GetChartDataAccumulate,
 	"GetDefaultDict":                 GetDefaultDict,
@@ -50,9 +49,9 @@ var exportedFuncMap = map[string]any{
 	"ShareClosed":                    ShareClosed,
 	"ShareOpen":                      ShareOpen,
 	"GetShareInfo":                   GetShareInfo,
-	"ShowFileInfoList":               ShowFileInfoList,
 	"TodayKnownWordMap":              TodayKnownWordMap,
 	"UpdateDictName":                 UpdateDictName,
 	"UpdateKnownWordLevel":           UpdateKnownWordLevel,
 	"GetIPv4s":                       GetIPv4s,
+	"GetFileInfoListByArchived":      GetFileInfoListByArchived,
 }

@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
         appBarTheme: const AppBarTheme(color: Colors.black),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepOrange,
-          background: Colors.orange.shade50,
+          surface: Colors.orange.shade50,
         ),
         useMaterial3: true,
       ),

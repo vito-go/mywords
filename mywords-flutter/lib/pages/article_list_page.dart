@@ -235,9 +235,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
             }
             return const SizedBox(height: 5);
           }),
-      Expanded(
+      const Expanded(
           child: ArticleListView(
-        getFileInfos: handler.showFileInfoList,
+        archived: false,
         toEndSlide: ToEndSlide.archive,
         leftLabel: '归档',
         leftIconData: Icons.archive,

@@ -105,29 +105,14 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-// func ShowFileInfoList() *C.char
-  final _showFileInfoList = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('ShowFileInfoList');
+   final GetFileInfoListByArchived = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Bool), Pointer<Utf8> Function(bool)>('GetFileInfoListByArchived');
+
+
 
   @override
-  RespData<List<FileInfo>> showFileInfoList() {
-    final c = _showFileInfoList();
-    final RespData<List<FileInfo>> respData = RespData.fromJson(
-        jsonDecode(c.toDartString()),
-        (json) => List<FileInfo>.generate(
-            json.length, (index) => FileInfo.fromJson(json[index])));
-    malloc.free(c);
-    return respData;
-  }
-
-// func ArchivedFileInfoList() *C.char
-  final _getArchivedFileInfoList = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('GetArchivedFileInfoList');
-
-  @override
-  RespData<List<FileInfo>> getArchivedFileInfoList() {
-    final c = _getArchivedFileInfoList();
+  RespData<List<FileInfo>> getFileInfoListByArchived(bool archived) {
+    final c = GetFileInfoListByArchived(archived);
     final RespData<List<FileInfo>> respData = RespData.fromJson(
         jsonDecode(c.toDartString()),
         (json) => List<FileInfo>.generate(
@@ -777,4 +762,5 @@ class NativeHandler implements Handler {
     malloc.free(resultC);
     return respData;
   }
+
 }

@@ -70,8 +70,7 @@ class ArticlePageState extends State<ArticlePage> {
       addToGlobalEvent(
           GlobalEvent(eventType: GlobalEventType.updateArticleList));
       article = respData.data!;
-
-       if (!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       setState(() {});
@@ -85,10 +84,7 @@ class ArticlePageState extends State<ArticlePage> {
         if (event.param["word"] != null && event.param["level"] != null) {
           final word = event.param["word"].toString();
           final level = event.param["level"] as int;
-          final oldLevel = Global.allKnownWordsMap[word] ?? 0;
-          final oldCount = levelCountMap[oldLevel] ?? 0;
           Global.allKnownWordsMap[word] = level;
-          levelCountMap[oldLevel] = oldCount - 1;
           setState(() {});
         }
       }
@@ -129,7 +125,6 @@ class ArticlePageState extends State<ArticlePage> {
   int get count2 => levelCountMap[2] ?? 0;
 
   int get count3 => levelCountMap[3] ?? 0;
-
 
   List<WordInfo> get wordInfos {
     final art = article;
