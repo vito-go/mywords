@@ -9,7 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mywords/libso/handler.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
@@ -48,8 +48,8 @@ class _State extends State<WordWebView> {
     return;
   }
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+  void globalEventHandler(Event event) {
+    if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
       if (event.param is Map) {
         if (event.param["word"] != null && event.param["level"] != null) {
@@ -63,7 +63,7 @@ class _State extends State<WordWebView> {
     }
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? globalEventSubscription;
   bool loading = false;
 
   Widget get buildWordHeaderRow {
@@ -139,7 +139,7 @@ class _State extends State<WordWebView> {
   void initState() {
     super.initState();
     initOpenWithHtmlFilePath();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    globalEventSubscription = consume(globalEventHandler);
   }
 
   final controller = WebViewController();

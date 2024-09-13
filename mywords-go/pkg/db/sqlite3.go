@@ -12,6 +12,7 @@ var DataNotFound = gorm.ErrRecordNotFound
 func NewDB(dbPath string) (*gorm.DB, error) {
 	//auto_vacuum 支持的值有：NONE, FULL, INCREMENTAL
 	//https://www.sqlite.org/pragma.html#pragma_auto_vacuum
+	// 时间类型设置为毫秒
 	dsn := fmt.Sprintf("%s", dbPath)
 	GDB, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		Logger:          dblogger.NewDBLog(dsn),

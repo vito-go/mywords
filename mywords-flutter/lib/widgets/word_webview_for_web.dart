@@ -6,7 +6,7 @@ import 'package:mywords/widgets/word_common.dart';
 
 import 'package:mywords/libso/handler.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import 'package:webview_flutter_web/webview_flutter_web.dart';
 
@@ -36,8 +36,8 @@ class _State extends State<WordWebView> {
 
   final player = AudioPlayer();
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+  void globalEventHandler(Event event) {
+    if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
       if (event.param is Map) {
         if (event.param["word"] != null && event.param["level"] != null) {
@@ -51,7 +51,7 @@ class _State extends State<WordWebView> {
     }
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? globalEventSubscription;
   bool loading = false;
 
   Widget get buildWordHeaderRow {
@@ -92,7 +92,7 @@ class _State extends State<WordWebView> {
     super.initState();
     WebViewPlatform.instance ??= WebWebViewPlatform();
     initOpenWithHtmlFilePath();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    globalEventSubscription = consume(globalEventHandler);
   }
 
   final controller = PlatformWebViewController(

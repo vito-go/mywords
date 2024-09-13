@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import '../util/util.dart';
 import 'drawer.dart';
@@ -117,12 +117,12 @@ class _State extends State<Home> {
     return [
       IconButton(
           onPressed: () {
-            addToGlobalEvent(
-                GlobalEvent(eventType: GlobalEventType.updateLineChart));
-            addToGlobalEvent(
-                GlobalEvent(eventType: GlobalEventType.updateArticleList));
-            addToGlobalEvent(GlobalEvent(
-                eventType: GlobalEventType.articleListScrollToTop, param: 1));
+            produce(
+                Event(eventType: EventType.updateLineChart));
+            produce(
+                Event(eventType: EventType.updateArticleList));
+            produce(Event(
+                eventType: EventType.articleListScrollToTop, param: 1));
             myToast(context, "Successfully!");
           },
           icon: const Icon(Icons.refresh)),
@@ -139,8 +139,8 @@ class _State extends State<Home> {
         onTap: (int i) {
           if (idx == i && i == 0) {
             // 滚动置顶
-            addToGlobalEvent(GlobalEvent(
-                eventType: GlobalEventType.articleListScrollToTop, param: 1));
+            produce(Event(
+                eventType: EventType.articleListScrollToTop, param: 1));
           }
           if (idx == i) return;
           _pageController.jumpToPage(i);

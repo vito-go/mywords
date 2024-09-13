@@ -12,8 +12,8 @@ class FileInfo {
   final bool archived;
   final int totalCount;
   final int netCount;
-  final int updatedAt;
-  final int createdAt;
+  final int updateAt;
+  final int createAt;
 
   FileInfo({
     required this.sourceUrl,
@@ -25,8 +25,8 @@ class FileInfo {
     required this.totalCount,
     required this.archived,
     required this.netCount,
-    required this.updatedAt,
-    required this.createdAt,
+    required this.updateAt,
+    required this.createAt,
   });
 
   factory FileInfo.fromRawJson(String str) =>
@@ -41,9 +41,9 @@ class FileInfo {
     String? host,
     int? totalCount,
     int? netCount,
-    int? updatedAt,
+    int? updateAt,
     bool? archived,
-    int? createdAt,
+    int? createAt,
     int? id,
   }) {
     return FileInfo(
@@ -54,8 +54,8 @@ class FileInfo {
       size: size ?? this.size,
       totalCount: totalCount ?? this.totalCount,
       netCount: netCount ?? this.netCount,
-      updatedAt: updatedAt ?? this.updatedAt,
-      createdAt: createdAt ?? this.createdAt,
+      updateAt: updateAt ?? this.updateAt,
+      createAt: createAt ?? this.createAt,
       archived: archived ?? this.archived,
       id: id ?? this.id,
     );
@@ -71,8 +71,8 @@ class FileInfo {
         size: json["size"],
         totalCount: json["totalCount"],
         netCount: json["netCount"],
-        updatedAt: json["updatedAt"],
-        createdAt: json["createdAt"],
+        updateAt: json["updateAt"],
+        createAt: json["createAt"],
         archived: json["archived"],
         id: json["id"],
       );
@@ -85,8 +85,8 @@ class FileInfo {
         "size": size,
         "totalCount": totalCount,
         "netCount": netCount,
-        "updatedAt": updatedAt,
-        "createdAt": createdAt,
+        "updateAt": updateAt,
+        "createAt": createAt,
         "archived": archived,
         "id": id,
       };

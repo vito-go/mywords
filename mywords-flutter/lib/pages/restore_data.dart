@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:path_provider/path_provider.dart';
@@ -119,8 +119,8 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
-    addToGlobalEvent(GlobalEvent(
-        eventType: GlobalEventType.syncData, param: syncToadyWordCount));
+    produce(Event(
+        eventType: EventType.syncData, param: syncToadyWordCount));
     return 0;
   }
 
@@ -188,7 +188,7 @@ class _RestoreDataState extends State<RestoreData> {
       return;
     }
     myToast(context, "恢复完成");
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    produce(Event(eventType: EventType.updateArticleList));
   }
 
   Widget textFieldCode() {

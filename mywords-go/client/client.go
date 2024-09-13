@@ -2,83 +2,125 @@ package client
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	"golang.org/x/time/rate"
 	"gorm.io/gorm"
-	"mywords/model"
+	"mywords/artical"
+	"mywords/client/dao"
+	"mywords/pkg/db"
+	"mywords/pkg/log"
 	"net"
 	"os"
+	"path/filepath"
+	"runtime"
+	"sync"
 	"sync/atomic"
 )
 
-var debug = atomic.Bool{}
-
-func SetDebug(b bool) {
-	debug.Store(b)
-}
-
-type CodeContent struct {
-	Code    int64
-	Content any
-}
-
-// VacuumDB reorganizes the database file to use disk space more efficiently.
-// VACUUM is a SQLite command that reorganizes the database file to use disk space more efficiently.
-// It can remove free pages from the database file, reducing the size of the database file.
-func (c *Client) VacuumDB(ctx context.Context) (int64, error) {
-	tx := c.gdb.WithContext(ctx).Exec("VACUUM")
-	if tx.Error != nil {
-		return 0, tx.Error
-	}
-	return tx.RowsAffected, nil
-}
-
-var ErrMessageChanFull = errors.New("message chan full")
-var ErrMessageChanClosed = errors.New("message chan closed")
-var ErrMessageChanTimeout = errors.New("message chan timeout")
-
 const (
-	DirDB = "db"
+	dbDir  = "db"
+	dbName = "mywords.db"
 )
 
-// HTTPAddr returns the pprof listen address
-func (c *Client) HTTPAddr() string {
-	if c.pprofListen == nil {
-		return ""
-	}
-	port := c.pprofListen.Addr().(*net.TCPAddr).Port
-	return fmt.Sprintf("http://127.0.0.1:%d/debug/pprof/", port)
+type Client struct {
+	rootDataDir string
+	xpathExpr   string //must can compile
+	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
+	//fileInfoMap1        map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
+
+	mux           sync.Mutex //
+	shareListener net.Listener
+	shareOpen     *atomic.Bool
+	// multicast
+
+	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
+
+	// 新字段
+
+	rootDir string
+
+	gdb             *gorm.DB
+	dbPath          string
+	allDao          *dao.AllDao
+	codeContentChan chan CodeContent
+	pprofListen     net.Listener //may be nil
+
+	messageLimiter *rate.Limiter
+	closed         atomic.Bool
+
+	//		//
+	//	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
+	//	knownWordsMap *MySyncMapMap[string, WordKnownLevel] // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
+	//	//fileInfoMap1        map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
+	//	fileInfoMap         *MySyncMap[FileInfo] // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
+	//	fileInfoArchivedMap *MySyncMap[FileInfo] // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
+	//
+	//	mux           sync.Mutex //
+	//	shareListener net.Listener
+	//	// multicast
+	//	remoteHostMap sync.Map // remoteHost: port
+	//
+	//	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
+	//	chartDateLevelCountMap *MySyncMapMap[WordKnownLevel, map[string]struct{}] // date: {1: {"words":{}}, 2: 200, 3: 300}
+
 }
 
-func (c *Client) Close() error {
-	if c.closed.Swap(true) {
-		return nil
+func NewClient(rootDataDir string) (*Client, error) {
+	// 获取平台 GOOS
+
+	rootDataDir = filepath.ToSlash(rootDataDir)
+	if err := os.MkdirAll(rootDataDir, 0755); err != nil {
+		return nil, err
 	}
-	d, err := c.gdb.DB()
+
+	dbDir := filepath.ToSlash(filepath.Join(rootDataDir, dbDir))
+	err := os.MkdirAll(dbDir, os.ModePerm)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	if c.pprofListen != nil {
-		_ = c.pprofListen.Close()
-	}
-	return d.Close()
-}
-func (c *Client) GDB() *gorm.DB {
-	return c.gdb
-}
-
-// DBSize returns the size of the database file
-func (c *Client) DBSize() (int64, error) {
-	info, err := os.Stat(c.dbPath)
+	dbPath := filepath.ToSlash(filepath.Join(dbDir, dbName))
+	gdb, err := db.NewDB(dbPath)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return info.Size(), nil
-}
-func (c *Client) InitCreateTables() error {
-	if err := c.gdb.Exec(model.SQL).Error; err != nil {
-		return err
+	allDao := dao.NewAllDao(gdb)
+	if err := os.MkdirAll(filepath.Join(rootDataDir, dataDir, gobFileDir), 0755); err != nil {
+		return nil, err
 	}
-	return nil
+	client := &Client{
+		rootDataDir:     rootDataDir,
+		xpathExpr:       artical.DefaultXpathExpr,
+		allDao:          allDao,
+		rootDir:         rootDataDir,
+		gdb:             gdb,
+		dbPath:          dbPath,
+		codeContentChan: make(chan CodeContent, 1024),
+		shareOpen:       &atomic.Bool{},
+	}
+	err = client.InitCreateTables()
+	if err != nil {
+		return nil, err
+	}
+
+	pprofLis, err := client.startPProf()
+	if err != nil {
+		return nil, err
+	}
+	client.pprofListen = pprofLis
+	log.SetHook(func(ctx context.Context, record *log.HookRecord) {
+		msg := record.Content
+		if !debug.Load() {
+			if runtime.GOOS == "android" || runtime.GOOS == "ios" {
+				client.SendCodeContent(CodeLog, msg)
+			}
+		}
+		level := record.Level
+
+		if level == log.LevelError {
+
+		} else if level == log.LevelWarn {
+
+		}
+
+	})
+	return client, nil
 }

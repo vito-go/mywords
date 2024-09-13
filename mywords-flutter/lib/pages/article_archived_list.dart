@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/widgets/article_list.dart';
@@ -26,8 +26,8 @@ class _State extends State<ArticleArchivedPage> {
             IconButton(
                 onPressed: () {
                   // 归档置顶
-                  addToGlobalEvent(GlobalEvent(
-                      eventType: GlobalEventType.articleListScrollToTop,
+                  produce(Event(
+                      eventType: EventType.articleListScrollToTop,
                       param: 2));
                 },
                 icon: const Icon(Icons.vertical_align_top_outlined))

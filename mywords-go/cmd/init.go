@@ -26,7 +26,7 @@ func Init(rootDataDirC *C.char) {
 }
 func initGlobal(rootDataDir string, dictRunPort int) {
 	var err error
-	serverGlobal, err = client.NewServer(rootDataDir)
+	serverGlobal, err = client.NewClient(rootDataDir)
 	if err != nil {
 		panic(err)
 	}

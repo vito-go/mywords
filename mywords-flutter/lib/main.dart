@@ -7,11 +7,13 @@ import 'package:mywords/pages/home.dart';
 import 'package:mywords/widgets/restart_app.dart';
 
 import 'common/prefs/prefs.dart';
+import 'common/read_message.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
   await handler.initLib();
+  isolateLoopReadMessage();
   await Global.init();
   runApp(const RestartApp(child: MyApp()));
 }

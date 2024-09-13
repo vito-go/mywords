@@ -53,6 +53,17 @@ class NativeHandler implements Handler {
   final init = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
       void Function(Pointer<Utf8>)>('Init');
 
+  @override
+  String readMessage() {
+    final resultC = _readMessage();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    return result;
+  }
+
+  final _readMessage = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('ReadMessage');
+
 //func UpdateKnownWords(level int, c *C.char) *C.char
   final UpdateKnownWordLevel = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Int64),
@@ -105,10 +116,9 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-   final GetFileInfoListByArchived = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Bool), Pointer<Utf8> Function(bool)>('GetFileInfoListByArchived');
-
-
+  final GetFileInfoListByArchived = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Bool),
+      Pointer<Utf8> Function(bool)>('GetFileInfoListByArchived');
 
   @override
   RespData<List<FileInfo>> getFileInfoListByArchived(bool archived) {
@@ -137,7 +147,6 @@ class NativeHandler implements Handler {
     malloc.free(c);
     return respData;
   }
-
 
 // func BackUpData(targetZipPath, srcDataPath string) error
   final _backUpData = nativeAddLib.lookupFunction<
@@ -168,7 +177,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-
 // func SetProxyUrl(netProxy *C.char) *C.char {
   final _setProxyUrl = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
@@ -189,8 +197,6 @@ class NativeHandler implements Handler {
   final _dictWordQuery = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
-
-
 
   @override
   String dictWordQuery(String word) {
@@ -430,7 +436,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-
 // func SearchByKeyWord(keyWordC *C.char) *C.char {}
   final _searchByKeyWordWithDefault = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
@@ -506,7 +511,7 @@ class NativeHandler implements Handler {
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<int> respData =
-    RespData.fromJson(jsonDecode(result), (json) {
+        RespData.fromJson(jsonDecode(result), (json) {
       return json as int;
     });
     return respData;
@@ -519,11 +524,12 @@ class NativeHandler implements Handler {
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<int> respData =
-    RespData.fromJson(jsonDecode(result), (json) {
+        RespData.fromJson(jsonDecode(result), (json) {
       return json as int;
     });
     return respData;
   }
+
   @override
   RespData<void> setDefaultDict(String basePath) {
     Global.defaultDictBasePath = '';
@@ -712,7 +718,12 @@ class NativeHandler implements Handler {
 
   final _getShareInfo = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetShareInfo');
-
+  final DropAndReCreateDB = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('DropAndReCreateDB');
+  // DBExecute
+  final DBExecute = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('DBExecute');
   @override
   ShareInfo getShareInfo() {
     final resultC = _getShareInfo();
@@ -720,6 +731,15 @@ class NativeHandler implements Handler {
         jsonDecode(resultC.toDartString()), (json) => ShareInfo.fromJson(json));
     malloc.free(resultC);
     return respData.data!;
+  }
+
+  @override
+  RespData<void> dropAndReCreateDB() {
+    final resultC = DropAndReCreateDB();
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
+    malloc.free(resultC);
+    return respData;
   }
 
   @override
@@ -763,4 +783,13 @@ class NativeHandler implements Handler {
     return respData;
   }
 
+  @override
+  FutureOr<String> dbExecute(String s) {
+    final sC = s.toNativeUtf8();
+    final resultC = DBExecute(sC);
+    final result = resultC.toDartString();
+    malloc.free(sC);
+    malloc.free(resultC);
+    return result;
+  }
 }

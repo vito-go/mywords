@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io';
 
 import '../common/global.dart';
-import '../common/global_event.dart';
+import '../common/queue.dart';
 import '../util/util.dart';
 
 void _queryWordInDictWithMobile(BuildContext context, String word) async {
@@ -288,8 +288,8 @@ InkWell buildInkWell(
           return;
         }
         Global.allKnownWordsMap[word] = showLevel;
-        addToGlobalEvent(GlobalEvent(
-            eventType: GlobalEventType.updateKnownWord,
+        produce(Event(
+            eventType: EventType.updateKnownWord,
             param: <String, dynamic>{"word": word, "level": showLevel}));
       });
 }

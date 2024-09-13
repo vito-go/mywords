@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
@@ -77,7 +77,7 @@ class _State extends State<ParseLocalFile> {
       isSyncing = false;
     });
     myToast(context, "解析完成!");
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    produce(Event(eventType: EventType.updateArticleList));
     return;
   }
 
@@ -133,7 +133,7 @@ class _State extends State<ParseLocalFile> {
       myToast(context, respData.message);
       return;
     }
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    produce(Event(eventType: EventType.updateArticleList));
   }
 
   @override

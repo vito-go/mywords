@@ -62,7 +62,7 @@ func (c *Client) SendCodeContent(code int64, content any) {
 // ReadMessage returns a channel of messages, blocking until a message is available.
 // return code:content,  0:Error, 1:Message
 // content is a json string
-func (c *Client) ReadMessage(timeout time.Duration) string {
+func (c *Client) ReadMessage() string {
 	var builder strings.Builder
 	builderWrite := func(data *CodeContent) {
 		builder.WriteString(strconv.FormatInt(data.Code, 10))
@@ -87,25 +87,24 @@ func (c *Client) ReadMessage(timeout time.Duration) string {
 			builder.Write(b)
 		}
 	}
-	if timeout <= 0 {
-		data, ok := <-c.codeContentChan
-		if !ok {
-			builder.WriteString(strconv.FormatInt(CodeError, 10))
-			builder.WriteString(":")
-			builder.WriteString(ErrMessageChanClosed.Error())
-			return builder.String()
-		}
-		builderWrite(&data)
-		return builder.String()
-	}
-	select {
-	case data := <-c.codeContentChan:
-		builderWrite(&data)
-		return builder.String()
-	case <-time.After(timeout):
-		builder.WriteString(strconv.FormatInt(0, 10))
+	data, ok := <-c.codeContentChan
+	if !ok {
+		builder.WriteString(strconv.FormatInt(CodeError, 10))
 		builder.WriteString(":")
-		builder.WriteString(ErrMessageChanTimeout.Error())
+		builder.WriteString(ErrMessageChanClosed.Error())
 		return builder.String()
 	}
+	builderWrite(&data)
+	return builder.String()
+
+	//select {
+	//case data := <-c.codeContentChan:
+	//	builderWrite(&data)
+	//	return builder.String()
+	//case <-time.After(timeout):
+	//	builder.WriteString(strconv.FormatInt(0, 10))
+	//	builder.WriteString(":")
+	//	builder.WriteString(ErrMessageChanTimeout.Error())
+	//	return builder.String()
+	//}
 }

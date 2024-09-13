@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:mywords/common/global.dart';
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/libso/types.dart';
 
@@ -67,8 +67,8 @@ class ArticlePageState extends State<ArticlePage> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produce(
+          Event(eventType: EventType.updateArticleList));
       article = respData.data!;
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -77,8 +77,8 @@ class ArticlePageState extends State<ArticlePage> {
     });
   }
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+  void globalEventHandler(Event event) {
+    if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
       if (event.param is Map) {
         if (event.param["word"] != null && event.param["level"] != null) {
@@ -91,13 +91,13 @@ class ArticlePageState extends State<ArticlePage> {
     }
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? globalEventSubscription;
 
   @override
   void initState() {
     super.initState();
     initArticle();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    globalEventSubscription = consume(globalEventHandler);
   }
 
   Map<int, int> get levelCountMap {

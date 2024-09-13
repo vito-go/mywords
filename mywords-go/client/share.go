@@ -1,5 +1,6 @@
 package client
 
+import "C"
 import (
 	"archive/zip"
 	"bytes"
@@ -7,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"mywords/model"
 	"mywords/model/mtype"
 	"mywords/pkg/log"
 
@@ -17,8 +19,8 @@ import (
 	"time"
 )
 
-func (s *Client) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
-	if !s.shareOpen.Load() {
+func (c *Client) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
+	if !c.shareOpen.Load() {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -28,7 +30,7 @@ func (s *Client) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Reques
 	if len(b) > 0 {
 		_ = json.Unmarshal(b, &param)
 	}
-	srcDataPath := filepath.Join(s.rootDataDir, dataDir)
+	srcDataPath := filepath.Join(c.rootDataDir, dataDir)
 	remoteHost, _, _ := net.SplitHostPort(r.RemoteAddr)
 	if remoteHost == "" {
 		remoteHost = r.RemoteAddr
@@ -99,7 +101,7 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 }
 
 // RestoreFromShareServer . restore from a zip file,tempDir can be empty
-func (s *Client) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount, syncByRemoteArchived bool) error {
+func (c *Client) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount, syncByRemoteArchived bool) error {
 	httpUrl := fmt.Sprintf("http://%s:%d/%d", ip, port, code)
 	// save to temp dir
 	tempZipPath := filepath.Join(tempDir, fmt.Sprintf("mywors-%d.zip", time.Now().UnixMilli()))
@@ -107,14 +109,14 @@ func (s *Client) RestoreFromShareServer(ip string, port int, code int64, syncKno
 	defer func() {
 		_ = os.Remove(tempZipPath)
 	}()
-	size, err := s.download(httpUrl, syncKnownWords, tempZipPath, syncToadyWordCount)
+	size, err := c.download(httpUrl, syncKnownWords, tempZipPath, syncToadyWordCount)
 	if err != nil {
 		return err
 	}
 	if size <= 0 {
 		return nil
 	}
-	err = s.restoreFromBackUpData(syncKnownWords, tempZipPath, syncToadyWordCount, syncByRemoteArchived)
+	err = c.restoreFromBackUpData(syncKnownWords, tempZipPath, syncToadyWordCount, syncByRemoteArchived)
 	if err != nil {
 		return err
 	}
@@ -127,8 +129,8 @@ type ShareFileParam struct {
 	SyncKnownWords       bool            `json:"syncKnownWords"`
 }
 
-func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
-	allFilePaths, err := s.allDao.FileInfoDao.AllFilePaths(ctx)
+func (c *Client) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
+	allFilePaths, err := c.allDao.FileInfoDao.AllFilePaths(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -177,26 +179,26 @@ func (s *Client) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	return n, nil
 }
 
-func (s *Client) ShareOpen(port int, code int64) error {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	if s.shareListener != nil {
-		_ = s.shareListener.Close()
+func (c *Client) ShareOpen(port int, code int64) error {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+	if c.shareListener != nil {
+		_ = c.shareListener.Close()
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("/%d", code), s.serverHTTPShareBackUpData)
+	mux.HandleFunc(fmt.Sprintf("/%d", code), c.serverHTTPShareBackUpData)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
-	s.shareListener = lis
-	s.shareOpen.Store(true)
+	c.shareListener = lis
+	c.shareOpen.Store(true)
 	shareInfo := &mtype.ShareInfo{
 		Port: port,
 		Code: code,
 		Open: true,
 	}
-	err = s.allDao.KeyValueDao.SetShareInfo(ctx, shareInfo)
+	err = c.allDao.KeyValueDao.SetShareInfo(ctx, shareInfo)
 	if err != nil {
 		return err
 	}
@@ -211,11 +213,35 @@ func (s *Client) ShareOpen(port int, code int64) error {
 }
 
 // ShareClosed .
-func (s *Client) ShareClosed() {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	if s.shareListener != nil {
-		_ = s.shareListener.Close()
+func (c *Client) ShareClosed() {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+	if c.shareListener != nil {
+		_ = c.shareListener.Close()
 	}
-	s.shareOpen.Store(false)
+	c.shareOpen.Store(false)
+}
+
+// DropAndReCreateDB 生产环境禁止使用
+func (c *Client) DropAndReCreateDB() error {
+	var tables []string
+	err := c.GDB().Raw("SELECT name FROM sqlite_master WHERE type='table';").Find(&tables).Error
+	if err != nil {
+		return err
+	}
+	log.Println("tables", tables)
+	for _, table := range tables {
+		if table == "sqlite_sequence" {
+			continue
+		}
+		err = c.GDB().Exec("DROP TABLE " + table + ";").Error
+		if err != nil {
+			return err
+		}
+	}
+	err = c.GDB().Exec(model.SQL).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

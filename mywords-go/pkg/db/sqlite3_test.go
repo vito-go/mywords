@@ -13,7 +13,7 @@ func TestNewDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	TX := gdb.Exec("CREATE TABLE IF NOT EXISTS `proxy` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `ip` TEXT, `port` INTEGER, `protocol` TEXT, `country` TEXT, `anonymity` TEXT, `source` TEXT, `speed` REAL, `created_at` DATETIME, `updated_at ` DATETIME);")
+	TX := gdb.Exec("CREATE TABLE IF NOT EXISTS `proxy` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `ip` TEXT, `port` INTEGER, `protocol` TEXT, `country` TEXT, `anonymity` TEXT, `source` TEXT, `speed` REAL, `create_at` DATETIME, `update_at ` DATETIME);")
 	if TX.Error != nil {
 		t.Fatal(TX.Error)
 	}

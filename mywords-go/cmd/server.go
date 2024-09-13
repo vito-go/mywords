@@ -38,9 +38,14 @@ func ShareOpen(port int, code int64) *C.char {
 
 //export GetShareInfo
 func GetShareInfo() *C.char {
+	defaultShareInfo := mtype.ShareInfo{
+		Port: 0,
+		Code: 0,
+		Open: false,
+	}
 	info, err := serverGlobal.AllDao().KeyValueDao.QueryShareInfo(ctx)
 	if err != nil {
-		return CharErr(err.Error())
+		return CharOk(defaultShareInfo)
 	}
 	return CharOk(info)
 }
@@ -297,7 +302,6 @@ func GetIPv4s() *C.char {
 		ip, _, err := net.ParseCIDR(addr.String())
 		if err != nil {
 			continue
-
 		}
 		if ip.IsLoopback() {
 			continue
@@ -316,8 +320,35 @@ func GetIPv4s() *C.char {
 				return true
 			}
 		}
-
 		return false
 	})
 	return CharOk(ips)
+}
+
+// DropAndReCreateDB drop and re-create db
+
+//export ReadMessage
+func ReadMessage() *C.char {
+	msg := serverGlobal.ReadMessage()
+	return C.CString(msg)
+}
+
+//export DropAndReCreateDB
+func DropAndReCreateDB() *C.char {
+	return CharErr("Can't use this function in production environment")
+	err := serverGlobal.DropAndReCreateDB()
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharSuccess()
+}
+
+//export DBExecute
+func DBExecute(sqlC *C.char) *C.char {
+	return CharErr("Can't use this function in production environment")
+	err := serverGlobal.GDB().Exec(C.GoString(sqlC)).Error
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharSuccess()
 }

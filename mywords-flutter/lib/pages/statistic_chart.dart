@@ -5,7 +5,7 @@ import 'package:mywords/util/util.dart';
 
 import 'package:mywords/widgets/line_chart.dart';
 
-import '../common/global_event.dart';
+import '../common/queue.dart';
 
 class StatisticChart extends StatefulWidget {
   const StatisticChart({super.key});
@@ -87,7 +87,7 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     initData();
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateLineChart));
+    produce(Event(eventType: EventType.updateLineChart));
   }
 
   @override

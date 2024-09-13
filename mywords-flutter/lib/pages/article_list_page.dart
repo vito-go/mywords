@@ -11,7 +11,7 @@ import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/widgets/article_list.dart';
 
 import '../libso/types.dart';
@@ -37,14 +37,14 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     valueNotifierChart.dispose();
   }
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.syncData && event.param == true) {
+  void globalEventHandler(Event event) {
+    if (event.eventType == EventType.syncData && event.param == true) {
       updateTodayCountMap();
     }
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+    if (event.eventType == EventType.updateKnownWord) {
       updateTodayCountMap();
     }
-    if (event.eventType == GlobalEventType.updateLineChart) {
+    if (event.eventType == EventType.updateLineChart) {
       updateTodayCountMap();
     }
   }
@@ -53,7 +53,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     updateTodayCountMap();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    globalEventSubscription = consume(globalEventHandler);
   }
 
   void search() async {
@@ -125,7 +125,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       return;
     }
     controller.text = "";
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    produce(Event(eventType: EventType.updateArticleList));
   }
 
   FocusNode focus = FocusNode();
@@ -181,7 +181,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
         ]));
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? globalEventSubscription;
 
   Widget buildBody() {
     List<Widget> colChildren = [
@@ -201,7 +201,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                 text: TextSpan(
                     text: "今日学习单词总数: ",
                     style: TextStyle(
-                        color: prefs.isDark ? Colors.white70 : Colors.black),
+                        color: Theme.of(context).textTheme.bodyMedium?.color
+                    ),
                     children: [
                       TextSpan(
                           text: "${count1 + count2 + count3}",

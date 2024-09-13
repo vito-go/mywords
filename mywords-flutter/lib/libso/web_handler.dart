@@ -431,6 +431,24 @@ class WebHandler implements Handler {
             json.length, (index) => FileInfo.fromJson(json[index])));
     return respData;
   }
+
+  @override
+  RespData<void> dropAndReCreateDB() {
+    // TODO: implement dropAndReCreateDB
+    throw UnimplementedError();
+  }
+
+  @override
+  String readMessage() {
+    // TODO: implement readMessage
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<String> dbExecute(String s) {
+    // TODO: implement dbExecute
+    throw UnimplementedError();
+  }
 }
 
 Future<String> call(String funcName, List<dynamic> args) async {

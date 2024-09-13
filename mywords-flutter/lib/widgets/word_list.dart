@@ -5,7 +5,7 @@ import 'package:mywords/common/prefs/prefs.dart';
 
 import 'package:mywords/widgets/word_common.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/resp_data.dart';
 
 class _WordLevel {
@@ -37,8 +37,8 @@ class _State extends State<WordList> {
   Map<int, List<String>> levelWordsMap = {}; // level: [word1,word2]
   late int showLevel = widget.showLevel;
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+  void globalEventHandler(Event event) {
+    if (event.eventType == EventType.updateKnownWord) {
       if (event.param is Map) {
         if (event.param["word"] != null && event.param["level"] != null) {
           final word = event.param["word"].toString();
@@ -59,7 +59,7 @@ class _State extends State<WordList> {
   int get count2 => (levelWordsMap[2] ?? []).length;
 
   int get count3 => (levelWordsMap[3] ?? []).length;
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? globalEventSubscription;
 
   Widget wordLevelRichText() {
     return RichText(
@@ -95,7 +95,7 @@ class _State extends State<WordList> {
   @override
   void initState() {
     super.initState();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    globalEventSubscription = consume(globalEventHandler);
     _updateLevelWordsMap();
   }
 

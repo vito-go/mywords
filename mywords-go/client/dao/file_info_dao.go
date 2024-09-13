@@ -38,7 +38,11 @@ func (m *fileInfoDao) Update(ctx context.Context, msg *model.FileInfo) error {
 	// https://gorm.io/zh_CN/docs/update.html#%E6%9B%B4%E6%96%B0%E9%80%89%E5%AE%9A%E5%AD%97%E6%AE%B5
 	// 如果您想要在更新时选择、忽略某些字段，您可以使用 Select、Omit
 	// If you want to select, update some fields, you can use Select, Omit
-	return m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID).Updates(msg).Error
+	// Gorm 有点坑，有一些内置的hook字段，对于UpdatedAt字段，如果是int类型，会按照秒数更新  需要 tx.Statement.SkipHooks = true，否则要添加gorm标签，设置类型为毫秒级别
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID)
+	//tx.Statement.SkipHooks = true
+	return tx.Updates(msg).Error
+
 }
 
 // CreateBatch .
@@ -53,7 +57,7 @@ func (m *fileInfoDao) CreateBatch(ctx context.Context, msgs ...model.FileInfo) e
 
 func (m *fileInfoDao) AllItemsByArchived(ctx context.Context, archived bool) ([]model.FileInfo, error) {
 	var items []model.FileInfo
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("archived = ?", archived).Order("updated_at DESC").Find(&items).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("archived = ?", archived).Order("update_at DESC").Find(&items).Error
 	return items, err
 }
 

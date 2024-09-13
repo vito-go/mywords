@@ -54,12 +54,12 @@ func (chartData *ChartData) SetMaxY() {
 
 const lastDays = 20
 
-func (s *Client) GetToadyChartDateLevelCountMap() map[mtype.WordKnownLevel]int {
+func (c *Client) GetToadyChartDateLevelCountMap() map[mtype.WordKnownLevel]int {
 	today := time.Now().Format("20060102")
 	createDay, _ := strconv.ParseInt(today, 10, 64)
 	// copy s.chartDateLevelCountMap
 	todayLevelCountMap := make(map[mtype.WordKnownLevel]int, 3)
-	items, err := s.allDao.KnownWordsDao.AllItemsByCreateDay(ctx, createDay)
+	items, err := c.allDao.KnownWordsDao.AllItemsByCreateDay(ctx, createDay)
 	if err != nil {
 		return todayLevelCountMap
 	}
@@ -75,8 +75,8 @@ func (s *Client) GetToadyChartDateLevelCountMap() map[mtype.WordKnownLevel]int {
 
 // chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
 
-func (s *Client) chartDateLevelCountMap() map[string]map[mtype.WordKnownLevel]map[string]struct{} {
-	allItems, err := s.allDao.KnownWordsDao.AllItems(ctx)
+func (c *Client) chartDateLevelCountMap() map[string]map[mtype.WordKnownLevel]map[string]struct{} {
+	allItems, err := c.allDao.KnownWordsDao.AllItems(ctx)
 	if err != nil {
 		return nil
 	}
@@ -93,7 +93,7 @@ func (s *Client) chartDateLevelCountMap() map[string]map[mtype.WordKnownLevel]ma
 	}
 	return result
 }
-func (s *Client) GetChartData() (*ChartData, error) {
+func (c *Client) GetChartData() (*ChartData, error) {
 
 	var chartData = &ChartData{
 		Title:       "每日单词掌握情况分级统计",
@@ -114,7 +114,7 @@ func (s *Client) GetChartData() (*ChartData, error) {
 		{Tip: mtype.WordKnownLevel(3).Name(), BarWidth: 1.0},
 	}
 
-	allCreateDates, err := s.allDao.KnownWordsDao.AllCreateDate(ctx)
+	allCreateDates, err := c.allDao.KnownWordsDao.AllCreateDate(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s *Client) GetChartData() (*ChartData, error) {
 	for _, createDay := range allCreateDates {
 		allDates = append(allDates, strconv.FormatInt(createDay, 10))
 	}
-	chartDateLevelCountMap := s.chartDateLevelCountMap()
+	chartDateLevelCountMap := c.chartDateLevelCountMap()
 	for dateIdx, date := range allDates {
 		chartData.XTitleMap[dateIdx] = date
 		levelCountMap, _ := chartDateLevelCountMap[date]
@@ -157,7 +157,7 @@ func (s *Client) GetChartData() (*ChartData, error) {
 	chartData.SetMaxY()
 	return chartData, nil
 }
-func (s *Client) GetChartDataAccumulate() (*ChartData, error) {
+func (c *Client) GetChartDataAccumulate() (*ChartData, error) {
 
 	var chartData = &ChartData{
 		Title:       "累计单词掌握情况统计",
@@ -174,7 +174,7 @@ func (s *Client) GetChartDataAccumulate() (*ChartData, error) {
 	chartData.LineValues = []lineValue{
 		{Tip: allTitle, BarWidth: 2.0},
 	}
-	allCreateDates, err := s.allDao.KnownWordsDao.AllCreateDate(ctx)
+	allCreateDates, err := c.allDao.KnownWordsDao.AllCreateDate(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func (s *Client) GetChartDataAccumulate() (*ChartData, error) {
 		allDates = append(allDates, strconv.FormatInt(createDay, 10))
 	}
 	var accumulation = 0
-	chartDateLevelCountMap := s.chartDateLevelCountMap()
+	chartDateLevelCountMap := c.chartDateLevelCountMap()
 
 	for dateIdx, date := range allDates {
 		chartData.XTitleMap[dateIdx] = date

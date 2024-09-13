@@ -11,70 +11,23 @@ import (
 	"errors"
 	"fmt"
 	"github.com/antchfx/xpath"
-	"golang.org/x/time/rate"
 	"gorm.io/gorm"
 	"io"
 	"mywords/artical"
 	"mywords/client/dao"
 	"mywords/model"
 	"mywords/model/mtype"
-	"mywords/pkg/db"
-	"mywords/pkg/log"
 	"net"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"time"
 )
 
-type Client struct {
-	rootDataDir string
-	xpathExpr   string //must can compile
-	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
-	//fileInfoMap1        map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
-
-	mux           sync.Mutex //
-	shareListener net.Listener
-	shareOpen     *atomic.Bool
-	// multicast
-
-	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
-
-	// 新字段
-
-	rootDir string
-
-	gdb             *gorm.DB
-	dbPath          string
-	allDao          *dao.AllDao
-	codeContentChan chan CodeContent
-	pprofListen     net.Listener //may be nil
-
-	messageLimiter *rate.Limiter
-	closed         atomic.Bool
-
-	//		//
-	//	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
-	//	knownWordsMap *MySyncMapMap[string, WordKnownLevel] // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
-	//	//fileInfoMap1        map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
-	//	fileInfoMap         *MySyncMap[FileInfo] // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
-	//	fileInfoArchivedMap *MySyncMap[FileInfo] // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
-	//
-	//	mux           sync.Mutex //
-	//	shareListener net.Listener
-	//	// multicast
-	//	remoteHostMap sync.Map // remoteHost: port
-	//
-	//	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
-	//	chartDateLevelCountMap *MySyncMapMap[WordKnownLevel, map[string]struct{}] // date: {1: {"words":{}}, 2: 200, 3: 300}
-
-}
-
-func (s *Client) AllDao() *dao.AllDao {
-	return s.allDao
+func (c *Client) AllDao() *dao.AllDao {
+	return c.allDao
 }
 
 type config struct {
@@ -96,76 +49,17 @@ const (
 	gobFileDir = "gob_gz_files" // a.txt.gob, b.txt.gob, c.txt.gob ...
 )
 
-const dbName = "mywords.db"
-
-func NewServer(rootDataDir string) (*Client, error) {
-	rootDataDir = filepath.ToSlash(rootDataDir)
-	if err := os.MkdirAll(rootDataDir, 0755); err != nil {
-		return nil, err
-	}
-
-	dbDir := filepath.ToSlash(filepath.Join(rootDataDir, DirDB))
-	err := os.MkdirAll(dbDir, os.ModePerm)
-	if err != nil {
-		return nil, err
-	}
-	dbPath := filepath.ToSlash(filepath.Join(dbDir, dbName))
-	gdb, err := db.NewDB(dbPath)
-	if err != nil {
-		return nil, err
-	}
-	allDao := dao.NewAllDao(gdb)
-	if err := os.MkdirAll(filepath.Join(rootDataDir, dataDir, gobFileDir), 0755); err != nil {
-		return nil, err
-	}
-
-	client := &Client{rootDataDir: rootDataDir,
-		xpathExpr:       artical.DefaultXpathExpr,
-		allDao:          allDao,
-		rootDir:         rootDataDir,
-		gdb:             gdb,
-		dbPath:          dbPath,
-		codeContentChan: make(chan CodeContent, 1024),
-		shareOpen:       &atomic.Bool{},
-	}
-	err = client.InitCreateTables()
-	if err != nil {
-		return nil, err
-	}
-
-	pprofLis, err := client.startPProf()
-	if err != nil {
-		return nil, err
-	}
-	client.pprofListen = pprofLis
-	log.SetHook(func(ctx context.Context, record *log.HookRecord) {
-		msg := record.Content
-		if debug.Load() {
-			client.SendCodeContent(CodeLog, msg)
-		}
-		level := record.Level
-
-		if level == log.LevelError {
-
-		} else if level == log.LevelWarn {
-
-		}
-
-	})
-	return client, nil
-}
-
 // RootDataDir . root data dir
-func (s *Client) RootDataDir() string {
-	return s.rootDataDir
+func (c *Client) RootDataDir() string {
+	return c.rootDataDir
 }
 
-func (s *Client) DataDir() string {
-	return filepath.ToSlash(filepath.Join(s.rootDataDir, dataDir))
+func (c *Client) DataDir() string {
+	return filepath.ToSlash(filepath.Join(c.rootDataDir, dataDir))
 }
 
-func (s *Client) netProxy(ctx context.Context) *url.URL {
-	proxy, err := s.allDao.KeyValueDao.Proxy(ctx)
+func (c *Client) netProxy(ctx context.Context) *url.URL {
+	proxy, err := c.allDao.KeyValueDao.Proxy(ctx)
 	if err != nil {
 		return nil
 	}
@@ -177,15 +71,15 @@ func (s *Client) netProxy(ctx context.Context) *url.URL {
 	return u
 }
 
-func (s *Client) ProxyURL() string {
-	u := s.netProxy(ctx)
+func (c *Client) ProxyURL() string {
+	u := c.netProxy(ctx)
 	if u == nil {
 		return ""
 	}
 	return u.String()
 }
 
-func (s *Client) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]model.FileInfo, error) {
+func (c *Client) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]model.FileInfo, error) {
 	r, err := f.Open()
 	if err != nil {
 		return nil, err
@@ -206,10 +100,10 @@ func (s *Client) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]mode
 	return fileInfoMap, nil
 }
 
-func (s *Client) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
-	return s.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount, syncByRemoteArchived)
+func (c *Client) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
+	return c.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount, syncByRemoteArchived)
 }
-func (s *Client) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
+func (c *Client) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
 	r, err := zip.OpenReader(backUpDataZipPath)
 	if err != nil {
 		return err
@@ -229,42 +123,42 @@ func (s *Client) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath st
 }
 
 // FixMyKnownWords .
-func (s *Client) FixMyKnownWords() error {
+func (c *Client) FixMyKnownWords() error {
 	return nil
 }
 
 // SetProxyUrl .
-func (s *Client) SetProxyUrl(proxyUrl string) error {
-	return s.AllDao().KeyValueDao.SetProxyURL(ctx, proxyUrl)
+func (c *Client) SetProxyUrl(proxyUrl string) error {
+	return c.AllDao().KeyValueDao.SetProxyURL(ctx, proxyUrl)
 
 }
 
 // SetXpathExpr . usually for debug
-func (s *Client) SetXpathExpr(expr string) (err error) {
+func (c *Client) SetXpathExpr(expr string) (err error) {
 	if expr == "" {
-		s.xpathExpr = artical.DefaultXpathExpr
+		c.xpathExpr = artical.DefaultXpathExpr
 		return nil
 	}
 	_, err = xpath.Compile(expr)
 	if err != nil {
 		return err
 	}
-	s.xpathExpr = expr
+	c.xpathExpr = expr
 	return nil
 }
 
 var ctx = context.TODO()
 
-func (s *Client) ReparseArticleFileInfo(id int64) (*artical.Article, error) {
-	fileInfo, err := s.AllDao().FileInfoDao.ItemByID(ctx, id)
+func (c *Client) ReparseArticleFileInfo(id int64) (*artical.Article, error) {
+	fileInfo, err := c.AllDao().FileInfoDao.ItemByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	art, err := s.ArticleFromFileInfo(fileInfo)
+	art, err := c.ArticleFromFileInfo(fileInfo)
 	if err != nil {
 		return nil, err
 	}
-	path := s.gobPathByFileName(art.GenFileName())
+	path := c.gobPathByFileName(art.GenFileName())
 	fileSize, err := art.SaveToFile(path)
 	if err != nil {
 		return nil, err
@@ -273,24 +167,24 @@ func (s *Client) ReparseArticleFileInfo(id int64) (*artical.Article, error) {
 	fileInfo.Size = fileSize
 	fileInfo.TotalCount = art.TotalCount
 	fileInfo.NetCount = art.NetCount
-	fileInfo.UpdatedAt = time.Now().UnixMilli()
-	err = s.AllDao().FileInfoDao.Update(ctx, fileInfo)
+	fileInfo.UpdateAt = time.Now().UnixMilli()
+	err = c.AllDao().FileInfoDao.Update(ctx, fileInfo)
 	if err != nil {
 		return nil, err
 	}
 	return art, nil
 }
-func (s *Client) RenewArticleFileInfo(id int64) (*artical.Article, error) {
-	fileInfo, err := s.AllDao().FileInfoDao.ItemByID(ctx, id)
+func (c *Client) RenewArticleFileInfo(id int64) (*artical.Article, error) {
+	fileInfo, err := c.AllDao().FileInfoDao.ItemByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	sourceUrl := fileInfo.SourceUrl
-	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.netProxy(ctx))
+	art, err := artical.ParseSourceUrl(sourceUrl, c.xpathExpr, c.netProxy(ctx))
 	if err != nil {
 		return nil, err
 	}
-	path := s.gobPathByFileName(art.GenFileName())
+	path := c.gobPathByFileName(art.GenFileName())
 	fileSize, err := art.SaveToFile(path)
 	if err != nil {
 		return nil, err
@@ -299,14 +193,14 @@ func (s *Client) RenewArticleFileInfo(id int64) (*artical.Article, error) {
 	fileInfo.Size = fileSize
 	fileInfo.TotalCount = art.TotalCount
 	fileInfo.NetCount = art.NetCount
-	fileInfo.UpdatedAt = time.Now().UnixMilli()
-	err = s.AllDao().FileInfoDao.Update(ctx, fileInfo)
+	fileInfo.UpdateAt = time.Now().UnixMilli()
+	err = c.AllDao().FileInfoDao.Update(ctx, fileInfo)
 	if err != nil {
 		return nil, err
 	}
 	return art, nil
 }
-func (s *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Article, error) {
+func (c *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Article, error) {
 	u, err := url.Parse(sourceUrl)
 	if err != nil {
 		return nil, err
@@ -319,11 +213,11 @@ func (s *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Artic
 	if host == "" {
 		return nil, fmt.Errorf("host is empty")
 	}
-	art, err := artical.ParseSourceUrl(sourceUrl, s.xpathExpr, s.netProxy(ctx))
+	art, err := artical.ParseSourceUrl(sourceUrl, c.xpathExpr, c.netProxy(ctx))
 	if err != nil {
 		return nil, err
 	}
-	path := s.gobPathByFileName(art.GenFileName())
+	path := c.gobPathByFileName(art.GenFileName())
 	fileSize, err := art.SaveToFile(path)
 	if err != nil {
 		return nil, err
@@ -339,19 +233,19 @@ func (s *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Artic
 		TotalCount: art.TotalCount,
 		NetCount:   art.NetCount,
 		Archived:   false,
-		CreatedAt:  time.Now().UnixMilli(),
-		UpdatedAt:  time.Now().UnixMilli(),
+		CreateAt:   time.Now().UnixMilli(),
+		UpdateAt:   time.Now().UnixMilli(),
 	}
-	_, err = s.AllDao().FileInfoDao.Create(ctx, &fileInfo)
+	_, err = c.AllDao().FileInfoDao.Create(ctx, &fileInfo)
 	return art, err
 }
 
-func (s *Client) QueryWordLevel(word string) (mtype.WordKnownLevel, bool) {
+func (c *Client) QueryWordLevel(word string) (mtype.WordKnownLevel, bool) {
 	// check level
 	if len(word) == 0 {
 		return 0, false
 	}
-	resultMap, err := s.QueryWordsLevel(word)
+	resultMap, err := c.QueryWordsLevel(word)
 	if err != nil {
 		return 0, false
 	}
@@ -360,8 +254,8 @@ func (s *Client) QueryWordLevel(word string) (mtype.WordKnownLevel, bool) {
 	}
 	return 0, false
 }
-func (s *Client) QueryWordsLevel(words ...string) (map[string]mtype.WordKnownLevel, error) {
-	items, err := s.allDao.KnownWordsDao.ItemsByWords(ctx, words...)
+func (c *Client) QueryWordsLevel(words ...string) (map[string]mtype.WordKnownLevel, error) {
+	items, err := c.allDao.KnownWordsDao.ItemsByWords(ctx, words...)
 	if err != nil {
 		return nil, err
 	}
@@ -372,8 +266,8 @@ func (s *Client) QueryWordsLevel(words ...string) (map[string]mtype.WordKnownLev
 	return resultMap, nil
 }
 
-func (s *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
-	items, err := s.allDao.KnownWordsDao.AllItems(ctx)
+func (c *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
+	items, err := c.allDao.KnownWordsDao.AllItems(ctx)
 	if err != nil {
 		return nil
 	}
@@ -383,9 +277,9 @@ func (s *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
 	}
 	return resultMap
 }
-func (s *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
+func (c *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
 	createDay, _ := strconv.ParseInt(time.Now().Format("2006-01-02"), 10, 64)
-	items, err := s.allDao.KnownWordsDao.AllItemsByCreateDay(ctx, createDay)
+	items, err := c.allDao.KnownWordsDao.AllItemsByCreateDay(ctx, createDay)
 	if err != nil {
 		return nil
 	}
@@ -396,18 +290,18 @@ func (s *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
 	return resultMap
 }
 
-func (s *Client) ArticleFromFileInfo(fileInfo *model.FileInfo) (*artical.Article, error) {
+func (c *Client) ArticleFromFileInfo(fileInfo *model.FileInfo) (*artical.Article, error) {
 	id := fileInfo.ID
 	b, err := os.ReadFile(fileInfo.FilePath)
 	if err != nil {
-		_ = s.deleteGobFile(id)
+		_ = c.deleteGobFile(id)
 		return nil, err
 	}
-	return s.articleFromGobGZContent(b)
+	return c.articleFromGobGZContent(b)
 
 }
 
-func (s *Client) articleFromGobGZContent(b []byte) (*artical.Article, error) {
+func (c *Client) articleFromGobGZContent(b []byte) (*artical.Article, error) {
 	gzReader, err := gzip.NewReader(bytes.NewReader(b))
 	if err != nil {
 		return nil, err
@@ -423,15 +317,15 @@ func (s *Client) articleFromGobGZContent(b []byte) (*artical.Article, error) {
 }
 
 // DeleteGobFile delete gob file and update fileInfoMap
-func (s *Client) DeleteGobFile(id int64) error {
-	return s.deleteGobFile(id)
+func (c *Client) DeleteGobFile(id int64) error {
+	return c.deleteGobFile(id)
 }
-func (s *Client) deleteGobFile(id int64) error {
-	item, err := s.AllDao().FileInfoDao.ItemByID(ctx, id)
+func (c *Client) deleteGobFile(id int64) error {
+	item, err := c.AllDao().FileInfoDao.ItemByID(ctx, id)
 	if err != nil {
 		return err
 	}
-	_, err = s.AllDao().FileInfoDao.DeleteById(ctx, item.ID)
+	_, err = c.AllDao().FileInfoDao.DeleteById(ctx, item.ID)
 	if err != nil {
 		return err
 	}
@@ -441,10 +335,74 @@ func (s *Client) deleteGobFile(id int64) error {
 	}
 	return nil
 }
-func (s *Client) gobPathByFileName(fileName string) string {
-	return filepath.Join(s.rootDataDir, dataDir, gobFileDir, fileName)
+func (c *Client) gobPathByFileName(fileName string) string {
+	return filepath.Join(c.rootDataDir, dataDir, gobFileDir, fileName)
 }
 
 func (c *Client) ParseAndSaveArticleFromFile(filePath string) (*artical.Article, error) {
 	return nil, errors.New("not implemented")
+}
+
+var debug = atomic.Bool{}
+
+type CodeContent struct {
+	Code    int64
+	Content any
+}
+
+// VacuumDB reorganizes the database file to use disk space more efficiently.
+// VACUUM is a SQLite command that reorganizes the database file to use disk space more efficiently.
+// It can remove free pages from the database file, reducing the size of the database file.
+func (c *Client) VacuumDB(ctx context.Context) (int64, error) {
+	tx := c.gdb.WithContext(ctx).Exec("VACUUM")
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+	return tx.RowsAffected, nil
+}
+
+var ErrMessageChanFull = errors.New("message chan full")
+var ErrMessageChanClosed = errors.New("message chan closed")
+var ErrMessageChanTimeout = errors.New("message chan timeout")
+
+// HTTPAddr returns the pprof listen address
+func (c *Client) HTTPAddr() string {
+	if c.pprofListen == nil {
+		return ""
+	}
+	port := c.pprofListen.Addr().(*net.TCPAddr).Port
+	return fmt.Sprintf("http://127.0.0.1:%d/debug/pprof/", port)
+}
+
+func (c *Client) Close() error {
+	if c.closed.Swap(true) {
+		return nil
+	}
+	d, err := c.gdb.DB()
+	if err != nil {
+		return err
+	}
+
+	if c.pprofListen != nil {
+		_ = c.pprofListen.Close()
+	}
+	return d.Close()
+}
+func (c *Client) GDB() *gorm.DB {
+	return c.gdb
+}
+
+// DBSize returns the size of the database file
+func (c *Client) DBSize() (int64, error) {
+	info, err := os.Stat(c.dbPath)
+	if err != nil {
+		return 0, err
+	}
+	return info.Size(), nil
+}
+func (c *Client) InitCreateTables() error {
+	if err := c.gdb.Exec(model.SQL).Error; err != nil {
+		return err
+	}
+	return nil
 }

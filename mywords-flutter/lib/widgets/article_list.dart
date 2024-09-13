@@ -12,7 +12,7 @@ import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 
 enum ToEndSlide { archive, unarchive }
 
@@ -60,7 +60,7 @@ class _State extends State<ArticleListView> {
     controllerSearch.dispose();
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? globalEventSubscription;
 
   void slideToUnArchive(FileInfo item) {
     final itemNew = item.copyWith(archived: false);
@@ -70,8 +70,8 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produce(
+          Event(eventType: EventType.updateArticleList));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -98,8 +98,8 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produce(
+          Event(eventType: EventType.updateArticleList));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -124,8 +124,8 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produce(
+          Event(eventType: EventType.updateArticleList));
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -167,7 +167,7 @@ class _State extends State<ArticleListView> {
                   style: TextStyle(
                       fontSize: 14, color: Theme.of(context).primaryColor)),
               subtitle: Text(
-                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updatedAt))}  total:${item.totalCount} net:${item.netCount}",
+                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updateAt))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis));
           return Dismissible(
@@ -202,8 +202,8 @@ class _State extends State<ArticleListView> {
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
         onRefresh: () async {
-          addToGlobalEvent(
-              GlobalEvent(eventType: GlobalEventType.updateLineChart));
+          produce(
+              Event(eventType: EventType.updateLineChart));
           await initFileInfos();
           if (!mounted) return;
           myToast(context, "Successfully!");
@@ -248,23 +248,23 @@ class _State extends State<ArticleListView> {
         });
   }
 
-  void globalEventHandler(GlobalEvent event) {
+  void globalEventHandler(Event event) {
     switch (event.eventType) {
-      case GlobalEventType.updateArticleList:
+      case EventType.updateArticleList:
         initFileInfos();
         break;
-      case GlobalEventType.syncData:
+      case EventType.syncData:
         initFileInfos();
         break;
-      case GlobalEventType.updateKnownWord:
+      case EventType.updateKnownWord:
         break;
-      case GlobalEventType.articleListScrollToTop:
+      case EventType.articleListScrollToTop:
         if (widget.pageNo == event.param && fileInfos.isNotEmpty) {
           controller.animateTo(0,
               duration: const Duration(milliseconds: 150),
               curve: Curves.linear);
         }
-      case GlobalEventType.updateLineChart:
+      case EventType.updateLineChart:
       // TODO: Handle this case.
     }
   }
@@ -274,7 +274,7 @@ class _State extends State<ArticleListView> {
     super.initState();
     initFileInfos().then((value) {
       ifShowDialogGuide();
-      globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+      globalEventSubscription = consume(globalEventHandler);
     });
   }
 

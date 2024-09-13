@@ -9,7 +9,8 @@ abstract class Handler {
   FutureOr<void> initLib();
 
   FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
-
+  //readMessage 阻塞性获取消息 0 意味着不超时
+  String readMessage( );
   // hostname 可以为空，默认localhost
   FutureOr<String> getUrlByWord(String hostname, String word);
 
@@ -64,6 +65,7 @@ abstract class Handler {
       String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
+  FutureOr<String> dbExecute(String s);
 
   FutureOr<String> proxyURL();
 
@@ -99,6 +101,6 @@ abstract class Handler {
   FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
 
   FutureOr<ShareInfo> getShareInfo();
-
+  RespData<void> dropAndReCreateDB();
   String getHostName();
 }
