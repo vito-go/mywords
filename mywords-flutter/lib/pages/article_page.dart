@@ -67,8 +67,7 @@ class ArticlePageState extends State<ArticlePage> {
         myToast(context, respData.message);
         return;
       }
-      produce(
-          Event(eventType: EventType.updateArticleList));
+      produce(Event(eventType: EventType.updateArticleList));
       article = respData.data!;
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -160,7 +159,7 @@ class ArticlePageState extends State<ArticlePage> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                    fontSize: 20, color: Theme.of(context).primaryColor),
+                    fontSize: 20, color: Theme.of(context).colorScheme.primary),
               )),
         ),
         buildInkWell(context, wordLink, 0, realLevel),
@@ -217,6 +216,11 @@ class ArticlePageState extends State<ArticlePage> {
   }
 
   Widget wordLevelRichText() {
+    final color = Theme.of(context).textTheme.bodyMedium?.color;
+    final colorPrimary = Theme.of(context).colorScheme.primary;
+    final levelStyle = TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.normal);
     return RichText(
       text: TextSpan(
           style: const TextStyle(color: Colors.black),
@@ -225,29 +229,17 @@ class ArticlePageState extends State<ArticlePage> {
             const TextSpan(
                 text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
                 style: TextStyle(color: Colors.blueGrey)),
-            const TextSpan(text: "0级: "),
+            TextSpan(text: "0级: ", style: TextStyle(color: color)),
             TextSpan(
                 text: "$count0 ($count0VsNet)",
                 style: const TextStyle(
                     color: Colors.red, fontWeight: FontWeight.bold)),
-            const TextSpan(text: "  1级: "),
-            TextSpan(
-                text: "$count1",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
-            const TextSpan(text: "  2级: "),
-            TextSpan(
-                text: "$count2",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
-            const TextSpan(text: "  3级: "),
-            TextSpan(
-                text: "$count3",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
+            TextSpan(text: "  1级: ", style: TextStyle(color: color)),
+            TextSpan(text: "$count1", style: levelStyle),
+            TextSpan(text: "  2级: ", style: TextStyle(color: color)),
+            TextSpan(text: "$count2", style: levelStyle),
+            TextSpan(text: "  3级: ", style: TextStyle(color: color)),
+            TextSpan(text: "$count3", style: levelStyle),
           ]),
     );
   }
@@ -290,22 +282,23 @@ class ArticlePageState extends State<ArticlePage> {
       );
 
   Widget staticsRichText(int totalCount, int netCount) {
+    final color = Theme.of(context).textTheme.bodyMedium?.color;
     return RichText(
         text: TextSpan(
-            style: const TextStyle(color: Colors.black),
             text: "词汇量统计: 总数: ",
+            style: Theme.of(context).textTheme.titleMedium,
             children: [
           TextSpan(
               text: "$totalCount",
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+              style: TextStyle(fontWeight: FontWeight.bold, color: color)),
           const TextSpan(text: ", 去重后: "),
           TextSpan(
               text: "$netCount",
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+              style: TextStyle(fontWeight: FontWeight.bold, color: color)),
           const TextSpan(text: ", 比率: "),
           TextSpan(
               text: (netCount / totalCount).toStringAsFixed(2),
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+              style: TextStyle(fontWeight: FontWeight.bold, color: color)),
         ]));
   }
 
@@ -316,7 +309,7 @@ class ArticlePageState extends State<ArticlePage> {
           setState(() {});
         },
         icon: Icon(Icons.preview,
-            color: preview ? Theme.of(context).primaryColor : null));
+            color: preview ? Theme.of(context).colorScheme.primary : null));
   }
 
   @override

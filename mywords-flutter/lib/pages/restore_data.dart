@@ -279,7 +279,7 @@ class _RestoreDataState extends State<RestoreData> {
         ),
         trailing: IconButton(
           onPressed: restoreFromFile,
-          icon: Icon(Icons.file_open, color: Theme.of(context).primaryColor),
+          icon: Icon(Icons.file_open, color: Theme.of(context).colorScheme.primary),
         ),
       ),
     );

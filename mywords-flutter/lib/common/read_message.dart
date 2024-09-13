@@ -14,8 +14,6 @@ void isolateEntry(SendPort sendPort) async {
   }
 }
 
-ReceivePort? receivePort;
-Isolate? isolate;
 /*
 * const (
 	CodeError           = 0
@@ -33,11 +31,9 @@ Isolate? isolate;
 void isolateLoopReadMessage() async {
   // Clean up
 
-  isolate?.kill(priority: Isolate.immediate);
-  receivePort?.close();
-  receivePort = ReceivePort();
-  isolate = await Isolate.spawn(isolateEntry, receivePort!.sendPort);
-  final sendPort = await receivePort!.first as SendPort;
+  final receivePort = ReceivePort();
+  final isolate = await Isolate.spawn(isolateEntry, receivePort.sendPort);
+  final sendPort = await receivePort.first as SendPort;
   myPrint("isolateLoopReadMessage");
   for (int i = 0; true; i++) {
     final responsePort = ReceivePort();
@@ -82,4 +78,6 @@ void isolateLoopReadMessage() async {
       responsePort.close();
     }
   }
+  isolate.kill(priority: Isolate.immediate);
+  receivePort.close();
 }

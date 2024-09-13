@@ -67,10 +67,7 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
       CupertinoSearchTextField(
         controller: controller,
         onChanged: onChange,
-        style: TextStyle(
-            color: prefs.themeMode == ThemeMode.dark
-                ? Colors.white70
-                : Colors.black),
+        style: Theme.of(context).textTheme.bodyLarge,
       ),
     ];
 /*
@@ -80,7 +77,7 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
               child: InkWell(
         child: Text(
           "当前无数据库, 点击设置",
-          style: TextStyle(fontSize: 22, color: Theme.of(context).primaryColor),
+          style: TextStyle(fontSize: 22, color: Theme.of(context).colorScheme.primary),
         ),
         onTap: () {
           pushTo(context, const DictDatabase()).then((value) {

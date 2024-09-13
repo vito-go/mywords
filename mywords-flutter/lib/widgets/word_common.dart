@@ -162,11 +162,11 @@ Widget highlightTextSplitBySpace(
     return const Text("");
   }
   const fontSize = 14.0;
-  // final bool isDark = prefs.themeMode == ThemeMode.dark;
-  List<InlineSpan>? children = [];
+  final normalColor = Theme.of(context).textTheme.bodyMedium?.color;
+   List<InlineSpan>? children = [];
   List<String> infos = text.split(" ");
   for (var i = 0; i < infos.length; i++) {
-    Color color = prefs.isDark ? Colors.white70 : Colors.black;
+    Color? color = normalColor;
     final info = infos[i];
     FontWeight fontWeight = FontWeight.normal;
     final runes = info.runes.toList();

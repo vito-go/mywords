@@ -1,12 +1,13 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/home.dart';
-import 'package:mywords/widgets/restart_app.dart';
 
 import 'common/prefs/prefs.dart';
+import 'common/queue.dart';
 import 'common/read_message.dart';
 
 void main() async {
@@ -15,7 +16,7 @@ void main() async {
   await handler.initLib();
   isolateLoopReadMessage();
   await Global.init();
-  runApp(const RestartApp(child: MyApp()));
+  runApp(const MyApp());
 }
 
 class BannerObserver extends NavigatorObserver {
@@ -28,34 +29,64 @@ class BannerObserver extends NavigatorObserver {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<StatefulWidget> createState() {
+    return MyAppState();
+  }
+}
+
+class MyAppState extends State<MyApp> {
+  void globalEventHandler(Event event) {
+    if (event.eventType == EventType.updateTheme) {
+      setState(() {});
+    }
+  }
+
+  StreamSubscription<Event>? globalEventSubscription;
+
+  @override
+  dispose() {
+    super.dispose();
+    globalEventSubscription?.cancel();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    globalEventSubscription = consume(globalEventHandler);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final inversePrimary = Theme.of(context).colorScheme.inversePrimary;
     return MaterialApp(
       // navigatorObservers: [BannerObserver()],
       title: 'mywords',
       // debugShowCheckedModeBanner: false,
-      // themeMode: prefs.themeMode,
-      themeMode: ThemeMode.light,
+      themeMode: prefs.themeMode,
       darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(color: Colors.white70),
-          drawerTheme: const DrawerThemeData(
-            backgroundColor: Colors.grey,
-          ),
-          colorScheme: const ColorScheme.dark(
-            primary: Color(0xfff1d296),
-          )),
+        brightness: Brightness.dark,
+        useMaterial3: true,
+        appBarTheme: AppBarTheme(color: inversePrimary),
+        drawerTheme: const DrawerThemeData(
+            // backgroundColor: Colors.grey,
+            ),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xfff1d296),
+          surface: Color(0xff212121),
+        ),
+      ),
       theme: ThemeData(
         drawerTheme: DrawerThemeData(
           backgroundColor: Colors.orange.shade50,
         ),
         brightness: Brightness.light,
-        appBarTheme: const AppBarTheme(color: Colors.black),
+        appBarTheme: AppBarTheme(color: Colors.orange.shade50),
         colorScheme: ColorScheme.fromSeed(
+          primary: Colors.orange,
           seedColor: Colors.deepOrange,
           surface: Colors.orange.shade50,
         ),

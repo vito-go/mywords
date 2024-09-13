@@ -150,7 +150,7 @@ class _State extends State<ParseLocalFile> {
         onTap: updateFilePaths,
         trailing: Icon(
           Icons.file_open,
-          color: Theme.of(context).primaryColor,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       SizedBox(

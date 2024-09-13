@@ -95,7 +95,7 @@ class _State extends State<DictDatabase> {
               style: isDefault
                   ? TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor)
+                      color: Theme.of(context).colorScheme.primary)
                   : null,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
@@ -261,7 +261,7 @@ class _State extends State<DictDatabase> {
             : Text(zipFilePath),
         trailing: isSyncing
             ? const Icon(Icons.access_time_rounded)
-            : Icon(Icons.file_open, color: Theme.of(context).primaryColor),
+            : Icon(Icons.file_open, color: Theme.of(context).colorScheme.primary),
       ),
       SizedBox(
         height: 5,

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/article_archived_list.dart';
 import 'package:mywords/pages/known_words.dart';
@@ -47,10 +49,11 @@ class MyDrawerState extends State<MyDrawer> {
   }
 
   void initLevelMap() async {
-     final data = await handler.knownWordsCountMap();
+    final data = await handler.knownWordsCountMap();
     levelCountMap = data;
     setState(() {});
   }
+
   Widget buildListTileVacuumDB() {
     return ListTile(
       title: const Text('Vacuum DB'),
@@ -81,11 +84,62 @@ class MyDrawerState extends State<MyDrawer> {
       leading: const Icon(Icons.data_usage),
     );
   }
+
+  changeTheme() {
+    SimpleDialog simpleDialog = SimpleDialog(
+      title: const Text('ThemeMode'),
+      children: [
+        RadioListTile(
+          value: ThemeMode.system,
+          onChanged: (value) {
+            Navigator.of(context).pop();
+            prefs.themeMode = ThemeMode.system;
+            produceEvent(EventType.updateTheme, ThemeMode.system);
+          },
+          title: const Text('Auto'),
+          groupValue: prefs.themeMode,
+        ),
+        RadioListTile(
+          value: ThemeMode.dark,
+          onChanged: (value) {
+            Navigator.of(context).pop();
+            prefs.themeMode = ThemeMode.dark;
+            produceEvent(EventType.updateTheme, ThemeMode.dark);
+           },
+          title: const Text("dark"),
+          groupValue: prefs.themeMode,
+        ),
+        RadioListTile(
+          value: ThemeMode.light,
+          onChanged: (value) {
+            Navigator.of(context).pop();
+            prefs.themeMode = ThemeMode.light;
+            produceEvent(EventType.updateTheme, ThemeMode.light);
+           },
+          title: const Text("light"),
+          groupValue: prefs.themeMode,
+        ),
+        // SimpleDialogOption(
+        //   child: Text("跟随系统"),
+        //   onPressed: () {
+        //     Navigator.pop(context, "简单对话框1");
+        //   },
+        // ),
+      ],
+    );
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return simpleDialog;
+        });
+  }
+
   @override
   void initState() {
     super.initState();
     initLevelMap();
   }
+
   @override
   void dispose() {
     super.dispose();
@@ -102,6 +156,22 @@ class MyDrawerState extends State<MyDrawer> {
           child: ListTile(
             title: Text("已知单词总数量: $totalCount"),
             subtitle: Text(levelText),
+            trailing: IconButton(
+                onPressed: () {
+                  // changeTheme();
+                  // return;
+                  if (prefs.themeMode == ThemeMode.light) {
+                    prefs.themeMode = ThemeMode.dark;
+                    produceEvent(EventType.updateTheme, ThemeMode.dark);
+                  } else {
+                    prefs.themeMode = ThemeMode.light;
+                    produceEvent(EventType.updateTheme, ThemeMode.light);
+                  }
+                  setState(() {});
+                },
+                icon: prefs.themeMode == ThemeMode.light
+                    ? const Icon(Icons.nightlight_round)
+                    : const Icon(Icons.sunny)),
           ),
         ),
         ListTile(

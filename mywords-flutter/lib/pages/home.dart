@@ -1,11 +1,12 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
-import 'package:mywords/util/get_scaffold.dart';
+ import 'package:mywords/util/get_scaffold.dart';
 import '../util/util.dart';
 import 'drawer.dart';
-import 'package:mywords/widgets/restart_app.dart';
-import 'article_list_page.dart';
+ import 'article_list_page.dart';
 import 'lookup_word.dart';
 
 class Home extends StatefulWidget {
@@ -43,7 +44,7 @@ class _State extends State<Home> {
   ];
 
   void aboutOnTap() async {
-    const applicationName = "mywords";
+     const applicationName = "mywords";
     if (!context.mounted) return;
     showAboutDialog(
       context: context,
@@ -64,54 +65,7 @@ class _State extends State<Home> {
     );
   }
 
-  changeTheme() {
-    SimpleDialog simpleDialog = SimpleDialog(
-      title: const Text('ThemeMode'),
-      children: [
-        RadioListTile(
-          value: ThemeMode.system,
-          onChanged: (value) {
-            Navigator.of(context).pop();
-            prefs.themeMode = ThemeMode.system;
-            RestartApp.restart(context);
-          },
-          title: const Text('Auto'),
-          groupValue: prefs.themeMode,
-        ),
-        RadioListTile(
-          value: ThemeMode.dark,
-          onChanged: (value) {
-            Navigator.of(context).pop();
-            prefs.themeMode = ThemeMode.dark;
-            RestartApp.restart(context);
-          },
-          title: const Text("dark"),
-          groupValue: prefs.themeMode,
-        ),
-        RadioListTile(
-          value: ThemeMode.light,
-          onChanged: (value) {
-            Navigator.of(context).pop();
-            prefs.themeMode = ThemeMode.light;
-            RestartApp.restart(context);
-          },
-          title: const Text("light"),
-          groupValue: prefs.themeMode,
-        ),
-        // SimpleDialogOption(
-        //   child: Text("跟随系统"),
-        //   onPressed: () {
-        //     Navigator.pop(context, "简单对话框1");
-        //   },
-        // ),
-      ],
-    );
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return simpleDialog;
-        });
-  }
+
 
   List<Widget> get actions {
     return [

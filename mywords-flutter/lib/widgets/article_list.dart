@@ -165,7 +165,7 @@ class _State extends State<ArticleListView> {
               minLeadingWidth: 0,
               leading: Text("[${index + 1}]",
                   style: TextStyle(
-                      fontSize: 14, color: Theme.of(context).primaryColor)),
+                      fontSize: 14, color: Theme.of(context).colorScheme.primary)),
               subtitle: Text(
                   "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updateAt))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
@@ -266,6 +266,8 @@ class _State extends State<ArticleListView> {
         }
       case EventType.updateLineChart:
       // TODO: Handle this case.
+      case EventType.updateTheme:
+        // TODO: Handle this case.
     }
   }
 
@@ -316,6 +318,7 @@ class _State extends State<ArticleListView> {
       title: CupertinoSearchTextField(
         placeholder: "请输入文章标题关键词",
         controller: controllerSearch,
+           style: Theme.of(context).textTheme.bodyLarge,
         onChanged: (String v) {
           kw = v;
           setState(() {});

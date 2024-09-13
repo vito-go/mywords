@@ -8,9 +8,16 @@ enum EventType {
   updateArticleList,
   articleListScrollToTop,
   updateLineChart,
+  updateTheme,
 }
 
+// deprecated use produceEvent
 void produce(Event event) {
+  _globalEventBroadcast.add(event);
+}
+
+void produceEvent(EventType eventType, [dynamic param]) {
+  final event = Event(eventType: eventType, param: param);
   _globalEventBroadcast.add(event);
 }
 

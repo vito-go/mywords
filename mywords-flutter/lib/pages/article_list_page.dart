@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler.dart';
+ import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/pages/statistic_chart.dart';
@@ -164,10 +163,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   int get count3 => todayCountMap['3'] ?? 0;
 
   Widget get todaySubtitle {
-    final style = prefs.isDark
-        ? TextStyle(color: Colors.orange.shade300, fontWeight: FontWeight.bold)
-        : TextStyle(
-            color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold);
+    final style =   TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontWeight: FontWeight.bold);
+
     return RichText(
         text: TextSpan(
             text: "1级: ",
@@ -193,22 +190,16 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   onPressed: () {
                     pushTo(context, const ToadyKnownWords());
                   },
-                  icon: Icon(
-                    Icons.wordpress,
-                    color: Theme.of(context).primaryColor,
-                  )),
+                  icon: const Icon(Icons.wordpress)),
               title: RichText(
                 text: TextSpan(
                     text: "今日学习单词总数: ",
                     style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color
-                    ),
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
                     children: [
                       TextSpan(
                           text: "${count1 + count2 + count3}",
-                          style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.bold))
+                          style:Theme.of(context).textTheme.bodyLarge)
                     ]),
               ),
               subtitle: todaySubtitle,
@@ -219,7 +210,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   },
                   icon: Icon(
                     Icons.stacked_line_chart,
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).colorScheme.primary,
                   )),
             );
           }),

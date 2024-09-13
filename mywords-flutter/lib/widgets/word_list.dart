@@ -62,6 +62,10 @@ class _State extends State<WordList> {
   StreamSubscription<Event>? globalEventSubscription;
 
   Widget wordLevelRichText() {
+    final normalStyle=Theme.of(context).textTheme.bodyMedium;
+    final TextStyle levelStyle = TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.normal);
     return RichText(
       text: TextSpan(
           style: const TextStyle(color: Colors.black),
@@ -70,24 +74,18 @@ class _State extends State<WordList> {
             const TextSpan(
                 text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
                 style: TextStyle(color: Colors.blueGrey)),
-            const TextSpan(text: "1级: "),
+              TextSpan(text: "1级: ",style: normalStyle),
             TextSpan(
                 text: "$count1",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
-            const TextSpan(text: "  2级: "),
+                style: levelStyle),
+              TextSpan(text: "  2级: ",style: normalStyle),
             TextSpan(
                 text: "$count2",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
-            const TextSpan(text: "  3级: "),
+                style: levelStyle),
+              TextSpan(text: "  3级: ",style: normalStyle),
             TextSpan(
                 text: "$count3",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
+                style: levelStyle),
           ]),
     );
   }

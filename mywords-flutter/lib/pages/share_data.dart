@@ -177,7 +177,7 @@ class _SyncDataState extends State<SyncData> {
         onPressed: _onTapBackUpData,
         icon: Icon(
           Icons.save_alt,
-          color: Theme.of(context).primaryColor,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     ));
