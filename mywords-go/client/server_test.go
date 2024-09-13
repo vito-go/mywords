@@ -36,3 +36,12 @@ func TestClient_AllTables(t *testing.T) {
 	}
 	t.Logf("%+v", tables)
 }
+
+// AllWordsByCreateDayWithIdDesc
+func TestClient_AllWordsByCreateDayWithIdDesc(t *testing.T) {
+	words, err := clientGlobal.AllDao().KnownWordsDao.AllWordsByCreateDayWithIdDesc(ctx, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", words)
+}

@@ -38,15 +38,7 @@ func ShareOpen(port int, code int64) *C.char {
 
 //export GetShareInfo
 func GetShareInfo() *C.char {
-	defaultShareInfo := mtype.ShareInfo{
-		Port: 0,
-		Code: 0,
-		Open: false,
-	}
-	info, err := serverGlobal.AllDao().KeyValueDao.QueryShareInfo(ctx)
-	if err != nil {
-		return CharOk(defaultShareInfo)
-	}
+	info := serverGlobal.GetShareInfo()
 	return CharOk(info)
 }
 
@@ -369,4 +361,31 @@ func DBSize() *C.char {
 		return CharErr(err.Error())
 	}
 	return CharOk(size)
+}
+
+// AllWordsByOrder order int 1: id desc, 2: id asc ,3 words desc, 4 words asc
+
+//export AllWordsByCreateDayAndOrder
+func AllWordsByCreateDayAndOrder(createDay, order int64) *C.char {
+	var items []string
+	var err error
+	if order == 1 {
+		items, err = serverGlobal.AllDao().KnownWordsDao.AllWordsByCreateDayWithIdDesc(ctx, createDay)
+	} else {
+		items, err = serverGlobal.AllDao().KnownWordsDao.AllWordsByCreateDayWithIdAsc(ctx, createDay)
+	}
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	switch order {
+	case 3:
+		sort.Slice(items, func(i, j int) bool {
+			return items[i] > items[j]
+		})
+	case 4:
+		sort.Slice(items, func(i, j int) bool {
+			return items[i] < items[j]
+		})
+	}
+	return CharList(items)
 }

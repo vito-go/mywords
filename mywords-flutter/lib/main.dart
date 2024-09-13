@@ -8,13 +8,12 @@ import 'package:mywords/pages/home.dart';
 
 import 'common/prefs/prefs.dart';
 import 'common/queue.dart';
-import 'common/read_message.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
   await handler.initLib();
-  isolateLoopReadMessage();
+  // isolateLoopReadMessage();
   await Global.init();
   runApp(const MyApp());
 }

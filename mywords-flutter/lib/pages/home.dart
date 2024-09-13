@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';

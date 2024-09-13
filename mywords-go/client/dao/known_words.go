@@ -45,6 +45,10 @@ func (m *knownWordsDao) Update(ctx context.Context, msg *model.KnownWords) error
 
 // UpdateOrCreate .
 func (m *knownWordsDao) UpdateOrCreate(ctx context.Context, word string, level mtype.WordKnownLevel) (err error) {
+	if level == 0 {
+		// delete
+		return m.Gdb.WithContext(ctx).Table(m.Table()).Where("word = ?", word).Delete(&model.KnownWords{}).Error
+	}
 	TX := m.Gdb.WithContext(ctx).Begin()
 	defer func() {
 		if err != nil {
@@ -105,12 +109,32 @@ func (m *knownWordsDao) AllItemsByCreateDay(ctx context.Context, createDay int64
 	return msgs, err
 }
 
-func (m *knownWordsDao) ItemsByWords(ctx context.Context, words ...string) ([]model.KnownWords, error) {
-	if len(words) == 0 {
-		return nil, nil
+// AllWordsByIdDesc .
+func (m *knownWordsDao) AllWordsByIdDesc(ctx context.Context) ([]string, error) {
+	var msgs []string
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("id DESC").Find(&msgs).Error
+	return msgs, err
+}
+
+// AllWordsByCreateDayWithIdDesc .
+func (m *knownWordsDao) AllWordsByCreateDayWithIdDesc(ctx context.Context, createDay int64) ([]string, error) {
+	var msgs []string
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Select("word")
+	if createDay > 0 {
+		tx = tx.Where("create_day = ?", createDay)
 	}
-	var msgs []model.KnownWords
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("word in ?", words).Order("update_at DESC").Find(&msgs).Error
+	err := tx.Order("id DESC").Find(&msgs).Error
+	return msgs, err
+}
+
+// AllWordsByCreateDayWithIdAsc .
+func (m *knownWordsDao) AllWordsByCreateDayWithIdAsc(ctx context.Context, createDay int64) ([]string, error) {
+	var msgs []string
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Select("word")
+	if createDay > 0 {
+		tx = tx.Where("create_day = ?", createDay)
+	}
+	err := tx.Order("id ASC").Find(&msgs).Error
 	return msgs, err
 }
 

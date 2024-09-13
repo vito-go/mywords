@@ -92,8 +92,7 @@ void showWordWithDefault(BuildContext context, String word) async {
     ));
     return;
   }
-  final realLevel = Global.allKnownWordsMap[word]??0;
-  meaning = fixDefaultMeaning(meaning);
+   meaning = fixDefaultMeaning(meaning);
   if (!context.mounted) return;
   showModalBottomSheet(
       context: context,
@@ -103,7 +102,7 @@ void showWordWithDefault(BuildContext context, String word) async {
           constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.75),
           child: WordDefaultMeaning(
-              word: word, meaning: meaning, realLevel: realLevel),
+              word: word, meaning: meaning ),
         );
       });
 }
@@ -163,7 +162,7 @@ Widget highlightTextSplitBySpace(
   }
   const fontSize = 14.0;
   final normalColor = Theme.of(context).textTheme.bodyMedium?.color;
-   List<InlineSpan>? children = [];
+  List<InlineSpan>? children = [];
   List<String> infos = text.split(" ");
   for (var i = 0; i < infos.length; i++) {
     Color? color = normalColor;
@@ -260,8 +259,8 @@ Widget highlightTextSplitByToken(String text, List<String> tokens,
   );
 }
 
-InkWell buildInkWell(
-    BuildContext context, String word, int showLevel, int realLevel) {
+InkWell buildInkWell(BuildContext context, String word, int showLevel) {
+  int realLevel = Global.allKnownWordsMap[word] ?? 0;
   if (showLevel == realLevel) {
     return InkWell(
       child: SizedBox(
@@ -287,7 +286,11 @@ InkWell buildInkWell(
           myToast(context, respData.message);
           return;
         }
-        Global.allKnownWordsMap[word] = showLevel;
+        if (showLevel == 0) {
+          Global.allKnownWordsMap.remove(word);
+        } else {
+          Global.allKnownWordsMap[word] = showLevel;
+        }
         produce(Event(
             eventType: EventType.updateKnownWord,
             param: <String, dynamic>{"word": word, "level": showLevel}));

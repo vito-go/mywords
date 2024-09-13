@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
- import 'package:mywords/libso/handler.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/pages/statistic_chart.dart';
@@ -163,7 +163,10 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   int get count3 => todayCountMap['3'] ?? 0;
 
   Widget get todaySubtitle {
-    final style =   TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontWeight: FontWeight.bold);
+    final style = TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.bold,
+        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize);
 
     return RichText(
         text: TextSpan(
@@ -199,7 +202,13 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                     children: [
                       TextSpan(
                           text: "${count1 + count2 + count3}",
-                          style:Theme.of(context).textTheme.bodyLarge)
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.fontSize,
+                              fontWeight: FontWeight.bold))
                     ]),
               ),
               subtitle: todaySubtitle,

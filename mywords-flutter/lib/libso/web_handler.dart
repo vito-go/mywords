@@ -10,7 +10,6 @@ import 'package:mywords/widgets/line_chart.dart';
 
 import 'package:mywords/environment.dart';
 
-
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../common/global.dart';
@@ -121,7 +120,6 @@ class WebHandler implements Handler {
     return respData.data ?? "";
   }
 
-
   @override
   Future<RespData<ChartLineData>> getChartData() async {
     final result = await call("GetChartData", []);
@@ -181,8 +179,6 @@ class WebHandler implements Handler {
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data!;
   }
-
-
 
   @override
   Future<RespData<void>> restoreFromBackUpData(
@@ -249,7 +245,6 @@ class WebHandler implements Handler {
     return respData;
   }
 
-
   @override
   Future<RespData<void>> shareClosed() async {
     final result = await call("ShareClosed", []);
@@ -266,8 +261,6 @@ class WebHandler implements Handler {
         RespData.fromJson(jsonDecode(result), (json) => null);
     return respData;
   }
-
-
 
   @override
   Future<RespData<Map<int, List<String>>>> todayKnownWordMap() async {
@@ -316,8 +309,6 @@ class WebHandler implements Handler {
     return;
   }
 
-
-
   @override
   Future<Map<String, dynamic>> knownWordsCountMap() async {
     final result = await call("KnownWordsCountMap", []);
@@ -336,7 +327,6 @@ class WebHandler implements Handler {
         RespData.fromJson(jsonDecode(result) ?? {}, (json) => null);
     return respData;
   }
-
 
   @override
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceUrl) async {
@@ -423,11 +413,12 @@ class WebHandler implements Handler {
   }
 
   @override
-  FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(bool archived) async{
+  FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(
+      bool archived) async {
     final result = await call("getFileInfoListByArchived", [archived]);
     final RespData<List<FileInfo>> respData = RespData.fromJson(
         jsonDecode(result),
-            (json) => List<FileInfo>.generate(
+        (json) => List<FileInfo>.generate(
             json.length, (index) => FileInfo.fromJson(json[index])));
     return respData;
   }
@@ -447,6 +438,14 @@ class WebHandler implements Handler {
   @override
   FutureOr<String> dbExecute(String s) {
     // TODO: implement dbExecute
+    throw UnimplementedError();
+  }
+
+
+
+  @override
+  FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {
+    // TODO: implement allWordsByCreateDayAndOrder
     throw UnimplementedError();
   }
 }

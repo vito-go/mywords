@@ -720,10 +720,19 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function()>('GetShareInfo');
   final DropAndReCreateDB = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(), Pointer<Utf8> Function()>('DropAndReCreateDB');
+
   // DBExecute
   final DBExecute = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('DBExecute');
+
+
+
+// allWordsByCreateDayAndOrder
+  final AllWordsByCreateDayAndOrder = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64, Int64),
+      Pointer<Utf8> Function(int, int)>('AllWordsByCreateDayAndOrder');
+
   @override
   ShareInfo getShareInfo() {
     final resultC = _getShareInfo();
@@ -791,5 +800,15 @@ class NativeHandler implements Handler {
     malloc.free(sC);
     malloc.free(resultC);
     return result;
+  }
+
+
+  @override
+  FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {
+    final resultC = AllWordsByCreateDayAndOrder(createDay, order);
+    final result= resultC.toDartString();
+    malloc.free(resultC);
+    final items = List<String>.from(jsonDecode(result));
+    return items;
   }
 }

@@ -13,6 +13,7 @@ package main
 var exportedFuncMap = map[string]any{
 	"AddDict":                        AddDict,
 	"AllKnownWordMap":                AllKnownWordMap,
+	"AllWordsByCreateDayAndOrder":    AllWordsByCreateDayAndOrder,
 	"UpdateFileInfo":                 UpdateFileInfo,
 	"GetFileInfoBySourceURL":         GetFileInfoBySourceURL,
 	"BackUpData":                     BackUpData,

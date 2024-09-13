@@ -78,3 +78,7 @@ copyToClipBoard(BuildContext context, String content) {
     myToast(context, "复制成功");
   }
 }
+
+void unFocus() {
+  FocusManager.instance.primaryFocus?.unfocus();
+}

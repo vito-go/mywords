@@ -240,32 +240,6 @@ func (c *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Artic
 	return art, err
 }
 
-func (c *Client) QueryWordLevel(word string) (mtype.WordKnownLevel, bool) {
-	// check level
-	if len(word) == 0 {
-		return 0, false
-	}
-	resultMap, err := c.QueryWordsLevel(word)
-	if err != nil {
-		return 0, false
-	}
-	if level, ok := resultMap[word]; ok {
-		return level, true
-	}
-	return 0, false
-}
-func (c *Client) QueryWordsLevel(words ...string) (map[string]mtype.WordKnownLevel, error) {
-	items, err := c.allDao.KnownWordsDao.ItemsByWords(ctx, words...)
-	if err != nil {
-		return nil, err
-	}
-	resultMap := make(map[string]mtype.WordKnownLevel, len(words))
-	for _, item := range items {
-		resultMap[item.Word] = item.Level
-	}
-	return resultMap, nil
-}
-
 func (c *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
 	items, err := c.allDao.KnownWordsDao.AllItems(ctx)
 	if err != nil {

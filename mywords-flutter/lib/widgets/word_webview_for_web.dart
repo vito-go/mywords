@@ -25,7 +25,6 @@ class WordWebView extends StatefulWidget {
 
 class _State extends State<WordWebView> {
   String word = '';
-  int realLevel = -1;
 
   @override
   void dispose() {
@@ -42,8 +41,6 @@ class _State extends State<WordWebView> {
       if (event.param is Map) {
         if (event.param["word"] != null && event.param["level"] != null) {
           if (word == event.param["word"].toString()) {
-            final level = event.param["level"] as int;
-            realLevel = level;
             setState(() {});
           }
         }
@@ -61,13 +58,13 @@ class _State extends State<WordWebView> {
     ];
     if (!word.contains("_") && !word.contains(" ") && !word.contains(",")) {
       children.addAll([
-        buildInkWell(context, word, 0, realLevel),
+        buildInkWell(context, word, 0),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 1, realLevel),
+        buildInkWell(context, word, 1),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 2, realLevel),
+        buildInkWell(context, word, 2),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 3, realLevel),
+        buildInkWell(context, word, 3),
       ]);
     }
     return Row(children: children);
@@ -83,7 +80,6 @@ class _State extends State<WordWebView> {
   void initOpenWithHtmlFilePath() async {
     word = widget.word;
     _loadRequest(word);
-    realLevel = Global.allKnownWordsMap[word]??0;
     setState(() {});
   }
 

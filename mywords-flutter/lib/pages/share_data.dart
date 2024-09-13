@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/libso/handler.dart';
- import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
 
@@ -31,6 +31,7 @@ class _SyncDataState extends State<SyncData> {
   @override
   void initState() {
     super.initState();
+    updateShareInfo();
     initController();
     updateLocalExampleIP();
   }
@@ -43,8 +44,12 @@ class _SyncDataState extends State<SyncData> {
     setState(() {});
   }
 
-  void initController() async {
+  void updateShareInfo() async {
     shareInfo = await handler.getShareInfo();
+    setState(() {});
+  }
+
+  void initController() async {
     controllerPort.text = '${shareInfo.port}';
     controllerCode.text = '${shareInfo.code}';
     setState(() {});
@@ -120,9 +125,7 @@ class _SyncDataState extends State<SyncData> {
       myToast(context, respData.message);
       return;
     }
-    shareInfo.open = false;
-    setState(() {});
-    myPrint("share server closed!");
+    updateShareInfo();
     return;
   }
 
@@ -142,10 +145,7 @@ class _SyncDataState extends State<SyncData> {
       myToast(context, respData.message);
       return;
     }
-    shareInfo.open = true;
-    shareInfo.port = port;
-    shareInfo.code = code;
-    setState(() {});
+    updateShareInfo();
     return;
   }
 
@@ -153,6 +153,7 @@ class _SyncDataState extends State<SyncData> {
     return Switch(
         value: shareInfo.open,
         onChanged: (v) async {
+          unFocus();
           if (v) {
             doShareOpen();
           } else {

@@ -10,7 +10,6 @@ class Global {
     final Map<int, int> resultMap = {};
     for (final word in words) {
       final level = allKnownWordsMap[word]??0;
-
       resultMap[level] = (resultMap[level] ?? 0) + 1;
     }
     return resultMap;

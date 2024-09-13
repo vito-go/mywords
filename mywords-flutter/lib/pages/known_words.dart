@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/widgets/word_list.dart';
 import 'package:mywords/util/get_scaffold.dart';
@@ -40,14 +38,13 @@ class _State extends State<KnownWords> {
       title: const Text("我的单词库"),
     );
 
-    final body = WordList(
-        showLevel: showLevel, getLevelWordsMap: handler.allKnownWordMap);
+    const body = WordList(createDay: 0);
 
     return getScaffold(
       context,
       appBar: appBar,
-      body: Padding(
-        padding: const EdgeInsets.all(8),
+      body: const Padding(
+        padding: EdgeInsets.all(8),
         child: body,
       ),
     );

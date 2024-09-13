@@ -20,7 +20,7 @@ import (
 )
 
 func (c *Client) serverHTTPShareBackUpData(w http.ResponseWriter, r *http.Request) {
-	if !c.shareOpen.Load() {
+	if !c.shareOpened.Load() {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -182,8 +182,8 @@ func (c *Client) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 func (c *Client) ShareOpen(port int, code int64) error {
 	c.mux.Lock()
 	defer c.mux.Unlock()
-	if c.shareListener != nil {
-		_ = c.shareListener.Close()
+	if c.shareServer != nil {
+		_ = c.shareServer.Close()
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc(fmt.Sprintf("/%d", code), c.serverHTTPShareBackUpData)
@@ -191,12 +191,13 @@ func (c *Client) ShareOpen(port int, code int64) error {
 	if err != nil {
 		return err
 	}
-	c.shareListener = lis
-	c.shareOpen.Store(true)
+	srv := &http.Server{Handler: mux}
+
+	c.shareServer = srv
+	c.shareOpened.Store(true)
 	shareInfo := &mtype.ShareInfo{
 		Port: port,
 		Code: code,
-		Open: true,
 	}
 	err = c.allDao.KeyValueDao.SetShareInfo(ctx, shareInfo)
 	if err != nil {
@@ -204,7 +205,7 @@ func (c *Client) ShareOpen(port int, code int64) error {
 	}
 	log.Println("StartServer success", `port`, port)
 	go func() {
-		err := http.Serve(lis, mux)
+		err := srv.Serve(lis)
 		if err != nil {
 			log.Ctx(ctx).Warn(err.Error())
 		}
@@ -216,10 +217,12 @@ func (c *Client) ShareOpen(port int, code int64) error {
 func (c *Client) ShareClosed() {
 	c.mux.Lock()
 	defer c.mux.Unlock()
-	if c.shareListener != nil {
-		_ = c.shareListener.Close()
+	if c.shareServer != nil {
+		// it's more safe to use Close() in this case.
+		// we should close the server immediately, so use Close() instead of Shutdown(), which will wait for all connections to close.
+		_ = c.shareServer.Close()
 	}
-	c.shareOpen.Store(false)
+	c.shareOpened.Store(false)
 }
 
 // DropAndReCreateDB 生产环境禁止使用
@@ -244,4 +247,29 @@ func (c *Client) DropAndReCreateDB() error {
 		return err
 	}
 	return nil
+}
+
+const defaultSharePort = 8964
+const defaultShareCode = 890604
+
+func (c *Client) GetShareInfo() *ShareInfo {
+	info, err := c.AllDao().KeyValueDao.QueryShareInfo(ctx)
+	if err != nil {
+		return &ShareInfo{
+			Port: defaultSharePort,
+			Code: defaultShareCode,
+			Open: false,
+		}
+	}
+	return &ShareInfo{
+		Port: info.Port,
+		Code: info.Code,
+		Open: c.shareOpened.Load(),
+	}
+}
+
+type ShareInfo struct {
+	Port int   `json:"port"`
+	Code int64 `json:"code"`
+	Open bool  `json:"open"` //数据不包含在该字段
 }

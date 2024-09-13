@@ -162,13 +162,13 @@ class ArticlePageState extends State<ArticlePage> {
                     fontSize: 20, color: Theme.of(context).colorScheme.primary),
               )),
         ),
-        buildInkWell(context, wordLink, 0, realLevel),
+        buildInkWell(context, wordLink, 0),
         const SizedBox(width: 5),
-        buildInkWell(context, wordLink, 1, realLevel),
+        buildInkWell(context, wordLink, 1),
         const SizedBox(width: 5),
-        buildInkWell(context, wordLink, 2, realLevel),
+        buildInkWell(context, wordLink, 2),
         const SizedBox(width: 5),
-        buildInkWell(context, wordLink, 3, realLevel),
+        buildInkWell(context, wordLink, 3),
       ];
 
       items.add(Row(children: children));

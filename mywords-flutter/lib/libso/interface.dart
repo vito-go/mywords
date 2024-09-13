@@ -9,8 +9,10 @@ abstract class Handler {
   FutureOr<void> initLib();
 
   FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
+
   //readMessage 阻塞性获取消息 0 意味着不超时
-  String readMessage( );
+  String readMessage();
+
   // hostname 可以为空，默认localhost
   FutureOr<String> getUrlByWord(String hostname, String word);
 
@@ -38,7 +40,6 @@ abstract class Handler {
 
   FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(bool archived);
 
-
   FutureOr<Map<String, dynamic>> knownWordsCountMap();
 
   FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
@@ -65,6 +66,7 @@ abstract class Handler {
       String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
+
   FutureOr<String> dbExecute(String s);
 
   FutureOr<String> proxyURL();
@@ -92,6 +94,9 @@ abstract class Handler {
 
   FutureOr<RespData<Map<int, List<String>>>> allKnownWordMap();
 
+//  1: id desc, 2: id asc ,3 words desc, 4 words asc  ,createDay 0 mean all
+   FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay,int order);
+
   FutureOr<RespData<Map<int, List<String>>>> todayKnownWordMap();
 
   FutureOr<RespData<void>> updateKnownWordLevel(String word, int level);
@@ -101,6 +106,9 @@ abstract class Handler {
   FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
 
   FutureOr<ShareInfo> getShareInfo();
+
   RespData<void> dropAndReCreateDB();
+
   String getHostName();
 }
+

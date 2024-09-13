@@ -9,6 +9,7 @@ import (
 	"mywords/pkg/db"
 	"mywords/pkg/log"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -27,9 +28,9 @@ type Client struct {
 	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	//fileInfoMap1        map[string]FileInfo                  // a.txt: FileInfo{FileName: a.txt, Size: 1024, LastModified: 123456, IsDir: false, TotalCount: 100, NetCount: 50}
 
-	mux           sync.Mutex //
-	shareListener net.Listener
-	shareOpen     *atomic.Bool
+	mux         sync.Mutex //
+	shareServer *http.Server
+	shareOpened atomic.Bool
 	// multicast
 
 	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
@@ -46,7 +47,6 @@ type Client struct {
 
 	messageLimiter *rate.Limiter
 	closed         atomic.Bool
-
 	//		//
 	//	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	//	knownWordsMap *MySyncMapMap[string, WordKnownLevel] // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
@@ -94,7 +94,7 @@ func NewClient(rootDataDir string) (*Client, error) {
 		gdb:             gdb,
 		dbPath:          dbPath,
 		codeContentChan: make(chan CodeContent, 1024),
-		shareOpen:       &atomic.Bool{},
+		shareOpened:     atomic.Bool{},
 	}
 	err = client.InitCreateTables()
 	if err != nil {
