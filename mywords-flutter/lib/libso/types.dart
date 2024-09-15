@@ -134,7 +134,6 @@ class Article {
       //     json["wordInfos"]??[].map((x) => WordInfo.fromJson(x))),
       wordInfos: List<WordInfo>.generate(
           ws.length, (index) => WordInfo.fromJson(ws[index])),
-      // allSentences: List<String>.from(json["allSentences"]??[].map((x) => x)),
       allSentences: List<String>.generate(
           allSentences.length, (index) => allSentences[index]),
     );
@@ -148,6 +147,7 @@ class Article {
         "minLen": minLen,
         "totalCount": totalCount,
         "netCount": netCount,
+        "allSentences": allSentences,
         "wordInfos": List<dynamic>.from(wordInfos.map((x) => x.toJson())),
       };
 }

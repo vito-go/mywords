@@ -154,7 +154,11 @@ func (c *Client) ReparseArticleFileInfo(id int64) (*artical.Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	art, err := c.ArticleFromFileInfo(fileInfo)
+	art, err := c.ArticleFromGobGZPath(fileInfo.FilePath)
+	if err != nil {
+		return nil, err
+	}
+	art, err = artical.ParseContent(art.SourceUrl, []byte(art.HTMLContent))
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +184,7 @@ func (c *Client) RenewArticleFileInfo(id int64) (*artical.Article, error) {
 		return nil, err
 	}
 	sourceUrl := fileInfo.SourceUrl
-	art, err := artical.ParseSourceUrl(sourceUrl, c.xpathExpr, c.netProxy(ctx))
+	art, err := artical.ParseSourceUrl(sourceUrl, c.netProxy(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +217,7 @@ func (c *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Artic
 	if host == "" {
 		return nil, fmt.Errorf("host is empty")
 	}
-	art, err := artical.ParseSourceUrl(sourceUrl, c.xpathExpr, c.netProxy(ctx))
+	art, err := artical.ParseSourceUrl(sourceUrl, c.netProxy(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -264,17 +268,14 @@ func (c *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
 	return resultMap
 }
 
-func (c *Client) ArticleFromFileInfo(fileInfo *model.FileInfo) (*artical.Article, error) {
-	id := fileInfo.ID
-	b, err := os.ReadFile(fileInfo.FilePath)
+func (c *Client) ArticleFromGobGZPath(filePath string) (*artical.Article, error) {
+	b, err := os.ReadFile(filePath)
 	if err != nil {
-		_ = c.deleteGobFile(id)
 		return nil, err
 	}
 	return c.articleFromGobGZContent(b)
 
 }
-
 func (c *Client) articleFromGobGZContent(b []byte) (*artical.Article, error) {
 	gzReader, err := gzip.NewReader(bytes.NewReader(b))
 	if err != nil {

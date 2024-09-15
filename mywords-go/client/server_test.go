@@ -45,3 +45,28 @@ func TestClient_AllWordsByCreateDayWithIdDesc(t *testing.T) {
 	}
 	t.Logf("%+v", words)
 }
+
+// restoreFileInfoFromArchived
+func TestClient_restoreFileInfoFromArchived(t *testing.T) {
+	err := clientGlobal.restoreFileInfoFromArchived()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// restoreFileInfoFromNotArchived
+func TestClient_restoreFileInfoFromNotArchived(t *testing.T) {
+	err := clientGlobal.restoreFileInfoFromNotArchived()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// reParseArticleFileInfo
+func TestClient_reParseArticleFileInfo(t *testing.T) {
+	art, err := clientGlobal.ReparseArticleFileInfo(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", art)
+}

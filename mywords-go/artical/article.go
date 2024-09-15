@@ -81,16 +81,15 @@ type WordInfo struct {
 const DefaultXpathExpr = `//div/p//text()[not(ancestor::style)]|//div/span/text()|//div[contains(@class,"article-paragraph")]//text()|//div/text()|//h1/text()|//h2/text()|//h3/text()`
 
 // ParseSourceUrl proxyUrl can be nil
-func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article, error) {
+func ParseSourceUrl(sourceUrl string, proxyUrl *url.URL) (*Article, error) {
 	respBody, err := getRespBody(sourceUrl, proxyUrl)
 	if err != nil {
 		return nil, err
 	}
-	art, err := parseContent(sourceUrl, filepath.Base(sourceUrl), expr, respBody)
+	art, err := parseContent(sourceUrl, respBody)
 	if err != nil {
 		return nil, err
 	}
-	art.SourceUrl = sourceUrl
 	return art, nil
 }
 
@@ -136,21 +135,25 @@ func ParseLocalFile(path string) (*Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseContent(sourceUrl, filepath.Base(path), DefaultXpathExpr, htmlBody)
+	return parseContent(sourceUrl, htmlBody)
 	// TODO: the other file format to be supported, how to preview txt file?
-	var content string
-	if strings.ToLower(ext) == ".txt" {
-		pureContentBytes, err := os.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		content = string(pureContentBytes)
-	} else {
-		return nil, errors.New("file format not supported")
-	}
-	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
-	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "
-	return articleFromContent("", filepath.Base(path), sourceUrl, pureContent)
+	/*
+
+	   var content string
+	   	if strings.ToLower(ext) == ".txt" {
+	   		pureContentBytes, err := os.ReadFile(path)
+	   		if err != nil {
+	   			return nil, err
+	   		}
+	   		content = string(pureContentBytes)
+	   	} else {
+	   		return nil, errors.New("file format not supported")
+	   	}
+	   	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
+	   	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "
+	   	return buildArticleFromContent("", filepath.Base(path), sourceUrl, pureContent)
+
+	*/
 }
 
 // shy [194 173]
@@ -158,7 +161,7 @@ func ParseLocalFile(path string) (*Article, error) {
 var shy = string([]byte{194, 173})
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.1.0"
+const ParseVersion = "0.3.0"
 
 // var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
@@ -166,21 +169,16 @@ var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
 const quote = "”"
 const minLen = 3
 
-// parseContent 从网页内容中解析出单词
-// 输入任意一个网址 获取单词，
-// 1 统计英文单词数量
-// 2.可以筛选长度
-// 3 带三个例句
-func parseContent(sourceUrl, defaultTitle, expr string, respBody []byte) (*Article, error) {
-
-	if expr == "" {
-		expr = DefaultXpathExpr
-	}
+func ParseContent(sourceUrl string, htmlContent []byte) (*Article, error) {
+	return parseContent(sourceUrl, htmlContent)
+}
+func parseContent(sourceUrl string, htmlContent []byte) (*Article, error) {
+	expr := DefaultXpathExpr
 	_, err := xpath.Compile(expr)
 	if err != nil {
 		return nil, err
 	}
-	rootNode, err := htmlquery.Parse(bytes.NewReader(respBody))
+	rootNode, err := htmlquery.Parse(bytes.NewReader(htmlContent))
 	if err != nil {
 		return nil, err
 	}
@@ -206,14 +204,14 @@ func parseContent(sourceUrl, defaultTitle, expr string, respBody []byte) (*Artic
 		title = htmlquery.InnerText(titleNode)
 	}
 	if title == "" {
-		title = defaultTitle
+		title = filepath.Base(sourceUrl)
 	}
 	//sentences := strings.SplitAfter(content, ". ")
 	// The U.S.
-	return articleFromContent(string(respBody), title, sourceUrl, pureContent)
+	return buildArticleFromContent(string(htmlContent), title, sourceUrl, pureContent)
 }
 
-func articleFromContent(HTMLContent string, title, sourceUrl, pureContent string) (*Article, error) {
+func buildArticleFromContent(HTMLContent string, title, sourceUrl, pureContent string) (*Article, error) {
 	sentences := make([]string, 0, 512)
 	ss := regSentenceSplit.FindAllStringIndex(pureContent, -1)
 	var start = 0
@@ -232,7 +230,6 @@ func articleFromContent(HTMLContent string, title, sourceUrl, pureContent string
 		}
 	}
 	sentences = append(sentences, pureContent[start:])
-
 	var totalCount int
 	var wordsMap = make(map[string]int64, 1024)
 	var wordsSentences = make(map[string][]*string, 1024)

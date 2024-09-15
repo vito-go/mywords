@@ -189,7 +189,7 @@ func ArticleFromFileInfo(fileInfoC *C.char) *C.char {
 	if err != nil {
 		return CharErr(err.Error())
 	}
-	art, err := serverGlobal.ArticleFromFileInfo(&fileInfo)
+	art, err := serverGlobal.ArticleFromGobGZPath(fileInfo.FilePath)
 	if err != nil {
 		return CharErr(err.Error())
 	}

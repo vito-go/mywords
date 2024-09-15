@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS file_info (
     "update_at"    INTEGER
 );
 -- sourceUrl is unique
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sourceUrl ON file_info ("sourceUrl");
+CREATE UNIQUE INDEX IF NOT EXISTS idx_source_url ON file_info ("source_url");
 -- host is index
 CREATE INDEX IF NOT EXISTS idx_host ON file_info ("host");
 -- index update_at
