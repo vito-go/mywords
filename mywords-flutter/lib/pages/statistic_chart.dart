@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util.dart';
@@ -18,9 +19,9 @@ class StatisticChart extends StatefulWidget {
 
 class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   List<Widget> get myTabs => [
-        const Tab(
+          const Tab(
           text: "每日统计",
-          icon: Icon(Icons.today),
+          icon: Icon(Icons.today ),
         ),
         const Tab(
           text: "累计统计",
@@ -92,12 +93,16 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+
     final appBar = AppBar(
       title: const Text("学习统计"),
       bottom: TabBar(
         tabs: myTabs,
-        labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(),
+        labelStyle: TextStyle(fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color:prefs.themeMode==ThemeMode.dark?
+        null:Colors.green),
+        // unselectedLabelStyle: const TextStyle(),
       ),
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       actions: [

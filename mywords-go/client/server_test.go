@@ -70,3 +70,12 @@ func TestClient_reParseArticleFileInfo(t *testing.T) {
 	}
 	t.Logf("%+v", art)
 }
+
+// restoreFromDailyChartDataFile
+func TestClient_restoreFromDailyChartDataFile(t *testing.T) {
+	err := clientGlobal.restoreFromDailyChartDataFile()
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+}

@@ -83,7 +83,7 @@ class MyAppState extends State<MyApp> {
           backgroundColor: Colors.orange.shade50,
         ),
         brightness: Brightness.light,
-        appBarTheme: AppBarTheme(color: Colors.orange.shade50),
+        appBarTheme: AppBarTheme(color:inversePrimary),
         colorScheme: ColorScheme.fromSeed(
           primary: Colors.orange,
           seedColor: Colors.deepOrange,

@@ -122,5 +122,10 @@ func NewClient(rootDataDir string) (*Client, error) {
 		}
 
 	})
+
+	// restore
+	client.restoreFileInfoFromArchived()
+	client.restoreFileInfoFromNotArchived()
+	client.restoreFromDailyChartDataFile()
 	return client, nil
 }
