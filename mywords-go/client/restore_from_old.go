@@ -14,6 +14,7 @@ import (
 
 func (c *Client) restoreFileInfoFromArchived() error {
 	path := filepath.Join(c.DataDir(), "file_infos_archived.json")
+	log.Ctx(ctx).Infof("restore file info from archived: %s", path)
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -23,15 +24,22 @@ func (c *Client) restoreFileInfoFromArchived() error {
 	if err != nil {
 		return err
 	}
-	err = c.restoreFromOldBy(fileInfosMap, true)
+	var oldFileInfos []oldFileInfo
+	for _, v := range fileInfosMap {
+		oldFileInfos = append(oldFileInfos, v)
+	}
+	err = c.restoreFromOldBy(oldFileInfos, true)
 	if err != nil {
 		return err
 	}
-	return os.Remove(path)
+	log.Ctx(ctx).Infof("restore file info from archived success: %s", path)
+	// don't delete file,
+	return nil
 }
 
 func (c *Client) restoreFileInfoFromNotArchived() error {
-	path := filepath.Join(c.DataDir(), "file_infos_not_archived.json")
+	path := filepath.Join(c.DataDir(), "file_infos.json")
+	log.Ctx(ctx).Infof("restore file info from not archived: %s", path)
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -41,15 +49,23 @@ func (c *Client) restoreFileInfoFromNotArchived() error {
 	if err != nil {
 		return err
 	}
-	err = c.restoreFromOldBy(fileInfosMap, false)
+	var oldFileInfos []oldFileInfo
+	for _, v := range fileInfosMap {
+		oldFileInfos = append(oldFileInfos, v)
+	}
+	err = c.restoreFromOldBy(oldFileInfos, false)
 	if err != nil {
 		return err
 	}
-	return os.Remove(path)
+	log.Ctx(ctx).Infof("restore file info from not archived success: %s", path)
+	// don't delete file,
+	return nil
 }
 
 func (c *Client) restoreFromDailyChartDataFile() error {
-	b, err := os.ReadFile(filepath.Join(c.DataDir(), "daily_chart_data.json"))
+	path := filepath.Join(c.DataDir(), "daily_chart_data.json")
+	log.Ctx(ctx).Infof("restore from daily chart data file: %s", path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -63,20 +79,21 @@ func (c *Client) restoreFromDailyChartDataFile() error {
 		return err
 	}
 	// delete file
-	err = os.Remove(filepath.Join(c.DataDir(), "daily_chart_data.json"))
+	err = os.Remove(path)
 	if err != nil {
 		return err
 	}
+	log.Ctx(ctx).Infof("restore from daily chart data file success: %s", path)
+	// don't delete file,
 	return nil
 }
 
-func (c *Client) restoreFromOldBy(fileInfosMap map[string]oldFileInfo, archived bool) error {
+func (c *Client) restoreFromOldBy(fileInfosMap []oldFileInfo, archived bool) error {
 	// 从旧版本恢复数据
 	// 1. 从旧版本的数据目录中读取数据
 	// 2. 将数据写入到新版本的数据目录中
 	// 3. 删除旧版本的数据目录
 	// 4. 重启服务
-
 	for _, v := range fileInfosMap {
 		sourceUrl := v.SourceUrl
 		u, err := url.Parse(sourceUrl)

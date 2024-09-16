@@ -11,6 +11,7 @@ import (
 	"mywords/model"
 	"mywords/model/mtype"
 	"mywords/pkg/log"
+	"strconv"
 
 	"net"
 	"net/http"
@@ -179,6 +180,93 @@ func (c *Client) download(httpUrl string, syncKnownWords bool, tempZipPath strin
 	return n, nil
 }
 
+type shareServerHandler struct {
+	client *Client
+	code   int64
+}
+
+func (c *shareServerHandler) articleFromSourceURL(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := r.URL.Query()
+	code := query.Get("code")
+	if code != strconv.FormatInt(c.code, 10) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte("code not match"))
+		return
+	}
+	updateAt := query.Get("updateAt")
+	if updateAt == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("updateAt is empty"))
+		return
+	}
+	sourceURL := query.Get("sourceURL")
+	if sourceURL == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("sourceURL is empty"))
+		return
+	}
+	info, err := c.client.allDao.FileInfoDao.ItemBySourceUrl(ctx, sourceURL)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	if strconv.FormatInt(info.UpdateAt, 10) != updateAt {
+		w.WriteHeader(http.StatusNotModified)
+		_, _ = w.Write([]byte("updateAt not match"))
+		return
+	}
+	f, err := os.Open(info.FilePath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	defer f.Close()
+	_, err = io.Copy(w, f)
+}
+func (c *shareServerHandler) shareData(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := r.URL.Query()
+	code := query.Get("code")
+	if code != strconv.FormatInt(c.code, 10) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte("code not match"))
+		return
+	}
+	syncKnownWords := query.Get("syncKnownWords")
+	syncFileInfo := query.Get("syncFileInfo")
+	resultData := map[string]any{}
+
+	if syncFileInfo == "true" {
+		fileInfos, err := c.client.allDao.FileInfoDao.AllItems(ctx)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		resultData["fileInfos"] = fileInfos
+	}
+	if syncKnownWords == "true" {
+		knownWords, err := c.client.allDao.KnownWordsDao.AllItems(ctx)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		resultData["knownWords"] = knownWords
+	}
+	data, err := json.Marshal(resultData)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
 func (c *Client) ShareOpen(port int, code int64) error {
 	c.mux.Lock()
 	defer c.mux.Unlock()
@@ -186,7 +274,10 @@ func (c *Client) ShareOpen(port int, code int64) error {
 		_ = c.shareServer.Close()
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("/%d", code), c.serverHTTPShareBackUpData)
+	ss := &shareServerHandler{client: c, code: code}
+	mux.HandleFunc(fmt.Sprintf("/share/%d", code), c.serverHTTPShareBackUpData)
+	mux.HandleFunc(fmt.Sprintf("/share/shareData"), ss.shareData)
+	mux.HandleFunc(fmt.Sprintf("/share/articleFromSourceURL"), ss.articleFromSourceURL)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err

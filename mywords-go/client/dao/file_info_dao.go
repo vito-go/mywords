@@ -61,6 +61,12 @@ func (m *fileInfoDao) AllItemsByArchived(ctx context.Context, archived bool) ([]
 	return items, err
 }
 
+func (m *fileInfoDao) AllItems(ctx context.Context) ([]model.FileInfo, error) {
+	var items []model.FileInfo
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&items).Error
+	return items, err
+}
+
 // AllFilePaths .
 func (m *fileInfoDao) AllFilePaths(ctx context.Context) ([]string, error) {
 	var result []string
