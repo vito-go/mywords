@@ -58,7 +58,8 @@ func (m *keyValueDao) UpdateOrCreateByKeyId(ctx context.Context, keyId mtype.Key
 	// 如果您想要在更新时选择、忽略某些字段，您可以使用 Select、Omit
 	// If you want to select, update some fields, you can use Select, Omit
 	now := time.Now().UnixMilli()
-	var updates = map[string]interface{}{"value": value,
+	var updates = map[string]interface{}{
+		"value":     value,
 		"update_at": now,
 	}
 	tx := TX.Table(m.Table()).Where("key_id = ?", keyId).Updates(updates)
@@ -132,7 +133,7 @@ func (m *keyValueDao) SetProxyURL(ctx context.Context, proxyURL string) error {
 
 func (m *keyValueDao) ItemByKeyId(ctx context.Context, keyId int64) (*model.KeyValue, error) {
 	var msg model.KeyValue
-	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Find(&msg)
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("key_id=?", keyId).Find(&msg)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}

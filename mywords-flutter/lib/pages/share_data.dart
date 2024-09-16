@@ -46,13 +46,13 @@ class _SyncDataState extends State<SyncData> {
 
   void updateShareInfo() async {
     shareInfo = await handler.getShareInfo();
+    initController();
     setState(() {});
   }
 
   void initController() async {
     controllerPort.text = '${shareInfo.port}';
     controllerCode.text = '${shareInfo.code}';
-    setState(() {});
   }
 
   @override
