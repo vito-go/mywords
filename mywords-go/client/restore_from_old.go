@@ -61,6 +61,24 @@ func (c *Client) restoreFileInfoFromNotArchived() error {
 	// don't delete file,
 	return nil
 }
+func (c *Client) deleteOldVersionFile() error {
+	path := filepath.Join(c.DataDir(), "file_infos.json")
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+	path = filepath.Join(c.DataDir(), "file_infos_archived.json")
+	err = os.Remove(path)
+	if err != nil {
+		return err
+	}
+	path = filepath.Join(c.DataDir(), "daily_chart_data.json")
+	err = os.Remove(path)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (c *Client) restoreFromDailyChartDataFile() error {
 	path := filepath.Join(c.DataDir(), "daily_chart_data.json")

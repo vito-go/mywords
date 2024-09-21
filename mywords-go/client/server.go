@@ -381,3 +381,23 @@ func (c *Client) InitCreateTables() error {
 	}
 	return nil
 }
+
+// DeleteOldVersionFile .
+func (c *Client) DeleteOldVersionFile() error {
+	return c.deleteOldVersionFile()
+}
+func (c *Client) RestoreFromOldVersionData() error {
+	// restore
+	if err := c.restoreFileInfoFromArchived(); err != nil {
+		return err
+	}
+	// restore
+	if err := c.restoreFileInfoFromNotArchived(); err != nil {
+		return err
+	}
+	// restore
+	if err := c.restoreFromDailyChartDataFile(); err != nil {
+		return err
+	}
+	return nil
+}

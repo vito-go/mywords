@@ -55,12 +55,12 @@ class _State extends State<ArticleListView> {
   @override
   void dispose() {
     super.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
     controller.dispose();
     controllerSearch.dispose();
   }
 
-  StreamSubscription<Event>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   void slideToUnArchive(FileInfo item) {
     final itemNew = item.copyWith(archived: false);
@@ -248,7 +248,7 @@ class _State extends State<ArticleListView> {
         });
   }
 
-  void globalEventHandler(Event event) {
+  void eventHandler(Event event) {
     switch (event.eventType) {
       case EventType.updateArticleList:
         initFileInfos();
@@ -276,7 +276,7 @@ class _State extends State<ArticleListView> {
     super.initState();
     initFileInfos().then((value) {
       ifShowDialogGuide();
-      globalEventSubscription = consume(globalEventHandler);
+      eventConsumer = consume(eventHandler);
     });
   }
 

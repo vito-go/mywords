@@ -389,3 +389,21 @@ func AllWordsByCreateDayAndOrder(createDay, order int64) *C.char {
 	}
 	return CharList(items)
 }
+
+//export RestoreFromOldVersionData
+func RestoreFromOldVersionData() *C.char {
+	err := serverGlobal.RestoreFromOldVersionData()
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharSuccess()
+}
+
+//export DeleteOldVersionFile
+func DeleteOldVersionFile() *C.char {
+	err := serverGlobal.DeleteOldVersionFile()
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharSuccess()
+}

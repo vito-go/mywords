@@ -39,24 +39,24 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
-  void globalEventHandler(Event event) {
+  void eventHandler(Event event) {
     if (event.eventType == EventType.updateTheme) {
       setState(() {});
     }
   }
 
-  StreamSubscription<Event>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   @override
   dispose() {
     super.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
   }
 
   @override
   void initState() {
     super.initState();
-    globalEventSubscription = consume(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   @override

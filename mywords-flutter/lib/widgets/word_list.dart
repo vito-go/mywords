@@ -23,7 +23,7 @@ class WordList extends StatefulWidget {
 class _State extends State<WordList> {
   late final createDay = widget.createDay; // 1 all words; 2 today known words
   List<String> allWords = [];
-  StreamSubscription<Event>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   Map<int, int> get levelWordsMap => Global.levelDistribute(allWords);
   int showLevel = prefs.showWordLevel;
@@ -64,7 +64,7 @@ class _State extends State<WordList> {
     setState(() {});
   }
 
-  void globalEventHandler(Event event) {
+  void eventHandler(Event event) {
     if (event.eventType == EventType.updateKnownWord) {
       setState(() {});
     }
@@ -73,7 +73,7 @@ class _State extends State<WordList> {
   void initState() {
     super.initState();
     updateAllWords();
-    globalEventSubscription = consume(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   Widget buildWordLevelRow(int idx, String word) {
@@ -133,7 +133,7 @@ class _State extends State<WordList> {
   @override
   void dispose() {
     super.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
   }
 
   @override

@@ -32,11 +32,11 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     controller.dispose();
     focus.dispose();
     valueNotifier.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
     valueNotifierChart.dispose();
   }
 
-  void globalEventHandler(Event event) {
+  void eventHandler(Event event) {
     if (event.eventType == EventType.syncData && event.param == true) {
       updateTodayCountMap();
     }
@@ -52,7 +52,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     updateTodayCountMap();
-    globalEventSubscription = consume(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   void search() async {
@@ -181,7 +181,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
         ]));
   }
 
-  StreamSubscription<Event>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   Widget buildBody() {
     List<Widget> colChildren = [

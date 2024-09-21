@@ -76,7 +76,7 @@ class ArticlePageState extends State<ArticlePage> {
     });
   }
 
-  void globalEventHandler(Event event) {
+  void eventHandler(Event event) {
     if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
       if (event.param is Map) {
@@ -90,13 +90,13 @@ class ArticlePageState extends State<ArticlePage> {
     }
   }
 
-  StreamSubscription<Event>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   @override
   void initState() {
     super.initState();
     initArticle();
-    globalEventSubscription = consume(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   Map<int, int> get levelCountMap {
@@ -212,7 +212,7 @@ class ArticlePageState extends State<ArticlePage> {
   @override
   void dispose() {
     super.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
   }
 
   Widget wordLevelRichText() {

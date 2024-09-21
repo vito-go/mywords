@@ -28,7 +28,7 @@ class _State extends State<WordWebView> {
   void dispose() {
     super.dispose();
     player.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
   }
 
   final player = AudioPlayer();
@@ -45,7 +45,7 @@ class _State extends State<WordWebView> {
     return;
   }
 
-  void globalEventHandler(Event event) {
+  void eventHandler(Event event) {
     if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
       if (event.param is Map) {
@@ -58,7 +58,7 @@ class _State extends State<WordWebView> {
     }
   }
 
-  StreamSubscription<Event>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
   bool loading = false;
 
   Widget get buildWordHeaderRow {
@@ -133,7 +133,7 @@ class _State extends State<WordWebView> {
   void initState() {
     super.initState();
     initOpenWithHtmlFilePath();
-    globalEventSubscription = consume(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   final controller = WebViewController();

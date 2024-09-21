@@ -141,7 +141,7 @@ func (m *knownWordsDao) AllWordsByCreateDayWithIdAsc(ctx context.Context, create
 // AllCreateDate . DISTINCT(create_day) ORDER BY create_day DESC
 func (m *knownWordsDao) AllCreateDate(ctx context.Context) ([]int64, error) {
 	var result []int64
-	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("DISTINCT(create_day)").Order("create_day DESC").Find(&result).Error
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("DISTINCT(create_day)").Order("create_day ASC").Find(&result).Error
 	return result, err
 
 }
