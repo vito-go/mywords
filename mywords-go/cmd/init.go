@@ -3,8 +3,7 @@ package main
 import "C"
 import (
 	"mywords/client"
-	"mywords/dict"
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -13,25 +12,23 @@ func init() {
 	time.Local = time.FixedZone("CST", 8*3600)
 }
 
-var once sync.Once
+var initialized atomic.Bool
 
 //export Init
 func Init(rootDataDirC *C.char) {
-	once.Do(func() {
-		rootDataDir := C.GoString(rootDataDirC)
-		// 非web版本
-		killOldPidAndGenNewPid(rootDataDir)
-		initGlobal(rootDataDir, 0)
-	})
+	rootDataDir := C.GoString(rootDataDirC)
+	// 非web版本
+	killOldPidAndGenNewPid(rootDataDir)
+	initGlobal(rootDataDir, 0)
 }
 func initGlobal(rootDataDir string, dictRunPort int) {
+	if initialized.Swap(true) {
+		return
+	}
 	var err error
-	serverGlobal, err = client.NewClient(rootDataDir)
+	serverGlobal, err = client.NewClient(rootDataDir, dictRunPort)
 	if err != nil {
 		panic(err)
 	}
-	multiDictGlobal, err = dict.NewMultiDictZip(rootDataDir, dictRunPort)
-	if err != nil {
-		panic(err)
-	}
+	multiDictGlobal = serverGlobal.MultiDictGlobal()
 }

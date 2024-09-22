@@ -265,6 +265,9 @@ func callerStack(skip int) []byte {
 	}
 	return buf.Bytes()
 }
+
+const timeFormat = "2006-01-02T15:04:05.000"
+
 func outPut(ctx context.Context, prefix string, writer io.Writer, level Level, content string) {
 	// [REQUEST] [INFO] 2024/07/11 22:04:11.350992 httpcli.go:210: main.main traceId <content>
 	pc := make([]uintptr, 2)
@@ -282,8 +285,8 @@ func outPut(ctx context.Context, prefix string, writer io.Writer, level Level, c
 	// Dont putBuffer(buf) until the task is done
 	ctxValue, _ := ctx.Value(TraceIdKey).(string)
 	*buf = append([]byte(fmt.Sprintf(
-		"%s[%s] %s %s:%d %s traceId: %+v ",
-		prefix, level, time.Now().Format(`2006/01/02 15:04:05.000000`), file, line, function, ctxValue)),
+		"%s[%s] %s %s:%d %s traceId:%+v ",
+		prefix, level, time.Now().Format(timeFormat), file, line, function, ctxValue)),
 		content...)
 	if len(*buf) == 0 || (*buf)[len(*buf)-1] != '\n' {
 		*buf = append(*buf, '\n')

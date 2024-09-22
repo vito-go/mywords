@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:mywords/libso/handler.dart';
+import 'package:mywords/util/util.dart';
 import 'package:path/path.dart' as path;
 
 String? getHomeDir() {
@@ -16,14 +18,14 @@ String? getHomeDir() {
 }
 
 String? getDefaultDownloadDir() {
-  if (kIsWeb)return null;
+  if (kIsWeb) return null;
   if (Platform.isAndroid) {
     return "/storage/emulated/0/Download/";
   }
   // 获取可执行文件的路径
   String homeDirectory = getHomeDir() ?? '';
   if (homeDirectory != "") {
-    return path.join(homeDirectory, "Downloads");
+    return path.join(homeDirectory, "Downloads/");
   }
   return null;
 }

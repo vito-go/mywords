@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"mywords/artical"
 	"mywords/client/dao"
+	"mywords/dict"
 	"mywords/pkg/db"
 	"mywords/pkg/log"
 	"net"
@@ -45,8 +46,9 @@ type Client struct {
 	codeContentChan chan CodeContent
 	pprofListen     net.Listener //may be nil
 
-	messageLimiter *rate.Limiter
-	closed         atomic.Bool
+	messageLimiter  *rate.Limiter
+	closed          atomic.Bool
+	multiDictGlobal *dict.MultiDict
 	//		//
 	//	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	//	knownWordsMap *MySyncMapMap[string, WordKnownLevel] // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
@@ -64,9 +66,12 @@ type Client struct {
 
 }
 
-func NewClient(rootDataDir string) (*Client, error) {
-	// 获取平台 GOOS
+func (c *Client) MultiDictGlobal() *dict.MultiDict {
+	return c.multiDictGlobal
+}
 
+func NewClient(rootDataDir string, dictRunPort int) (*Client, error) {
+	// 获取平台 GOOS
 	rootDataDir = filepath.ToSlash(rootDataDir)
 	if err := os.MkdirAll(rootDataDir, 0755); err != nil {
 		return nil, err
@@ -86,6 +91,10 @@ func NewClient(rootDataDir string) (*Client, error) {
 	if err := os.MkdirAll(filepath.Join(rootDataDir, dataDir, gobFileDir), 0755); err != nil {
 		return nil, err
 	}
+	multiDictGlobal, err := dict.NewMultiDictZip(rootDataDir, dictRunPort)
+	if err != nil {
+		return nil, err
+	}
 	client := &Client{
 		rootDataDir:     rootDataDir,
 		xpathExpr:       artical.DefaultXpathExpr,
@@ -95,6 +104,7 @@ func NewClient(rootDataDir string) (*Client, error) {
 		dbPath:          dbPath,
 		codeContentChan: make(chan CodeContent, 1024),
 		shareOpened:     atomic.Bool{},
+		multiDictGlobal: multiDictGlobal,
 	}
 	err = client.InitCreateTables()
 	if err != nil {

@@ -14,7 +14,8 @@ func init() {
 		panic(err)
 	}
 	rootDataDir := filepath.ToSlash(filepath.Join(homeDir, ".local/share/com.example.mywords"))
-	clientGlobal, err = NewClient(rootDataDir)
+	dictRunPort := 18961
+	clientGlobal, err = NewClient(rootDataDir, dictRunPort)
 	if err != nil {
 		panic(err)
 	}
@@ -77,5 +78,5 @@ func TestClient_restoreFromDailyChartDataFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 }

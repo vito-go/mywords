@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
- import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/libso/handler.dart';
+import 'package:mywords/util/get_scaffold.dart';
 import '../util/util.dart';
 import 'drawer.dart';
- import 'article_list_page.dart';
+import 'article_list_page.dart';
 import 'lookup_word.dart';
 
 class Home extends StatefulWidget {
@@ -42,7 +43,7 @@ class _State extends State<Home> {
   ];
 
   void aboutOnTap() async {
-     const applicationName = "mywords";
+    const applicationName = "mywords";
     if (!context.mounted) return;
     showAboutDialog(
       context: context,
@@ -63,18 +64,14 @@ class _State extends State<Home> {
     );
   }
 
-
-
   List<Widget> get actions {
     return [
       IconButton(
           onPressed: () {
+            produce(Event(eventType: EventType.updateLineChart));
+            produce(Event(eventType: EventType.updateArticleList));
             produce(
-                Event(eventType: EventType.updateLineChart));
-            produce(
-                Event(eventType: EventType.updateArticleList));
-            produce(Event(
-                eventType: EventType.articleListScrollToTop, param: 1));
+                Event(eventType: EventType.articleListScrollToTop, param: 1));
             myToast(context, "Successfully!");
           },
           icon: const Icon(Icons.refresh)),
@@ -91,8 +88,8 @@ class _State extends State<Home> {
         onTap: (int i) {
           if (idx == i && i == 0) {
             // 滚动置顶
-            produce(Event(
-                eventType: EventType.articleListScrollToTop, param: 1));
+            produce(
+                Event(eventType: EventType.articleListScrollToTop, param: 1));
           }
           if (idx == i) return;
           _pageController.jumpToPage(i);
