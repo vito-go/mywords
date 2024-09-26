@@ -99,6 +99,21 @@ class MyDrawerState extends State<MyDrawer> {
       leading: const Icon(Icons.http),
     );
   }
+  Widget buildListTileRestoreFromOld() {
+     return ListTile(
+      title: const Text('RestoreFromOld'),
+       // trailing: vacuums the database
+      onTap: () async{
+        final respData=await handler.restoreFromOldVersionData();
+        if (respData.code != 0) {
+          myToast(context, respData.message);
+          return;
+        }
+        myToast(context, "RestoreFromOldVersionData successfully!");
+      },
+      leading: const Icon(Icons.restore_page),
+    );
+  }
 
   changeTheme() {
     SimpleDialog simpleDialog = SimpleDialog(
@@ -263,6 +278,7 @@ class MyDrawerState extends State<MyDrawer> {
         ),
         buildListTileVacuumDB(),
         buildListTileWebDictPort(),
+        buildListTileRestoreFromOld(),
       ],
     )));
   }

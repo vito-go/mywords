@@ -709,7 +709,10 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function()>('GetShareInfo');
   final DropAndReCreateDB = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(), Pointer<Utf8> Function()>('DropAndReCreateDB');
-
+// RestoreFromOldVersionData
+  final RestoreFromOldVersionData = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('RestoreFromOldVersionData');
   // DBExecute
   final DBExecute = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
@@ -814,5 +817,15 @@ class NativeHandler implements Handler {
   @override
   int webDictRunPort() {
     return WebDictRunPort();
+  }
+
+  @override
+  RespData<void> restoreFromOldVersionData() {
+    final resultC = RestoreFromOldVersionData();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
   }
 }

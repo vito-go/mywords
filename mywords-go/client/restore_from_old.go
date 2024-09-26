@@ -106,6 +106,33 @@ func (c *Client) restoreFromDailyChartDataFile() error {
 	return nil
 }
 
+func (c *Client) restoreFromDict() error {
+	path := filepath.Join(c.DictDir(), "dict_info.json")
+	log.Ctx(ctx).Infof("restore from daily chart data file: %s", path)
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	var data struct {
+		DefaultDictBasePath  string            `json:"defaultDictBasePath"`
+		DictBasePathTitleMap map[string]string `json:"dictBasePathTitleMap"`
+	}
+	err = json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	for _, p := range data.DictBasePathTitleMap {
+		zipPath := filepath.Join(c.DictDir(), p)
+		err = c.AddDict(ctx, zipPath)
+		if err != nil {
+			log.Ctx(ctx).Error(err)
+			continue
+		}
+	}
+	return nil
+
+}
+
 func (c *Client) restoreFromOldBy(fileInfosMap []oldFileInfo, archived bool) error {
 	// 从旧版本恢复数据
 	// 1. 从旧版本的数据目录中读取数据

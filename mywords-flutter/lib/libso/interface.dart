@@ -110,6 +110,7 @@ abstract class Handler {
   FutureOr<ShareInfo> getShareInfo();
 
   RespData<void> dropAndReCreateDB();
+  RespData<void> restoreFromOldVersionData();
 
   String getHostName();
 }

@@ -456,6 +456,12 @@ class WebHandler implements Handler {
     final result = await call("WebDictRunPort", []);
     return int.parse(result);
   }
+
+  @override
+  RespData<void> restoreFromOldVersionData() {
+    // TODO: implement restoreFromOldVersionData
+    throw UnimplementedError();
+  }
 }
 
 Future<String> call(String funcName, List<dynamic> args) async {

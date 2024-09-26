@@ -17,6 +17,7 @@ import (
 	"mywords/client/dao"
 	"mywords/model"
 	"mywords/model/mtype"
+	"mywords/pkg/log"
 	"net"
 	"net/url"
 	"os"
@@ -56,6 +57,10 @@ func (c *Client) RootDataDir() string {
 
 func (c *Client) DataDir() string {
 	return filepath.ToSlash(filepath.Join(c.rootDataDir, dataDir))
+}
+
+func (c *Client) DictDir() string {
+	return filepath.ToSlash(filepath.Join(c.rootDataDir, dictDir))
 }
 
 func (c *Client) netProxy(ctx context.Context) *url.URL {
@@ -389,15 +394,18 @@ func (c *Client) DeleteOldVersionFile() error {
 func (c *Client) RestoreFromOldVersionData() error {
 	// restore
 	if err := c.restoreFileInfoFromArchived(); err != nil {
-		return err
+		log.Println("restoreFileInfoFromArchived", err)
 	}
 	// restore
 	if err := c.restoreFileInfoFromNotArchived(); err != nil {
-		return err
+		log.Println("restoreFileInfoFromNotArchived", err)
 	}
 	// restore
 	if err := c.restoreFromDailyChartDataFile(); err != nil {
-		return err
+		log.Println("restoreFromDailyChartDataFile", err)
+	}
+	if err := c.restoreFromDict(); err != nil {
+		log.Println("restoreFromDict", err)
 	}
 	return nil
 }
