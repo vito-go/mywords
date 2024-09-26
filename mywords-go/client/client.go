@@ -12,6 +12,7 @@ import (
 	"mywords/client/dao"
 	"mywords/dict"
 	"mywords/model"
+	"mywords/model/mtype"
 	"mywords/pkg/db"
 	"mywords/pkg/log"
 	"net"
@@ -143,6 +144,7 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 				log.Ctx(ctx).Error(err.Error())
 				return
 			}
+
 		}()
 	}
 	pprofLis, err := client.startPProf()
@@ -217,6 +219,7 @@ func (c *Client) SetDefaultDictById(ctx context.Context, id int64) error {
 		return err
 	}
 	c.defaultDictId.Store(id)
+	_ = c.allDao.KeyValueDao.UpdateOrCreateByKeyId(ctx, mtype.KeyIdDefaultDictId, fmt.Sprintf("%d", id))
 	return nil
 }
 func (c *Client) GetTargetPathAndCheckExist(zipPath string) (targetPath string, exist bool, err error) {

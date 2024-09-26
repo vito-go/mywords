@@ -108,7 +108,7 @@ func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
 }
 
 func (m *keyValueDao) DefaultDictId(ctx context.Context) (int64, error) {
-	item, err := m.ItemByKeyId(ctx, mtype.KeyIdDefaultDictPath)
+	item, err := m.ItemByKeyId(ctx, mtype.KeyIdDefaultDictId)
 	if err != nil {
 		return 0, err
 	}
