@@ -72,7 +72,7 @@ class _State extends State<WordWebView> {
 
   void _loadRequest(String word) async {
     final hostname = handler.getHostName();
-    String url = await handler.getUrlByWord(hostname, word);
+    String url = await handler.getUrlByWordForWeb(hostname, word);
     controller.loadRequest(LoadRequestParams(uri: Uri.parse(url)));
     return;
   }

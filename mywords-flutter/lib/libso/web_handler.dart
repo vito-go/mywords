@@ -18,7 +18,7 @@ final Handler handlerImplement = WebHandler();
 
 class WebHandler implements Handler {
   @override
-  Future<RespData<void>> addDict(String dataDir) async {
+  Future<RespData<void>> addDict(String zipPath) async {
     throw "not support add dict on web platform in this way";
   }
 
@@ -65,9 +65,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> delDict(String basePath) async {
-    Global.defaultDictBasePath = '';
-    final result = await call("DelDict", [basePath]);
+  Future<RespData<void>> delDict(int id) async {
+    Global.defaultDictId = 0;
+    final result = await call("DelDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
@@ -82,17 +82,19 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<List>> dictList() async {
+  Future<RespData<List<DictInfo>>> dictList() async {
     final result = await call("DictList", []);
 
-    final RespData<List<dynamic>> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as List<dynamic>);
+    final RespData<List<DictInfo>> respData = RespData.fromJson(
+        jsonDecode(result),
+        (json) => List<DictInfo>.generate(
+            json.length, (index) => DictInfo.fromJson(json[index])));
     return respData;
   }
 
   @override
-  Future<String> dictWordQuery(String word) async {
-    final result = await call("DictWordQuery", [word]);
+  Future<String> defaultWordMeaning(String word) async {
+    final result = await call("DefaultWordMeaning", [word]);
     final respData =
         RespData.fromJson(jsonDecode(result), (json) => json.toString());
     String define = respData.data ?? '';
@@ -113,11 +115,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<String> finalHtmlBasePathWithOutHtml(String word) async {
-    final result = await call("FinalHtmlBasePathWithOutHtml", [word]);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
+  Future<bool> existInDict(String word) async {
+    final result = await call("ExistInDict", [word]);
+    return bool.parse(result);
   }
 
   @override
@@ -139,11 +139,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<String>> getDefaultDict() async {
-    final result = await call("GetDefaultDict", []);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData;
+  Future<int> getDefaultDictId() async {
+    final result = await call("GetDefaultDictId", []);
+    return int.parse(result);
   }
 
   @override
@@ -165,8 +163,8 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<String> getUrlByWord(String hostname, String word) async {
-    final result = await call("GetUrlByWord", [hostname, word]);
+  Future<String> getUrlByWordForWeb(String hostname, String word) async {
+    final result = await call("GetUrlByWordForWeb", [hostname, word]);
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? '';
@@ -237,9 +235,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> setDefaultDict(String basePath) async {
-    Global.defaultDictBasePath = '';
-    final result = await call("SetDefaultDict", [basePath]);
+  Future<RespData<void>> setDefaultDict(int id) async {
+    Global.defaultDictId = 0;
+    final result = await call("SetDefaultDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
@@ -282,7 +280,7 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> updateDictName(String dataDir, String name) {
+  Future<RespData<void>> updateDictName(int id, String name) {
     // TODO: implement updateDictName
     throw UnimplementedError();
   }
@@ -441,12 +439,22 @@ class WebHandler implements Handler {
     throw UnimplementedError();
   }
 
-
-
   @override
   FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {
     // TODO: implement allWordsByCreateDayAndOrder
     throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<bool> checkDictZipTargetPathExist(String zipPath) {
+    // TODO: implement checkDictZipTargetPathExist
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> webDictRunPort() async {
+    final result = await call("WebDictRunPort", []);
+    return int.parse(result);
   }
 }
 

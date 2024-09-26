@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:mywords/util/util.dart';
 
 class FileInfo {
   final String title;
@@ -205,4 +204,55 @@ class ShareInfo {
         code: json["code"] ?? 0,
         open: json["open"] ?? false,
       );
+}
+
+//// DictInfo 单词字典信息
+// // name ,path, createAt, updateAt, size
+// type DictInfo struct {
+// 	ID       int64  `json:"id"`
+// 	Name     string `json:"name"`
+// 	Path     string `json:"path"`
+// 	CreateAt int64  `json:"createAt"`
+// 	UpdateAt int64  `json:"updateAt"`
+// 	Size     int64  `json:"size"`
+// }
+class DictInfo {
+  final int id;
+  final String name;
+  final String path;
+  final int createAt;
+  final int updateAt;
+  final int size;
+
+  DictInfo({
+    required this.id,
+    required this.name,
+    required this.path,
+    required this.createAt,
+    required this.updateAt,
+    required this.size,
+  });
+
+  factory DictInfo.fromRawJson(String str) =>
+      DictInfo.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory DictInfo.fromJson(Map<String, dynamic> json) => DictInfo(
+        id: json["id"],
+        name: json["name"],
+        path: json["path"],
+        createAt: json["createAt"],
+        updateAt: json["updateAt"],
+        size: json["size"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "path": path,
+        "createAt": createAt,
+        "updateAt": updateAt,
+        "size": size,
+      };
 }

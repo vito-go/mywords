@@ -40,7 +40,7 @@ class _State extends State<ToadyKnownWords> {
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       actions: actions(),
       title: const Text("今日学习单词"),
     );

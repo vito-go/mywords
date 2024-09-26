@@ -127,7 +127,7 @@ func addDictWithFile(w http.ResponseWriter, r *http.Request) {
 	}
 	f.Close()
 	defer os.Remove(tempFile)
-	err = multiDictGlobal.AddDict(tempFile)
+	err = serverGlobal.AddDict(ctx, tempFile)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

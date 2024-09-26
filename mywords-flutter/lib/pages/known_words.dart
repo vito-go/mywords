@@ -33,8 +33,7 @@ class _State extends State<KnownWords> {
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      actions: actions(),
+       actions: actions(),
       title: const Text("我的单词库"),
     );
 

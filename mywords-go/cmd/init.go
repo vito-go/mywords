@@ -18,17 +18,17 @@ var initialized atomic.Bool
 func Init(rootDataDirC *C.char) {
 	rootDataDir := C.GoString(rootDataDirC)
 	// 非web版本
-	killOldPidAndGenNewPid(rootDataDir)
+	// 非web版本 dictRunPort 传 -1, 表示不启动 web dict 服务
 	initGlobal(rootDataDir, 0)
 }
 func initGlobal(rootDataDir string, dictRunPort int) {
 	if initialized.Swap(true) {
 		return
 	}
+	killOldPidAndGenNewPid(rootDataDir) //TODO 还要吗？
 	var err error
 	serverGlobal, err = client.NewClient(rootDataDir, dictRunPort)
 	if err != nil {
 		panic(err)
 	}
-	multiDictGlobal = serverGlobal.MultiDictGlobal()
 }

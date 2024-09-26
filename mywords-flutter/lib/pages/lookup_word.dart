@@ -49,8 +49,7 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
     }
     final RespData<List<String>> respData;
 
-    final defaultDict = Global.defaultDictBasePath ?? '';
-    if (defaultDict == "") {
+     if (Global.defaultDictId  == 0) {
       respData = await handler.searchByKeyWordWithDefault(v);
     } else {
       respData = await handler.searchByKeyWord(v);

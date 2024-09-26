@@ -40,6 +40,11 @@ func (m *dictInfoDao) Update(ctx context.Context, msg *model.DictInfo) error {
 	return m.Gdb.WithContext(ctx).Table(m.Table()).Select("*").Omit("id").Where("id = ?", msg.ID).Updates(msg).Error
 }
 
+// UpdateNameById .
+func (m *dictInfoDao) UpdateNameById(ctx context.Context, id int64, name string) error {
+	return m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Update("name", name).Error
+}
+
 // CreateBatch .
 func (m *dictInfoDao) CreateBatch(ctx context.Context, msgs ...model.DictInfo) error {
 	if len(msgs) == 0 {
@@ -57,6 +62,18 @@ func (m *dictInfoDao) AllItems(ctx context.Context) ([]model.DictInfo, error) {
 }
 
 // DeleteById .
-func (m *dictInfoDao) DeleteById(ctx context.Context, id int64) error {
-	return m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Delete(&model.DictInfo{}).Error
+func (m *dictInfoDao) DeleteById(ctx context.Context, id int64) (int64, error) {
+	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Delete(&model.DictInfo{})
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+
+	return tx.RowsAffected, nil
+}
+
+// ItemById .
+func (m *dictInfoDao) ItemById(ctx context.Context, id int64) (*model.DictInfo, error) {
+	var msg model.DictInfo
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).First(&msg).Error
+	return &msg, err
 }

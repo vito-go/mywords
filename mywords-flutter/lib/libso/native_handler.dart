@@ -194,14 +194,14 @@ class NativeHandler implements Handler {
   }
 
 // func DictWordQuery(wordC *C.char) *C.char //查不到就是空
-  final _dictWordQuery = nativeAddLib.lookupFunction<
+  final DefaultWordMeaning = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('DefaultWordMeaning');
 
   @override
-  String dictWordQuery(String word) {
+  String defaultWordMeaning(String word) {
     final wordC = word.toNativeUtf8();
-    final resultC = _dictWordQuery(wordC);
+    final resultC = DefaultWordMeaning(wordC);
     final respData = RespData.fromJson(
         jsonDecode(resultC.toDartString()), (json) => json.toString());
     malloc.free(wordC);
@@ -454,16 +454,17 @@ class NativeHandler implements Handler {
   }
 
 // func QueryWordLevel(wordC *C.char) *C.char
-  final _getUrlByWord = nativeAddLib.lookupFunction<
+  final GetUrlByWordForWeb = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('GetUrlByWord');
+      Pointer<Utf8> Function(
+          Pointer<Utf8>, Pointer<Utf8>)>('GetUrlByWordForWeb');
 
 // getUrlByWord 返回防止携带word参数
   @override
-  String getUrlByWord(String hostName, String word) {
+  String getUrlByWordForWeb(String hostName, String word) {
     final wordC = word.toNativeUtf8();
     final hostNameC = hostName.toNativeUtf8();
-    final resultC = _getUrlByWord(hostNameC, wordC);
+    final resultC = GetUrlByWordForWeb(hostNameC, wordC);
     malloc.free(hostNameC);
     malloc.free(wordC);
     final result = resultC.toDartString();
@@ -475,15 +476,13 @@ class NativeHandler implements Handler {
 
 // func   UpdateDictName(dataDirC, nameC *C.char) *C.char {
   final _updateDictName = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('UpdateDictName');
+      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
+      Pointer<Utf8> Function(int, Pointer<Utf8>)>('UpdateDictName');
 
   @override
-  RespData<void> updateDictName(String dataDir, String name) {
-    final dataDirC = dataDir.toNativeUtf8();
+  RespData<void> updateDictName(int id, String name) {
     final nameC = name.toNativeUtf8();
-    final resultC = _updateDictName(dataDirC, nameC);
-    malloc.free(dataDirC);
+    final resultC = _updateDictName(id, nameC);
     malloc.free(nameC);
     final result = resultC.toDartString();
     malloc.free(resultC);
@@ -494,8 +493,8 @@ class NativeHandler implements Handler {
 
 // func SetDefaultDict(dataDirC *C.char) *C.char {
   final _setDefaultDict = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('SetDefaultDict');
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('SetDefaultDict');
 
 // VacuumDB
   final VacuumDB = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
@@ -504,6 +503,10 @@ class NativeHandler implements Handler {
 // func DBSize() *C.char
   final DBSize = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('DBSize');
+
+  // WebDictRunPort
+  final WebDictRunPort = nativeAddLib
+      .lookupFunction<Int64 Function(), int Function()>('WebDictRunPort');
 
   @override
   RespData<int> vacuumDB() {
@@ -531,11 +534,9 @@ class NativeHandler implements Handler {
   }
 
   @override
-  RespData<void> setDefaultDict(String basePath) {
-    Global.defaultDictBasePath = '';
-    final basePathC = basePath.toNativeUtf8();
-    final resultC = _setDefaultDict(basePathC);
-    malloc.free(basePathC);
+  RespData<void> setDefaultDict(int id) {
+    Global.defaultDictId = 0;
+    final resultC = _setDefaultDict(id);
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<void> respData =
@@ -548,12 +549,14 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function()>('DictList');
 
   @override
-  RespData<List<dynamic>> dictList() {
+  RespData<List<DictInfo>> dictList() {
     final resultC = _dictList();
     final result = resultC.toDartString();
     malloc.free(resultC);
-    final RespData<List<dynamic>> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as List<dynamic>);
+    final RespData<List<DictInfo>> respData = RespData.fromJson(
+        jsonDecode(result),
+        (json) => List<DictInfo>.generate(
+            json.length, (index) => DictInfo.fromJson(json[index])));
     return respData;
   }
 
@@ -564,10 +567,10 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Pointer<Utf8>)>('AddDict');
 
   @override
-  RespData<void> addDict(String dataDir) {
-    final dataDirC = dataDir.toNativeUtf8();
-    final resultC = _addDict(dataDirC);
-    malloc.free(dataDirC);
+  RespData<void> addDict(String zipPath) {
+    final zipPathC = zipPath.toNativeUtf8();
+    final resultC = _addDict(zipPathC);
+    malloc.free(zipPathC);
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<void> respData =
@@ -576,16 +579,13 @@ class NativeHandler implements Handler {
   }
 
 // func DelDict(basePath *C.char) *C.char {
-  final _delDict = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DelDict');
+  final _delDict = nativeAddLib.lookupFunction<Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('DelDict');
 
   @override
-  RespData<void> delDict(String basePath) {
-    Global.defaultDictBasePath = '';
-    final basePathC = basePath.toNativeUtf8();
-    final resultC = _delDict(basePathC);
-    malloc.free(basePathC);
+  RespData<void> delDict(int id) {
+    Global.defaultDictId = 0;
+    final resultC = _delDict(id);
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<void> respData =
@@ -610,17 +610,12 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  final _getDefaultDict = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('GetDefaultDict');
+  final _getDefaultDictId = nativeAddLib
+      .lookupFunction<Int64 Function(), int Function()>('GetDefaultDictId');
 
   @override
-  RespData<String> getDefaultDict() {
-    final resultC = _getDefaultDict();
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData;
+  int getDefaultDictId() {
+    return _getDefaultDictId();
   }
 
   final _getHTMLRenderContentByWord = nativeAddLib.lookupFunction<
@@ -667,20 +662,14 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  final _finalHtmlBasePathWithOutHtml = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('FinalHtmlBasePathWithOutHtml');
+  final ExistInDict = nativeAddLib.lookupFunction<Bool Function(Pointer<Utf8>),
+      bool Function(Pointer<Utf8>)>('ExistInDict');
 
   @override
-  String finalHtmlBasePathWithOutHtml(String word) {
+  bool existInDict(String word) {
     final wordC = word.toNativeUtf8();
-    final resultC = _finalHtmlBasePathWithOutHtml(wordC);
-    malloc.free(wordC);
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
+    final result = ExistInDict(wordC);
+    return result;
   }
 
   @override
@@ -731,9 +720,10 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Int64, Int64),
       Pointer<Utf8> Function(int, int)>('AllWordsByCreateDayAndOrder');
 
-// allWordsByCreateDayAndOrder
-  final HomeDir = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('HomeDir');
+// checkDictZipTargetPathExist
+  final CheckDictZipTargetPathExist = nativeAddLib.lookupFunction<
+      Bool Function(Pointer<Utf8>),
+      bool Function(Pointer<Utf8>)>('CheckDictZipTargetPathExist');
 
   @override
   ShareInfo getShareInfo() {
@@ -811,5 +801,18 @@ class NativeHandler implements Handler {
     malloc.free(resultC);
     final items = List<String>.from(jsonDecode(result));
     return items;
+  }
+
+  @override
+  bool checkDictZipTargetPathExist(String zipPath) {
+    final zipPathC = zipPath.toNativeUtf8();
+    final result = CheckDictZipTargetPathExist(zipPathC);
+    malloc.free(zipPathC);
+    return result;
+  }
+
+  @override
+  int webDictRunPort() {
+    return WebDictRunPort();
   }
 }

@@ -305,7 +305,7 @@ class _RestoreDataState extends State<RestoreData> {
         ListView(children: children);
 
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       title: const Text("同步数据"),
     );
     return getScaffold(

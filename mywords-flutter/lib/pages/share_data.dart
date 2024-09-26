@@ -229,7 +229,7 @@ class _SyncDataState extends State<SyncData> {
 
     final body = Column(children: children);
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       title: const Text("分享/备份数据"),
     );
 

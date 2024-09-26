@@ -375,8 +375,8 @@ func (c *Client) DBSize() (int64, error) {
 	}
 	return info.Size(), nil
 }
-func (c *Client) InitCreateTables() error {
-	if err := c.gdb.Exec(model.SQL).Error; err != nil {
+func InitCreateTables(gdb *gorm.DB) error {
+	if err := gdb.Exec(model.SQL).Error; err != nil {
 		return err
 	}
 	return nil
@@ -400,4 +400,17 @@ func (c *Client) RestoreFromOldVersionData() error {
 		return err
 	}
 	return nil
+}
+
+func (c *Client) GetUrlByWord(hostname string, word string) (string, bool) {
+	runPort := 0 //TODO
+	htmlPath, ok := c.oneDict.FinalHtmlBasePathWithOutHtml(word)
+	if !ok {
+		return "", false
+	}
+	if hostname == "" {
+		hostname = "localhost"
+	}
+	u := fmt.Sprintf("http://%s:%d/%s.html?word=%s", hostname, runPort, htmlPath, url.QueryEscape(word))
+	return u, true
 }

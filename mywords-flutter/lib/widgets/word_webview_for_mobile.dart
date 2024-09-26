@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
- import 'package:mywords/util/util.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/common/queue.dart';
+
+import '../common/prefs/prefs.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
@@ -116,9 +118,14 @@ class _State extends State<WordWebView> {
   }
 
   void _loadHtmlStringByWord(String word) async {
-    final htmlContent =
+    var htmlContent =
         (await handler.getHTMLRenderContentByWord(word)).data ?? '';
     if (htmlContent == "") return;
+    final isDark = prefs.isDark;
+    if (isDark) {
+      htmlContent =
+          "<style>body{background-color: #FFE0B2FF;}</style>$htmlContent";
+    }
     controller.loadHtmlString(htmlContent, baseUrl: word);
   }
 

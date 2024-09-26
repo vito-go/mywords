@@ -1,6 +1,5 @@
 package dict
 
-const appDictDir = "dict"       // zip 文件格式
 const dictAssetDataDir = "data" // data dir 包含mp3,css,js,png
 const htmlDir = "html"
 const wordHtmlMapJsonName = "word_html_map.json"

@@ -19,12 +19,12 @@ import '../common/queue.dart';
 import '../util/util.dart';
 
 void _queryWordInDictWithMobile(BuildContext context, String word) async {
-  String htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
-  if (htmlBasePath == '') {
+  bool exist = await handler.existInDict(word);
+  if (!exist) {
     word = await handler.dictWordQueryLink(word);
-    htmlBasePath = await handler.finalHtmlBasePathWithOutHtml(word);
+    exist = await handler.existInDict(word);
   }
-  if (htmlBasePath == '') {
+  if (!exist) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -47,42 +47,21 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
   return;
 }
 
-void _queryWordInDictNotMobile(BuildContext context, String word) async {
-  final hostname = handler.getHostName();
-  String url = await handler.getUrlByWord(hostname, word);
-  if (url.isEmpty) {
-    word = await handler.dictWordQueryLink(word);
-    url = await handler.finalHtmlBasePathWithOutHtml(word);
-  }
-  if (url.isEmpty) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
-      duration: const Duration(milliseconds: 2000),
-    ));
-    return;
-  }
-  launchUrlString(url);
-}
-
 void queryWordInDict(BuildContext context, String word) async {
-  if (kIsWeb) {
-    _queryWordInDictWithMobile(context, word);
-    return;
-  }
-  if (Platform.isAndroid || Platform.isIOS) {
+  if (kIsWeb||Platform.isAndroid || Platform.isIOS) {
     _queryWordInDictWithMobile(context, word);
     return;
   }
   // Desktop;
-  _queryWordInDictNotMobile(context, word);
+  // FIXME 不再支持桌面版本, 请使用网页版
+  throw "Unsupported platform, please use web version";
 }
 
 void showWordWithDefault(BuildContext context, String word) async {
-  String meaning = await handler.dictWordQuery(word);
+  String meaning = await handler.defaultWordMeaning(word);
   if (meaning == "") {
     word = await handler.dictWordQueryLink(word);
-    meaning = await handler.dictWordQuery(word);
+    meaning = await handler.defaultWordMeaning(word);
   }
   if (meaning == '') {
     if (!context.mounted) return;
@@ -92,7 +71,7 @@ void showWordWithDefault(BuildContext context, String word) async {
     ));
     return;
   }
-   meaning = fixDefaultMeaning(meaning);
+  meaning = fixDefaultMeaning(meaning);
   if (!context.mounted) return;
   showModalBottomSheet(
       context: context,
@@ -101,8 +80,7 @@ void showWordWithDefault(BuildContext context, String word) async {
         return ConstrainedBox(
           constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.75),
-          child: WordDefaultMeaning(
-              word: word, meaning: meaning ),
+          child: WordDefaultMeaning(word: word, meaning: meaning),
         );
       });
 }
@@ -111,8 +89,9 @@ void showWord(BuildContext context, String word) async {
   FocusManager.instance.primaryFocus?.unfocus();
 
   if (!context.mounted) return;
-  if (Global.defaultDictBasePath == "") {
-    return showWordWithDefault(context, word);
+  if (Global.defaultDictId == 0) {
+    showWordWithDefault(context, word);
+    return;
   }
   queryWordInDict(context, word);
 }

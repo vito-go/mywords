@@ -104,7 +104,7 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
         null:Colors.green),
         // unselectedLabelStyle: const TextStyle(),
       ),
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       actions: [
         Padding(padding: const EdgeInsets.only(right: 16), child: toolTipToday),
         Padding(

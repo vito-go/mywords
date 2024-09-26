@@ -130,15 +130,18 @@ func BackUpData(targetZipPathC *C.char, srcDataPathC *C.char) *C.char {
 	return CharSuccess()
 }
 
-//export DictWordQuery
-func DictWordQuery(wordC *C.char) *C.char {
+//export DefaultWordMeaning
+func DefaultWordMeaning(wordC *C.char) *C.char {
 	key := C.GoString(wordC)
-	s, ok := dict.DefaultDictWordMap[key]
+	s, ok := serverGlobal.OneDict().DefaultWordMeaning(key)
 	if ok {
 		return CharOk(s)
 	}
-	s = dict.DefaultDictWordMap[strings.ToLower(key)]
-	return CharOk(s)
+	s, ok = serverGlobal.OneDict().DefaultWordMeaning(strings.ToLower(key))
+	if ok {
+		return CharOk(s)
+	}
+	return CharOk("")
 }
 
 //export DictWordQueryLink
@@ -406,4 +409,9 @@ func DeleteOldVersionFile() *C.char {
 		return CharErr(err.Error())
 	}
 	return CharSuccess()
+}
+
+//export WebDictRunPort
+func WebDictRunPort() int {
+	return serverGlobal.WebDictRunPort()
 }

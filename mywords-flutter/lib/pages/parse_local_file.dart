@@ -162,7 +162,7 @@ class _State extends State<ParseLocalFile> {
     final col = Column(children: children);
 
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       title: const Text("解析本地文章"),
     );
     return getScaffold(

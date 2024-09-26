@@ -162,7 +162,7 @@ class _State extends State<NetProxy> {
 
     final body = ListView(children: children);
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       title: const Text("设置网络代理"),
     );
     return getScaffold(

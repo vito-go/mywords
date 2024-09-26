@@ -14,25 +14,26 @@ abstract class Handler {
   String readMessage();
 
   // hostname 可以为空，默认localhost
-  FutureOr<String> getUrlByWord(String hostname, String word);
+  FutureOr<String> getUrlByWordForWeb(String hostname, String word);
 
-  FutureOr<RespData<void>> updateDictName(String dataDir, String name);
+  FutureOr<RespData<void>> updateDictName(int id, String name);
 
-  FutureOr<RespData<void>> setDefaultDict(String basePath);
+  FutureOr<RespData<void>> setDefaultDict(int id);
 
-  FutureOr<RespData<List<dynamic>>> dictList();
+  FutureOr<RespData<List<DictInfo>>> dictList();
 
   FutureOr<RespData<void>> addDict(String dataDir);
 
-  FutureOr<RespData<void>> delDict(String basePath);
+  FutureOr<RespData<void>> delDict(int id);
 
   FutureOr<RespData<List<String>>> searchByKeyWord(String word);
 
-  FutureOr<RespData<String>> getDefaultDict();
+  FutureOr<int> getDefaultDictId();
+  FutureOr<bool> checkDictZipTargetPathExist(String zipPath);
 
   FutureOr<RespData<String>> getHTMLRenderContentByWord(String word);
 
-  FutureOr<String> finalHtmlBasePathWithOutHtml(String word);
+  FutureOr<bool> existInDict(String word);
 
   FutureOr<RespData<void>> deleteGobFile(int id);
 
@@ -51,10 +52,11 @@ abstract class Handler {
   RespData<int> vacuumDB();
 
   RespData<int> dbSize();
+  FutureOr< int> webDictRunPort();
 
   FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
 
-  FutureOr<String> dictWordQuery(String word);
+  FutureOr<String> defaultWordMeaning(String word);
 
   FutureOr<String> dictWordQueryLink(String word);
 

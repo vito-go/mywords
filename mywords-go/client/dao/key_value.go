@@ -8,6 +8,7 @@ import (
 	"mywords/model"
 	"mywords/model/mtype"
 	"mywords/pkg/db"
+	"strconv"
 	"time"
 )
 
@@ -97,6 +98,7 @@ func (m *keyValueDao) AllItems(ctx context.Context) ([]model.KeyValue, error) {
 	err := m.Gdb.WithContext(ctx).Table(m.Table()).Order("update_at DESC").Find(&msgs).Error
 	return msgs, err
 }
+
 func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
 	item, err := m.ItemByKeyId(ctx, mtype.KeyIdProxy)
 	if err != nil {
@@ -104,6 +106,19 @@ func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
 	}
 	return item.Value, nil
 }
+
+func (m *keyValueDao) DefaultDictId(ctx context.Context) (int64, error) {
+	item, err := m.ItemByKeyId(ctx, mtype.KeyIdDefaultDictPath)
+	if err != nil {
+		return 0, err
+	}
+	result, err := strconv.ParseInt(item.Value, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
 func (m *keyValueDao) QueryShareInfo(ctx context.Context) (*mtype.ShareInfo, error) {
 	item, err := m.ItemByKeyId(ctx, mtype.KeyIdShareInfo)
 	if err != nil {
@@ -115,6 +130,20 @@ func (m *keyValueDao) QueryShareInfo(ctx context.Context) (*mtype.ShareInfo, err
 		return nil, err
 	}
 	return &shareInfo, nil
+}
+func (m *keyValueDao) QueryUnmarshal(ctx context.Context, keyId mtype.KeyId, value any) error {
+	return m.queryUnmarshal(ctx, keyId, value)
+}
+func (m *keyValueDao) queryUnmarshal(ctx context.Context, keyId mtype.KeyId, value any) error {
+	item, err := m.ItemByKeyId(ctx, keyId)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(item.Value), value)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // SetShareInfo .If not exist, create it.
@@ -131,7 +160,7 @@ func (m *keyValueDao) SetProxyURL(ctx context.Context, proxyURL string) error {
 	return m.UpdateOrCreateByKeyId(ctx, mtype.KeyIdProxy, proxyURL)
 }
 
-func (m *keyValueDao) ItemByKeyId(ctx context.Context, keyId int64) (*model.KeyValue, error) {
+func (m *keyValueDao) ItemByKeyId(ctx context.Context, keyId mtype.KeyId) (*model.KeyValue, error) {
 	var msg model.KeyValue
 	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("key_id=?", keyId).Find(&msg)
 	if tx.Error != nil {

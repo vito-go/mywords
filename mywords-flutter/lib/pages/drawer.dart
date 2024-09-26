@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/global.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
@@ -9,6 +10,7 @@ import 'package:mywords/pages/parse_local_file.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../util/util.dart';
 import 'dict_database.dart';
@@ -85,6 +87,19 @@ class MyDrawerState extends State<MyDrawer> {
     );
   }
 
+  Widget buildListTileWebDictPort() {
+    final url = "http://127.0.0.1:${Global.webDictRunPort}/_query?word=hello";
+    return ListTile(
+      title: const Text('WebDict'),
+      subtitle: Text(url),
+      // trailing: vacuums the database
+      onTap: () {
+        launchUrlString(url);
+      },
+      leading: const Icon(Icons.http),
+    );
+  }
+
   changeTheme() {
     SimpleDialog simpleDialog = SimpleDialog(
       title: const Text('ThemeMode'),
@@ -105,7 +120,7 @@ class MyDrawerState extends State<MyDrawer> {
             Navigator.of(context).pop();
             prefs.themeMode = ThemeMode.dark;
             produceEvent(EventType.updateTheme, ThemeMode.dark);
-           },
+          },
           title: const Text("dark"),
           groupValue: prefs.themeMode,
         ),
@@ -115,7 +130,7 @@ class MyDrawerState extends State<MyDrawer> {
             Navigator.of(context).pop();
             prefs.themeMode = ThemeMode.light;
             produceEvent(EventType.updateTheme, ThemeMode.light);
-           },
+          },
           title: const Text("light"),
           groupValue: prefs.themeMode,
         ),
@@ -145,35 +160,35 @@ class MyDrawerState extends State<MyDrawer> {
     super.dispose();
   }
 
+  Widget get header => ListTile(
+        title: Text("已知单词总数量: $totalCount"),
+        subtitle: Text(levelText),
+        trailing: IconButton(
+            onPressed: () {
+              // changeTheme();
+              // return;
+              if (prefs.themeMode == ThemeMode.light) {
+                prefs.themeMode = ThemeMode.dark;
+                produceEvent(EventType.updateTheme, ThemeMode.dark);
+              } else {
+                prefs.themeMode = ThemeMode.light;
+                produceEvent(EventType.updateTheme, ThemeMode.light);
+              }
+              setState(() {});
+            },
+            icon: prefs.themeMode == ThemeMode.light
+                ? const Icon(Icons.nightlight_round)
+                : const Icon(Icons.sunny)),
+      );
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Drawer(
-            // backgroundColor: Colors.orange.shade50,
             child: ListView(
       children: [
-        DrawerHeader(
-          child: ListTile(
-            title: Text("已知单词总数量: $totalCount"),
-            subtitle: Text(levelText),
-            trailing: IconButton(
-                onPressed: () {
-                  // changeTheme();
-                  // return;
-                  if (prefs.themeMode == ThemeMode.light) {
-                    prefs.themeMode = ThemeMode.dark;
-                    produceEvent(EventType.updateTheme, ThemeMode.dark);
-                  } else {
-                    prefs.themeMode = ThemeMode.light;
-                    produceEvent(EventType.updateTheme, ThemeMode.light);
-                  }
-                  setState(() {});
-                },
-                icon: prefs.themeMode == ThemeMode.light
-                    ? const Icon(Icons.nightlight_round)
-                    : const Icon(Icons.sunny)),
-          ),
-        ),
+        header,
+        const Divider(),
         ListTile(
           title: const Text("我的单词库"),
           leading: const Icon(Icons.wordpress),
@@ -247,6 +262,7 @@ class MyDrawerState extends State<MyDrawer> {
           },
         ),
         buildListTileVacuumDB(),
+        buildListTileWebDictPort(),
       ],
     )));
   }

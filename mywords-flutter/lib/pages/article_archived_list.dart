@@ -21,8 +21,7 @@ class _State extends State<ArticleArchivedPage> {
     return getScaffold(context,
         appBar: AppBar(
           title: const Text("已归档文章"),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          actions: [
+           actions: [
             IconButton(
                 onPressed: () {
                   // 归档置顶

@@ -14,7 +14,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
   await handler.initLib();
-  isolateLoopReadMessage();
+  // isolateLoopReadMessage(); // 开启后无法热重载,为什么? 可能是因为热重载会重新加载所有的代码，而isolateLoopReadMessage()是一个无限循环的函数
   await Global.init();
   runApp(const MyApp());
 }
@@ -70,13 +70,11 @@ class MyAppState extends State<MyApp> {
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         useMaterial3: true,
-        appBarTheme: AppBarTheme(color: inversePrimary),
-        drawerTheme: const DrawerThemeData(
-            // backgroundColor: Colors.grey,
-            ),
+        appBarTheme: const AppBarTheme(color: Colors.black54),
+        drawerTheme: const DrawerThemeData(),
         colorScheme: const ColorScheme.dark(
           primary: Color(0xfff1d296),
-          surface: Color(0xff212121),
+          surface: Color(0xff151515),
         ),
       ),
       theme: ThemeData(
@@ -84,7 +82,7 @@ class MyAppState extends State<MyApp> {
           backgroundColor: Colors.orange.shade50,
         ),
         brightness: Brightness.light,
-        appBarTheme: AppBarTheme(color:inversePrimary),
+        appBarTheme: const AppBarTheme(color: Colors.orangeAccent),
         colorScheme: ColorScheme.fromSeed(
           primary: Colors.orange,
           seedColor: Colors.deepOrange,

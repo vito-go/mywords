@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/libso/handler.dart';
 
@@ -49,6 +50,30 @@ class _State extends State<WordDefaultMeaning> {
     return Row(children: children);
   }
 
+  void loopUp(String selectText) async {
+    String tempWord = selectText;
+    String m = await handler.defaultWordMeaning(tempWord);
+    if (m == "") {
+      tempWord = await handler.dictWordQueryLink(tempWord);
+      m = await handler.defaultWordMeaning(tempWord);
+    }
+    if (m == '') {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
+        duration: const Duration(milliseconds: 2000),
+      ));
+      return;
+    }
+
+    myPrint(word);
+    meaning = fixDefaultMeaning(m);
+    word = tempWord;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final col = Column(
@@ -68,26 +93,8 @@ class _State extends State<WordDefaultMeaning> {
                   selection.textInside(textEditingValue.text).trim();
               if (!selectText.contains(" ")) {
                 buttonItems.add(ContextMenuButtonItem(
-                    onPressed: () async {
-                      String tempWord = selectText;
-                      String m = await handler.dictWordQuery(tempWord);
-                      if (m == "") {
-                        tempWord = await handler.dictWordQueryLink(tempWord);
-                        m = await handler.dictWordQuery(tempWord);
-                      }
-                      if (m == '') {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('无结果: $word',
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
-                          duration: const Duration(milliseconds: 2000),
-                        ));
-                        return;
-                      }
-                      meaning = fixDefaultMeaning(m);
-                      word = tempWord;
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      setState(() {});
+                    onPressed: () {
+                      loopUp(selectText);
                     },
                     label: "Lookup"));
               }

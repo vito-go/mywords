@@ -315,8 +315,7 @@ class ArticlePageState extends State<ArticlePage> {
   @override
   Widget build(BuildContext context) {
     var appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      actions: actions(),
+       actions: actions(),
     );
     final art = article;
     if (art == null) {
@@ -327,8 +326,7 @@ class ArticlePageState extends State<ArticlePage> {
       );
     }
     appBar = AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: actions(),
+         actions: actions(),
         title:
             Text(art.title, maxLines: 3, style: const TextStyle(fontSize: 14)));
     final children = [

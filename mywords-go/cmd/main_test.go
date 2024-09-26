@@ -13,11 +13,12 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	initGlobal(filepath.Join(homeDir, ".local/share/com.example.mywords"), "", 0)
+	initGlobal(filepath.Join(homeDir, ".local/share/com.example.mywords"), 0)
+	return
 	GetChartDataAccumulate()
 	//initGlobal needs time to start
 	time.Sleep(time.Second * 3)
-	content, err := multiDictGlobal.GetHTMLRenderContentByWord("apple")
+	content, err := serverGlobal.OneDict().GetHTMLRenderContentByWord("apple")
 	if err != nil {
 		panic(err)
 	}

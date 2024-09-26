@@ -2,6 +2,7 @@ package dict
 
 import (
 	"archive/zip"
+	"bytes"
 	_ "embed"
 	"encoding/base64"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"golang.org/x/net/html"
 	"io"
 	"mywords/pkg/log"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -20,11 +22,15 @@ import (
 )
 
 type OneDict struct {
-	zipFile            string
+	mux     sync.RWMutex
+	zipFile string // empty string means use default dict
+	dictId  int64
+
 	zipFileMap         map[string]*zip.File
 	allWordHtmlFileMap map[string]string // word:htmlPath htmlPath不带html后缀
 	zipReadCloser      *zip.ReadCloser
-	jsCssCache         sync.Map // key:htmlBasePath, value:htmlContent string:[]byte
+	jsCssCache         sync.Map // deprecated:  key:htmlBasePath, value:htmlContent string:[]byte
+	defaultDictWordMap map[string]string
 }
 
 func (d *OneDict) getZipFile(path string) (*zip.File, bool) {
@@ -55,10 +61,28 @@ func getAllWordHtmlFileMap(file *zip.File) (map[string]string, error) {
 	return allWordHtmlFileMap, nil
 
 }
-func NewDictZip(zipFile string) (*OneDict, error) {
+
+func (d *OneDict) DefaultWordMeaning(word string) (string, bool) {
+	data, ok := d.defaultDictWordMap[word]
+	return data, ok
+}
+func NewOneDict() *OneDict {
+	return &OneDict{
+		mux:                sync.RWMutex{},
+		zipFile:            "",
+		zipFileMap:         nil,
+		allWordHtmlFileMap: nil,
+		zipReadCloser:      nil,
+		jsCssCache:         sync.Map{},
+		defaultDictWordMap: DefaultDictWordMap,
+	}
+}
+func (d *OneDict) SetDict(zipFile string) error {
+	d.mux.Lock()
+	defer d.mux.Unlock()
 	z, err := zip.OpenReader(zipFile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var allWordHtmlFileMap map[string]string
 	zipFileMap := make(map[string]*zip.File)
@@ -69,21 +93,22 @@ func NewDictZip(zipFile string) (*OneDict, error) {
 			allWordHtmlFileMap, err = getAllWordHtmlFileMap(file)
 			if err != nil {
 				_ = z.Close()
-				return nil, err
+				return err
 			}
 		}
 	}
 	if len(allWordHtmlFileMap) == 0 {
 		_ = z.Close()
-		return nil, fmt.Errorf("字典文件中没有找到 %s", wordHtmlMapJsonName)
+		return fmt.Errorf("字典文件中没有找到 %s", wordHtmlMapJsonName)
 	}
-	return &OneDict{
-		zipFile:            zipFile,
-		zipFileMap:         zipFileMap,
-		allWordHtmlFileMap: allWordHtmlFileMap,
-		zipReadCloser:      z,
-	}, nil
+	d.Close()
+	d.zipFile = zipFile
+	d.zipFileMap = zipFileMap
+	d.allWordHtmlFileMap = allWordHtmlFileMap
+	d.zipReadCloser = z
+	return nil
 }
+
 func (d *OneDict) FinalHtmlBasePathWithOutHtml(word string) (string, bool) {
 	return d.finalHtmlBasePathWithOutHtml(word)
 }
@@ -96,10 +121,8 @@ func (d *OneDict) finalHtmlBasePathWithOutHtml(word string) (string, bool) {
 }
 
 func (d *OneDict) Close() {
-	if d == nil {
-		return
-	}
 	d.zipFileMap = nil
+	d.zipFile = ""
 	d.allWordHtmlFileMap = nil
 	if z := d.zipReadCloser; z != nil {
 		z.Close()
@@ -299,7 +322,46 @@ func (d *OneDict) replaceHTMLContent(htmlContent string) (string, error) {
 	return htmlquery.OutputHTML(htmlNode, true), nil
 }
 
+// getResultByDefaultDict .
+func (d *OneDict) getResultByDefaultDict(word string) (string, error) {
+	result, ok := d.defaultDictWordMap[word]
+	if ok {
+		return result, nil
+	}
+	return "", DataNotFound
+}
+
+// ExistInDict .
+func (d *OneDict) ExistInDict(word string) bool {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+	if d.zipFile == "" {
+		return false
+	}
+	_, ok := d.allWordHtmlFileMap[word]
+	return ok
+}
 func (d *OneDict) GetHTMLRenderContentByWord(word string) (string, error) {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+	if d.zipFile == "" {
+		// 走默认字典
+		return d.getResultByDefaultDict(word)
+	}
+	return d.getHTMLRenderContentByWord(word)
+}
+
+// SearchByKeyWord .
+func (d *OneDict) SearchByKeyWord(keyWord string) []string {
+	d.mux.RLock()
+	defer d.mux.RUnlock()
+	if d.zipFile == "" {
+		return SearchByKeyWord(keyWord, d.defaultDictWordMap)
+	}
+	return SearchByKeyWord(keyWord, d.allWordHtmlFileMap)
+}
+
+func (d *OneDict) getHTMLRenderContentByWord(word string) (string, error) {
 	basePath, ok := d.finalHtmlBasePathWithOutHtml(word)
 	if !ok {
 		return "", DataNotFound
@@ -378,4 +440,27 @@ func (d *OneDict) changeEntryHref(htmlNode *html.Node) {
 			}
 		}
 	}
+}
+
+// baseHTMLPath with .html
+func (d *OneDict) writeByWordBaseHTMLPath(w http.ResponseWriter, word, baseHTMLPath string) {
+	content, err := d.getContentByHtmlBasePath(word, baseHTMLPath)
+	if err != nil {
+		if errors.Is(err, DataNotFound) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	//content = bytes.ReplaceAll(content, []byte("entry://"), []byte("/_entry/"))
+	htmlNode, err := htmlquery.Parse(bytes.NewReader(content))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	d.replaceSoundWithSourceURL(htmlNode)
+	d.changeEntryHref(htmlNode)
+	html.Render(w, htmlNode)
+	return
 }

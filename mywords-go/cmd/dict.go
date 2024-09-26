@@ -1,40 +1,33 @@
 package main
 
 import "C"
-import (
-	"mywords/dict"
-	"sort"
-)
 
-var multiDictGlobal *dict.MultiDict
-
-//export GetUrlByWord
-func GetUrlByWord(hostnameC *C.char, wordC *C.char) *C.char {
-	u, _ := multiDictGlobal.GetUrlByWord(C.GoString(hostnameC), C.GoString(wordC))
+//export GetUrlByWordForWeb
+func GetUrlByWordForWeb(hostnameC *C.char, wordC *C.char) *C.char {
+	u, _ := serverGlobal.GetUrlByWord(C.GoString(hostnameC), C.GoString(wordC))
 	return CharOk(u)
 }
 
-//export FinalHtmlBasePathWithOutHtml
-func FinalHtmlBasePathWithOutHtml(wordC *C.char) *C.char {
-	u, _ := multiDictGlobal.FinalHtmlBasePathWithOutHtml(C.GoString(wordC))
-	return CharOk(u)
+//export ExistInDict
+func ExistInDict(wordC *C.char) bool {
+	return serverGlobal.OneDict().ExistInDict(C.GoString(wordC))
 }
 
-//export GetDefaultDict
-func GetDefaultDict() *C.char {
-	u := multiDictGlobal.GetDefaultDict()
-	return CharOk(u)
+//export GetDefaultDictId
+func GetDefaultDictId() int64 {
+	u := serverGlobal.DefaultDictId()
+	return u
 }
 
 //export DelDict
-func DelDict(basePath *C.char) *C.char {
-	u := multiDictGlobal.DelDict(C.GoString(basePath))
+func DelDict(id int64) *C.char {
+	u := serverGlobal.DelDict(ctx, id)
 	return CharOk(u)
 }
 
 //export UpdateDictName
-func UpdateDictName(dataDirC, nameC *C.char) *C.char {
-	err := multiDictGlobal.UpdateDictName(C.GoString(dataDirC), C.GoString(nameC))
+func UpdateDictName(id int64, nameC *C.char) *C.char {
+	err := serverGlobal.AllDao().DictInfoDao.UpdateNameById(ctx, id, C.GoString(nameC))
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -42,8 +35,8 @@ func UpdateDictName(dataDirC, nameC *C.char) *C.char {
 }
 
 //export SetDefaultDict
-func SetDefaultDict(dataDirC *C.char) *C.char {
-	err := multiDictGlobal.SetDefaultDict(C.GoString(dataDirC))
+func SetDefaultDict(id int64) *C.char {
+	err := serverGlobal.SetDefaultDictById(ctx, id)
 	if err != nil {
 		return CharErr(err.Error())
 	}
@@ -52,42 +45,37 @@ func SetDefaultDict(dataDirC *C.char) *C.char {
 
 //export DictList
 func DictList() *C.char {
-	m := multiDictGlobal.DictBasePathTitleMap()
-	type t struct {
-		BasePath string `json:"basePath,omitempty"`
-		Title    string `json:"title,omitempty"`
+	items, err := serverGlobal.AllDao().DictInfoDao.AllItems(ctx)
+	if err != nil {
+		return CharErr(err.Error())
 	}
-	var result []t
-	for zipFile, name := range m {
-		result = append(result, t{
-			BasePath: zipFile,
-			Title:    name,
-		})
-	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].BasePath < result[j].BasePath
-	})
-	return CharOk(result)
+	return CharOk(items)
 }
 
 //export AddDict
 func AddDict(zipFileC *C.char) *C.char {
-	err := multiDictGlobal.AddDict(C.GoString(zipFileC))
+	err := serverGlobal.AddDict(ctx, C.GoString(zipFileC))
 	if err != nil {
 		return CharErr(err.Error())
 	}
 	return CharSuccess()
 }
 
+//export CheckDictZipTargetPathExist
+func CheckDictZipTargetPathExist(zipPathC *C.char) bool {
+	_, exist, _ := serverGlobal.GetTargetPathAndCheckExist(C.GoString(zipPathC))
+	return exist
+}
+
 //export SearchByKeyWord
 func SearchByKeyWord(keyWordC *C.char) *C.char {
-	items := multiDictGlobal.SearchByKeyWord(C.GoString(keyWordC))
+	items := serverGlobal.OneDict().SearchByKeyWord(C.GoString(keyWordC))
 	return CharOk(items)
 }
 
 //export GetHTMLRenderContentByWord
 func GetHTMLRenderContentByWord(wordC *C.char) *C.char {
-	p, err := multiDictGlobal.GetHTMLRenderContentByWord(C.GoString(wordC))
+	p, err := serverGlobal.OneDict().GetHTMLRenderContentByWord(C.GoString(wordC))
 	if err != nil {
 		return CharErr(err.Error())
 	}
