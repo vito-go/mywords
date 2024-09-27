@@ -59,7 +59,7 @@ type Client struct {
 	messageLimiter *rate.Limiter
 	closed         atomic.Bool
 	oneDict        *dict.OneDict
-	defaultDictId  atomic.Int64
+	defaultDictId  *atomic.Int64
 	//		//
 	//	//knownWordsMap map[string]map[string]WordKnownLevel // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
 	//	knownWordsMap *MySyncMapMap[string, WordKnownLevel] // a: apple:1, ant:1, b: banana:2, c: cat:1 ...
@@ -122,6 +122,7 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	defaultDictIdAtomic := &atomic.Int64{}
 	client := &Client{
 		rootDataDir:     rootDataDir,
 		xpathExpr:       artical.DefaultXpathExpr,
@@ -133,10 +134,12 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 		shareOpened:     atomic.Bool{},
 		oneDict:         onDict,
 		webDict:         webDict,
+		defaultDictId:   defaultDictIdAtomic,
 		//dictRunPort:     atomic.Int64{},
 	}
 
 	defaultDictId, _ := allDao.KeyValueDao.DefaultDictId(ctx)
+	defaultDictIdAtomic.Store(defaultDictId)
 	if defaultDictId > 0 {
 		go func() {
 			err := client.SetDefaultDictById(ctx, defaultDictId)
@@ -144,7 +147,6 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 				log.Ctx(ctx).Error(err.Error())
 				return
 			}
-
 		}()
 	}
 	pprofLis, err := client.startPProf()
