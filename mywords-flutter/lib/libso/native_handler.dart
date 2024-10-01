@@ -315,12 +315,12 @@ class NativeHandler implements Handler {
           bool)>('RestoreFromShareServer');
 
 // func ShareClosed( ) *C.char
-  final _shareClosed = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('ShareClosed');
+  final _shareClosed = nativeAddLib.lookupFunction<Pointer<Utf8> Function(Int64,Int64),
+      Pointer<Utf8> Function(int,int)>('ShareClosed');
 
   @override
-  RespData<void> shareClosed() {
-    final resultC = _shareClosed();
+  RespData<void> shareClosed(int port, int code) {
+    final resultC = _shareClosed(port, code);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);

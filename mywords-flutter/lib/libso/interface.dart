@@ -73,7 +73,7 @@ abstract class Handler {
 
   FutureOr<String> proxyURL();
 
-  FutureOr<RespData<void>> shareClosed();
+  FutureOr<RespData<void>> shareClosed(int port, int code);
 
   FutureOr<RespData<void>> shareOpen(int port, int code);
 // //export SyncData

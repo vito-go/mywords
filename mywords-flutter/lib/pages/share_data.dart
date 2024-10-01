@@ -33,7 +33,6 @@ class _SyncDataState extends State<SyncData> {
   void initState() {
     super.initState();
     updateShareInfo();
-    initController();
     updateLocalExampleIP();
   }
 
@@ -47,13 +46,9 @@ class _SyncDataState extends State<SyncData> {
 
   void updateShareInfo() async {
     shareInfo = await handler.getShareInfo();
-    initController();
-    setState(() {});
-  }
-
-  void initController() async {
     controllerPort.text = '${shareInfo.port}';
     controllerCode.text = '${shareInfo.code}';
+    setState(() {});
   }
 
   @override
@@ -70,7 +65,10 @@ class _SyncDataState extends State<SyncData> {
   }
 
   Future<void> doShareClose() async {
-    final respData = await handler.shareClosed();
+    final respData = await handler.shareClosed(
+      int.tryParse(controllerPort.text.trim()) ?? 0,
+      int.tryParse(controllerCode.text.trim()) ?? 0,
+    );
     if (respData.code != 0) {
       myToast(context, respData.message);
       return;

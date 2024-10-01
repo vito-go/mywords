@@ -28,7 +28,7 @@ func UpdateKnownWordLevel(c *C.char, level int) *C.char {
 }
 
 //export ShareOpen
-func ShareOpen(port int, code int64) *C.char {
+func ShareOpen(port int64, code int64) *C.char {
 	err := serverGlobal.ShareOpen(port, code)
 	if err != nil {
 		return CharErr(err.Error())
@@ -79,8 +79,8 @@ func GetToadyChartDateLevelCountMap() *C.char {
 }
 
 //export ShareClosed
-func ShareClosed() *C.char {
-	serverGlobal.ShareClosed()
+func ShareClosed(port int64, code int64) *C.char {
+	serverGlobal.ShareClosed(port, code)
 	return CharSuccess()
 }
 

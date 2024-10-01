@@ -244,8 +244,8 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> shareClosed() async {
-    final result = await call("ShareClosed", []);
+  Future<RespData<void>> shareClosed(int port, int code) async {
+    final result = await call("ShareClosed", [port,code]);
 
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);

@@ -461,7 +461,7 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 	return nil
 }
 
-func (c *Client) ShareOpen(port int, code int64) error {
+func (c *Client) ShareOpen(port int64, code int64) error {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	if c.shareServer != nil {
@@ -500,7 +500,7 @@ func (c *Client) ShareOpen(port int, code int64) error {
 }
 
 // ShareClosed .
-func (c *Client) ShareClosed() {
+func (c *Client) ShareClosed(port int64, code int64) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	if c.shareServer != nil {
@@ -509,6 +509,15 @@ func (c *Client) ShareClosed() {
 		_ = c.shareServer.Close()
 	}
 	c.shareOpened.Store(false)
+	shareInfo := &mtype.ShareInfo{
+		Port: port,
+		Code: code,
+	}
+	err := c.allDao.KeyValueDao.SetShareInfo(ctx, shareInfo)
+	if err != nil {
+		return
+	}
+	log.Printf("share server closed, port %d, code %d", port, code)
 }
 
 // DropAndReCreateDB 生产环境禁止使用
@@ -555,7 +564,7 @@ func (c *Client) GetShareInfo() *ShareInfo {
 }
 
 type ShareInfo struct {
-	Port int   `json:"port"`
+	Port int64 `json:"port"`
 	Code int64 `json:"code"`
 	Open bool  `json:"open"` //数据不包含在该字段
 }
