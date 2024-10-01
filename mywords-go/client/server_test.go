@@ -88,3 +88,11 @@ func TestClient_SyncDataKnownWords(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// SyncDataKnownWords
+func TestClient_SyncDataFileInfos(t *testing.T) {
+	err := clientGlobal.SyncDataFileInfos("192.168.0.171", 8964, 890604)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

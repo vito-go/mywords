@@ -9,6 +9,7 @@ import 'package:mywords/widgets/private_ip.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../libso/types.dart';
 
@@ -68,57 +69,6 @@ class _SyncDataState extends State<SyncData> {
     return path.join(dir.path, "data");
   }
 
-  void _onTapBackUpData() async {
-    await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("备份数据到下载目录"),
-            content: TextField(
-                controller: controllerBackUpZipName,
-                decoration: const InputDecoration(
-                    hintText: "请输入备份文件名字", suffix: Text(".zip"))),
-            actions: [
-              TextButton(
-                  onPressed: () async {
-                    if (controllerBackUpZipName.text == "") {
-                      myToast(context, "文件名不能为空");
-                      return;
-                    }
-                    if (controllerBackUpZipName.text.startsWith("..")) {
-                      myToast(context, "文件名不能以..开头");
-                    }
-                    if (controllerBackUpZipName.text.startsWith("/")) {
-                      myToast(context, "文件名不能包含特殊字符/");
-                    }
-                    final zipName = "${controllerBackUpZipName.text}.zip";
-                    final dirPath = await dataDirPath();
-                    final respData =
-                        await compute(computeBackUpData, <String, String>{
-                      "zipName": zipName,
-                      "dataDirPath": dirPath,
-                    });
-                    if (respData.code != 0) {
-                      myToast(context, "备份失败!\n${respData.message}");
-                      return;
-                    }
-                    myToast(context, "备份成功!\n${respData.data}");
-                    Navigator.pop(context);
-                  },
-                  child: const Text("保存")),
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("取消"))
-            ],
-          );
-        });
-    if (!context.mounted) {
-      return;
-    }
-  }
-
   Future<void> doShareClose() async {
     final respData = await handler.shareClosed();
     if (respData.code != 0) {
@@ -167,21 +117,7 @@ class _SyncDataState extends State<SyncData> {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [const PrivateIP()];
-    children.add(ListTile(
-      title: const Text("备份数据"),
-      leading: const Tooltip(
-        message: "学习数据备份文件将保存在本地",
-        triggerMode: TooltipTriggerMode.tap,
-        child: Icon(Icons.info_outline),
-      ),
-      trailing: IconButton(
-        onPressed: _onTapBackUpData,
-        icon: Icon(
-          Icons.save_alt,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
-    ));
+
     children.add(ListTile(
       leading: Tooltip(
         message:
@@ -226,10 +162,36 @@ class _SyncDataState extends State<SyncData> {
       ),
       trailing: switchBuild(),
     ));
+    if (shareInfo.open) {
+      final shareFileInfosURL =
+          "http://127.0.0.1:${shareInfo.port}/share/shareFileInfos?code=${shareInfo.code}";
 
+      children.add(ListTile(
+        title: const Text("文件列表"),
+        leading: const Icon(Icons.http),
+        subtitle: Text(shareFileInfosURL),
+        trailing: IconButton(
+            onPressed: () {
+              launchUrlString(shareFileInfosURL);
+            },
+            icon: const Icon(Icons.open_in_browser)),
+      ));
+
+      final shareKnownWordsURL =
+          "http://127.0.0.1:${shareInfo.port}/share/shareKnownWords?code=${shareInfo.code}";
+      children.add(ListTile(
+        leading: const Icon(Icons.http),
+        title: const Text("我的单词库"),
+        subtitle: Text(shareKnownWordsURL),
+        trailing: IconButton(
+            onPressed: () {
+              launchUrlString(shareKnownWordsURL);
+            },
+            icon: const Icon(Icons.open_in_browser)),
+      ));
+    }
     final body = Column(children: children);
     final appBar = AppBar(
-     
       title: const Text("分享/备份数据"),
     );
 

@@ -331,8 +331,9 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 
 	var allWords []string
 	var allInster []model.KnownWords
-	for i, item := range result {
+	for i := range result {
 		// reset ID
+		item := result[i]
 		result[i].ID = 0
 		allWords = append(allWords, item.Word)
 		allInster = append(allInster, item)
@@ -437,9 +438,10 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 	}
 	log.Println("result", result)
 
-	for i, item := range result {
+	for i := range result {
 		// reset ID
-		result[i].ID = 0
+		item := result[i]
+		item.ID = 0
 		// 开启事务期间不支持查询? 为什么sqlite3不支持
 		_, err = c.allDao.FileInfoDao.ItemBySourceUrl(ctx, item.SourceUrl)
 		if err == nil {
