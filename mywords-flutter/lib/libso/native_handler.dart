@@ -713,6 +713,11 @@ class NativeHandler implements Handler {
   final RestoreFromOldVersionData = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('RestoreFromOldVersionData');
+  // //export SyncData
+  // func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
+  final SyncData = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Int64, Int64, Int64),
+      Pointer<Utf8> Function(Pointer<Utf8>, int, int, int)>('SyncData');
   // DBExecute
   final DBExecute = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
@@ -827,5 +832,19 @@ class NativeHandler implements Handler {
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
+  }
+
+
+  @override
+  FutureOr<RespData<void>> syncData(String ip, int port, int code, int syncKind) {
+    final ipC = ip.toNativeUtf8();
+    final resultC = SyncData(ipC, port, code, syncKind);
+    final result = resultC.toDartString();
+    malloc.free(ipC);
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
+
   }
 }

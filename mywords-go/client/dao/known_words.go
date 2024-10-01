@@ -103,6 +103,20 @@ func (m *knownWordsDao) AllItems(ctx context.Context) ([]model.KnownWords, error
 	return msgs, err
 }
 
+// DeleteByWordsTX .
+func (m *knownWordsDao) DeleteByWordsTX(TX *gorm.DB, words ...string) error {
+	return TX.Table(m.Table()).Where("word IN ?", words).Delete(&model.KnownWords{}).Error
+}
+
+// CreateBatchTX .
+func (m *knownWordsDao) CreateBatchTX(TX *gorm.DB, msgs ...model.KnownWords) error {
+	if len(msgs) == 0 {
+		return nil
+	}
+	return TX.Table(m.Table()).Clauses(clause.Insert{
+		Modifier: "OR IGNORE",
+	}).Create(msgs).Error
+}
 func (m *knownWordsDao) AllItemsByCreateDay(ctx context.Context, createDay int64) ([]model.KnownWords, error) {
 	var msgs []model.KnownWords
 	err := m.Gdb.WithContext(ctx).Table(m.Table()).Where("create_day = ?", createDay).Order("update_at DESC").Find(&msgs).Error

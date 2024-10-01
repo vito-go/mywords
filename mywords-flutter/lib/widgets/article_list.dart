@@ -233,12 +233,12 @@ class _State extends State<ArticleListView> {
               title: const Text("提示"),
               content: const Text("向左滑动删除文章, 向右滑动归档文章"),
               actions: [
-                ElevatedButton(
+                TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
                     child: const Text("确认")),
-                ElevatedButton(
+                TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                       prefs.toastSlideToDelete = true;

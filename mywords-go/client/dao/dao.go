@@ -12,6 +12,7 @@ type AllDao struct {
 
 func NewAllDao(gdb *gorm.DB) *AllDao {
 	return &AllDao{
+		gdb:           gdb,
 		FileInfoDao:   &fileInfoDao{Gdb: gdb},
 		KeyValueDao:   &keyValueDao{Gdb: gdb},
 		DictInfoDao:   &dictInfoDao{Gdb: gdb},

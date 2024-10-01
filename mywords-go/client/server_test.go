@@ -80,3 +80,11 @@ func TestClient_restoreFromDailyChartDataFile(t *testing.T) {
 	}
 
 }
+
+// SyncDataKnownWords
+func TestClient_SyncDataKnownWords(t *testing.T) {
+	err := clientGlobal.SyncDataKnownWords("192.168.0.171", 8964, 890604)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

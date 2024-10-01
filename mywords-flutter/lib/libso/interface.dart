@@ -76,7 +76,10 @@ abstract class Handler {
   FutureOr<RespData<void>> shareClosed();
 
   FutureOr<RespData<void>> shareOpen(int port, int code);
-
+// //export SyncData
+// func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
+  // 1 sync known words, 2 sync file infos
+  FutureOr<RespData<void>> syncData(String ip, int port, int code, int syncKind);
   FutureOr<RespData<void>> restoreFromShareServer(
       String ip,
       int port,

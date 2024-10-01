@@ -69,7 +69,7 @@ class _RestoreDataState extends State<RestoreData> {
     controllerPort.dispose();
     controllerCode.dispose();
     controllerIP.dispose();
-   }
+  }
 
   Future<int> syncShareData() async {
     if (controllerIP.text == "") {
@@ -95,15 +95,14 @@ class _RestoreDataState extends State<RestoreData> {
       tempDir = dir.path;
     }
 
-    final respData = await compute(
-        computeRestoreFromShareServer, <String, dynamic>{
+    final respData =
+        await compute(computeRestoreFromShareServer, <String, dynamic>{
       'ip': controllerIP.text,
       'port': port,
       'code': code,
       'tempDir': tempDir,
       'syncKnownWords': syncKnownWords,
       'syncToadyWordCount': syncToadyWordCount,
-      "syncByRemoteArchived": syncByRemoteArchived,
     });
     setState(() {
       isSyncing = false;
@@ -119,20 +118,14 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
-    produce(Event(
-        eventType: EventType.syncData, param: syncToadyWordCount));
+    produce(Event(eventType: EventType.syncData, param: syncToadyWordCount));
     return 0;
   }
 
   bool isSyncing = false;
+  bool isSyncingKnownWords = false;
+  bool isSyncFileInfos = false;
 
-  Widget syncShareDataBuild() {
-    return ElevatedButton.icon(
-      onPressed: isSyncing ? null : syncShareData,
-      icon: const Icon(Icons.sync),
-      label: const Text("开始同步"),
-    );
-  }
 
   void restoreFromFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -163,22 +156,18 @@ class _RestoreDataState extends State<RestoreData> {
         myToast(context, 'null stream: $p');
         return;
       }
-      respData = await compute(
-          computeRestoreFromBackUpData, <String, dynamic>{
+      respData = await compute(computeRestoreFromBackUpData, <String, dynamic>{
         "syncKnownWords": syncKnownWords,
         "zipPath": file.path!,
         "syncToadyWordCount": syncToadyWordCount,
-        "syncByRemoteArchived": syncByRemoteArchived,
       });
     } else {
-      respData = await compute(
-          computeWebRestoreFromBackUpData,
-          <String, dynamic>{
-            "syncKnownWords": syncKnownWords,
-            "bytes": file.readStream,
-            "syncToadyWordCount": syncToadyWordCount,
-            "syncByRemoteArchived": syncByRemoteArchived,
-          });
+      respData =
+          await compute(computeWebRestoreFromBackUpData, <String, dynamic>{
+        "syncKnownWords": syncKnownWords,
+        "bytes": file.readStream,
+        "syncToadyWordCount": syncToadyWordCount,
+      });
     }
     setState(() {
       isSyncing = false;
@@ -234,55 +223,13 @@ class _RestoreDataState extends State<RestoreData> {
   }
 
   bool syncToadyWordCount = prefs.syncToadyWordCount;
-  bool syncByRemoteArchived = prefs.syncByRemoteArchived;
   bool syncKnownWords = prefs.syncKnownWords;
 
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [
       const PrivateIP(),
-      SwitchListTile(
-        value: syncToadyWordCount,
-        onChanged: (v) {
-          syncToadyWordCount = v;
-          prefs.syncToadyWordCount = v;
-          setState(() {});
-        },
-        title: const Text("同步每日/累计单词学习统计"),
-      ),
-      SwitchListTile(
-        value: syncKnownWords,
-        onChanged: (v) {
-          syncKnownWords = v;
-          prefs.syncKnownWords = v;
-          setState(() {});
-        },
-        title: const Text("同步已知单词库"),
-      ),
-      SwitchListTile(
-        value: syncByRemoteArchived,
-        onChanged: (v) {
-          syncByRemoteArchived = v;
-          prefs.syncByRemoteArchived = v;
-          setState(() {});
-        },
-        title: const Text("同步文章归档信息"),
-      )
     ];
-    children.add(
-      ListTile(
-        title: const Text("从本地同步"),
-        leading: const Tooltip(
-          message: "从本地选择zip文件进行数据同步",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info_outline),
-        ),
-        trailing: IconButton(
-          onPressed: restoreFromFile,
-          icon: Icon(Icons.file_open, color: Theme.of(context).colorScheme.primary),
-        ),
-      ),
-    );
     children.add(ListTile(title: textFieldIP()));
     children.add(Row(
       children: [
@@ -290,28 +237,113 @@ class _RestoreDataState extends State<RestoreData> {
         Flexible(child: ListTile(title: textFieldCode())),
       ],
     ));
-    children.add(ListTile(
-      trailing: syncShareDataBuild(),
-      title: isSyncing ? const LinearProgressIndicator() : null,
-      leading: const Tooltip(
-        message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
-        triggerMode: TooltipTriggerMode.tap,
-        showDuration: Duration(seconds: 15),
-        child: Icon(Icons.info),
-      ),
-    ));
 
-    final col =
-        ListView(children: children);
+
+
+    children.addAll([
+      ListTile(
+        title: const Text("我的单词库"),
+        leading: const Tooltip(
+          message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
+          triggerMode: TooltipTriggerMode.tap,
+          showDuration: Duration(seconds: 15),
+          child: Icon(Icons.info_outline),
+        ),
+        trailing: IconButton(
+            onPressed: isSyncingKnownWords?null:() async {
+              prefs.syncIpPortCode = [
+                controllerIP.text.trim(),
+                controllerPort.text.trim(),
+                controllerCode.text.trim(),
+              ];
+              setState(() {
+                isSyncingKnownWords = true;
+              });
+              final respData = await compute((param) {
+                return handler.syncData(
+                    param['ip'] as String,
+                    param['port'] as int,
+                    param['code'] as int,
+                    param['syncKind'] as int);
+              }, <String, dynamic>{
+                'ip': controllerIP.text.trim(),
+                'port': int.parse(controllerPort.text.trim()),
+                'code': int.parse(controllerCode.text.trim()),
+                'syncKind': 1
+              });
+
+              setState(() {
+                isSyncingKnownWords = false;
+              });
+              if (respData.code != 0) {
+                myToast(context, respData.message);
+                return;
+              }
+              myToast(context, "同步我的单词库成功");
+              produceEvent(EventType.updateKnownWord);
+
+            },
+            icon: const Icon(Icons.sync)),
+        subtitle: isSyncingKnownWords
+            ? const LinearProgressIndicator()
+            : const Text(""),
+      ),
+      ListTile(
+        title: const Text("同步文章信息"),
+        leading: const Tooltip(
+          message: "同步数据后，本地数据将与远程数据进行合并",
+          triggerMode: TooltipTriggerMode.tap,
+          child: Icon(Icons.info_outline),
+        ),
+        subtitle:
+            isSyncFileInfos ? const LinearProgressIndicator() : const Text(""),
+        trailing: IconButton(
+            onPressed: isSyncFileInfos?null:() async {
+              prefs.syncIpPortCode = [
+                controllerIP.text.trim(),
+                controllerPort.text.trim(),
+                controllerCode.text.trim(),
+              ];
+              setState(() {
+                isSyncFileInfos = true;
+              });
+
+              final respData = await compute((param) {
+                return handler.syncData(
+                    param['ip'] as String,
+                    param['port'] as int,
+                    param['code'] as int,
+                    param['syncKind'] as int);
+              }, <String, dynamic>{
+                'ip': controllerIP.text.trim(),
+                'port': int.parse(controllerPort.text.trim()),
+                'code': int.parse(controllerCode.text.trim()),
+                'syncKind': 2
+              });
+              setState(() {
+                isSyncFileInfos = false;
+              });
+              if (respData.code != 0) {
+                myToast(context, respData.message);
+                return;
+              }
+              myToast(context, "同步文章信息成功");
+              produceEvent(EventType.updateArticleList);
+
+            },
+            icon: const Icon(Icons.sync)),
+      ),
+    ]);
+
+    final col = ListView(children: children);
 
     final appBar = AppBar(
-     
       title: const Text("同步数据"),
     );
     return getScaffold(
       context,
       appBar: appBar,
-      body:col,
+      body: col,
     );
   }
 }

@@ -422,6 +422,15 @@ class WebHandler implements Handler {
   }
 
   @override
+  FutureOr<RespData<void>> syncData(
+      String ip, int port, int code, int syncKind)async {
+    final result =await call("SyncData", [ip, port, code, syncKind]);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) => null);
+    return respData;
+  }
+
+  @override
   RespData<void> dropAndReCreateDB() {
     // TODO: implement dropAndReCreateDB
     throw UnimplementedError();

@@ -415,3 +415,12 @@ func DeleteOldVersionFile() *C.char {
 func WebDictRunPort() int {
 	return serverGlobal.WebDictRunPort()
 }
+
+//export SyncData
+func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
+	err := serverGlobal.SyncData(C.GoString(host), port, code, syncKind)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharSuccess()
+}

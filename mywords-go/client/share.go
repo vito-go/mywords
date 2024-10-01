@@ -4,6 +4,7 @@ import "C"
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"mywords/model"
 	"mywords/model/mtype"
 	"mywords/pkg/log"
+	"net/url"
 	"strconv"
 
 	"net"
@@ -224,9 +226,11 @@ func (c *shareServerHandler) articleFromSourceURL(w http.ResponseWriter, r *http
 		return
 	}
 	defer f.Close()
+	name := filepath.Base(info.FilePath)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename=%s`, name))
 	_, err = io.Copy(w, f)
 }
-func (c *shareServerHandler) shareData(w http.ResponseWriter, r *http.Request) {
+func (c *shareServerHandler) shareKnownWords(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
 	code := query.Get("code")
@@ -235,29 +239,13 @@ func (c *shareServerHandler) shareData(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("code not match"))
 		return
 	}
-	syncKnownWords := query.Get("syncKnownWords")
-	syncFileInfo := query.Get("syncFileInfo")
-	resultData := map[string]any{}
-
-	if syncFileInfo == "true" {
-		fileInfos, err := c.client.allDao.FileInfoDao.AllItems(ctx)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		resultData["fileInfos"] = fileInfos
+	knownWords, err := c.client.allDao.KnownWordsDao.AllItems(ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
 	}
-	if syncKnownWords == "true" {
-		knownWords, err := c.client.allDao.KnownWordsDao.AllItems(ctx)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		resultData["knownWords"] = knownWords
-	}
-	data, err := json.Marshal(resultData)
+	data, err := json.Marshal(knownWords)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(err.Error()))
@@ -265,6 +253,210 @@ func (c *shareServerHandler) shareData(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Type", "application/json")
 	_, _ = w.Write(data)
+}
+func (c *shareServerHandler) shareFileInfos(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := r.URL.Query()
+	code := query.Get("code")
+	if code != strconv.FormatInt(c.code, 10) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte("code not match"))
+		return
+	}
+
+	fileInfos, err := c.client.allDao.FileInfoDao.AllItems(ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+
+	data, err := json.Marshal(fileInfos)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	_, _ = w.Write(data)
+}
+
+// SyncData syncKind 1 for knownWords, 2 for fileInfos
+func (c *Client) SyncData(host string, port int, code int64, syncKind int) error {
+
+	switch syncKind {
+	case 1:
+		return c.SyncDataKnownWords(host, port, code)
+	case 2:
+
+		return c.SyncDataFileInfos(host, port, code)
+	default:
+		return fmt.Errorf("syncKind %d not support", syncKind)
+	}
+}
+func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err error) {
+	targetURL := fmt.Sprintf("http://%s:%d/share/shareKnownWords?code=%d", host, port, code)
+	// set connect timeout
+	req, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		return err
+	}
+	httpCli := http.Client{}
+	// only set dial timeout
+	httpCli.Transport = &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, time.Millisecond*1500)
+		},
+		Proxy: func(r *http.Request) (*url.URL, error) {
+			if net.ParseIP(host).IsPrivate() {
+				return nil, nil
+			}
+			return c.netProxy(context.Background()), nil
+		},
+	}
+	defer httpCli.CloseIdleConnections()
+	resp, err := httpCli.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http status code %d,status %s", resp.StatusCode, resp.Status)
+	}
+	var result []model.KnownWords
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return err
+	}
+
+	var allWords []string
+	var allInster []model.KnownWords
+	for i, item := range result {
+		// reset ID
+		result[i].ID = 0
+		allWords = append(allWords, item.Word)
+		allInster = append(allInster, item)
+		if len(allWords) >= 1000 {
+			TX := c.allDao.GDB().WithContext(ctx).Begin()
+			err = c.allDao.KnownWordsDao.DeleteByWordsTX(TX, allWords...)
+			if err != nil {
+				TX.Rollback()
+				return err
+			}
+			err = c.allDao.KnownWordsDao.CreateBatchTX(TX, allInster...)
+			if err != nil {
+				TX.Rollback()
+				return err
+			}
+			err = TX.Commit().Error
+			if err != nil {
+				return
+			}
+			allWords = allWords[:0]
+			allInster = allInster[:0]
+		}
+
+	}
+	TX := c.allDao.GDB().WithContext(ctx).Begin()
+
+	// delete all and insert
+	err = c.allDao.KnownWordsDao.DeleteByWordsTX(TX, allWords...)
+	if err != nil {
+		TX.Rollback()
+		return err
+	}
+	err = c.allDao.KnownWordsDao.CreateBatchTX(TX, result...)
+	if err != nil {
+		TX.Rollback()
+		return err
+	}
+	err = TX.Commit().Error
+	if err != nil {
+		return
+	}
+	_, _ = c.VacuumDB(ctx)
+	return nil
+
+}
+
+func (c *Client) downloadArticleFromSourceURL(host string, port int, code int64, item model.FileInfo) (err error) {
+	resp, err := http.Get(fmt.Sprintf("http://%s:%d/share/articleFromSourceURL?code=%d&sourceURL=%s&updateAt=%d", host, port, code, item.SourceUrl, item.UpdateAt))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http status code %d,status %s", resp.StatusCode, resp.Status)
+	}
+	path := filepath.Join(c.rootDataDir, dataDir, gobFileDir, filepath.Base(item.FilePath))
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
+	addrURL := fmt.Sprintf("http://%s:%d/share/shareFileInfos?code=%d", host, port, code)
+	log.Println("addrURL", addrURL)
+	req, err := http.NewRequest("GET", addrURL, nil)
+	if err != nil {
+		return err
+	}
+	httpCli := http.Client{}
+	// only set dial timeout
+	httpCli.Transport = &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, time.Millisecond*1500)
+		},
+		Proxy: func(r *http.Request) (*url.URL, error) {
+			if net.ParseIP(host).IsPrivate() {
+				return nil, nil
+			}
+			return c.netProxy(context.Background()), nil
+		},
+	}
+	defer httpCli.CloseIdleConnections()
+	resp, err := httpCli.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http status code %d,status %s", resp.StatusCode, resp.Status)
+	}
+	var result []model.FileInfo
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return err
+	}
+	log.Println("result", result)
+
+	for i, item := range result {
+		// reset ID
+		result[i].ID = 0
+		// 开启事务期间不支持查询? 为什么sqlite3不支持
+		_, err = c.allDao.FileInfoDao.ItemBySourceUrl(ctx, item.SourceUrl)
+		if err == nil {
+			continue
+		}
+		//download file
+		err = c.downloadArticleFromSourceURL(host, port, code, item)
+		if err != nil {
+			return err
+		}
+		// create file info
+		_, err = c.allDao.FileInfoDao.Create(ctx, &item)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *Client) ShareOpen(port int, code int64) error {
@@ -276,7 +468,8 @@ func (c *Client) ShareOpen(port int, code int64) error {
 	mux := http.NewServeMux()
 	ss := &shareServerHandler{client: c, code: code}
 	mux.HandleFunc(fmt.Sprintf("/share/%d", code), c.serverHTTPShareBackUpData)
-	mux.HandleFunc(fmt.Sprintf("/share/shareData"), ss.shareData)
+	mux.HandleFunc(fmt.Sprintf("/share/shareKnownWords"), ss.shareKnownWords)
+	mux.HandleFunc(fmt.Sprintf("/share/shareFileInfos"), ss.shareFileInfos)
 	mux.HandleFunc(fmt.Sprintf("/share/articleFromSourceURL"), ss.articleFromSourceURL)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
