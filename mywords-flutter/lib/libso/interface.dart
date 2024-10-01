@@ -29,6 +29,7 @@ abstract class Handler {
   FutureOr<RespData<List<String>>> searchByKeyWord(String word);
 
   FutureOr<int> getDefaultDictId();
+
   FutureOr<bool> checkDictZipTargetPathExist(String zipPath);
 
   FutureOr<RespData<String>> getHTMLRenderContentByWord(String word);
@@ -51,8 +52,9 @@ abstract class Handler {
 
   RespData<int> vacuumDB();
 
-  RespData<int> dbSize();
-  FutureOr< int> webDictRunPort();
+  FutureOr<RespData<int>> dbSize();
+
+  FutureOr<int> webDictRunPort();
 
   FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
 
@@ -69,17 +71,20 @@ abstract class Handler {
 
   FutureOr<String> parseVersion();
 
-  FutureOr<String> dbExecute(String s);
+
 
   FutureOr<String> proxyURL();
 
   FutureOr<RespData<void>> shareClosed(int port, int code);
 
   FutureOr<RespData<void>> shareOpen(int port, int code);
+
 // //export SyncData
 // func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
   // 1 sync known words, 2 sync file infos
-  FutureOr<RespData<void>> syncData(String ip, int port, int code, int syncKind);
+  FutureOr<RespData<void>> syncData(
+      String ip, int port, int code, int syncKind);
+
   FutureOr<RespData<void>> restoreFromShareServer(
       String ip,
       int port,
@@ -112,7 +117,7 @@ abstract class Handler {
 
   FutureOr<ShareInfo> getShareInfo();
 
-  RespData<void> dropAndReCreateDB();
+
   RespData<void> restoreFromOldVersionData();
 
   String getHostName();

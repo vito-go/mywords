@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
@@ -70,10 +71,13 @@ class _State extends State<DictDatabase> {
       }
       initDictInfos();
       Global.defaultDictId = id;
+      produceEvent(EventType.updateDict, id);
       setState(() {});
     }());
     return;
   }
+
+  final controllerEdit = TextEditingController();
 
   Widget buildDictInfo(DictInfo dictInfo) {
     final id = dictInfo.id;
@@ -91,6 +95,49 @@ class _State extends State<DictDatabase> {
             if (i == null) return;
             _addDict(id);
           }),
+      onLongPress: () {
+        controllerEdit.text = name;
+        // shouDialog updateDictName
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("修改词典名称"),
+                content: TextField(
+                  controller: controllerEdit,
+                  decoration: const InputDecoration(
+                    hintText: "请输入新名称",
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("取消"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final newName = controllerEdit.text;
+                      if (newName.isEmpty) {
+                        myToast(context, "名称不能为空");
+                        return;
+                      }
+                      final respData =
+                          await handler.updateDictName(id, newName);
+                      if (respData.code != 0) {
+                        myToast(context, respData.message);
+                        return;
+                      }
+                      initDictInfos();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("确定"),
+                  ),
+                ],
+              );
+            });
+      },
       trailing: IconButton(
           onPressed: () {
             setState(() {
@@ -146,24 +193,11 @@ class _State extends State<DictDatabase> {
   @override
   void dispose() {
     super.dispose();
+    controllerEdit.dispose();
   }
 
   bool isSyncing = false;
   bool selectZipFileDone = false;
-
-  Widget get systemDictButton {
-    return ElevatedButton.icon(
-      onPressed: Global.defaultDictId == 0
-          ? null
-          : () async {
-              await handler.setDefaultDict(0);
-              Global.defaultDictId = 0;
-              setState(() {});
-            },
-      icon: const Icon(Icons.settings),
-      label: const Text("设置默认"),
-    );
-  }
 
   void selectZipFilePath() async {
     setState(() {
@@ -272,6 +306,7 @@ class _State extends State<DictDatabase> {
             onChanged: (int? i) {
               if (i == null) return;
               handler.setDefaultDict(0);
+              produceEvent(EventType.updateDict, 0);
               Global.defaultDictId = 0;
               setState(() {});
             }),
@@ -283,7 +318,7 @@ class _State extends State<DictDatabase> {
     final body = Column(children: children);
 
     final appBar = AppBar(
-       title: const Text("设置词典数据库"),
+      title: const Text("设置词典数据库"),
     );
     return getScaffold(
       context,

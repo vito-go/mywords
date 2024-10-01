@@ -49,7 +49,7 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
     }
     final RespData<List<String>> respData;
 
-     if (Global.defaultDictId  == 0) {
+    if (Global.defaultDictId == 0) {
       respData = await handler.searchByKeyWordWithDefault(v);
     } else {
       respData = await handler.searchByKeyWord(v);
@@ -69,40 +69,12 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
         style: Theme.of(context).textTheme.bodyLarge,
       ),
     ];
-/*
-    if (defaultDict.isEmpty) {
-      children.add(Expanded(
-          child: Center(
-              child: InkWell(
-        child: Text(
-          "当前无数据库, 点击设置",
-          style: TextStyle(fontSize: 22, color: Theme.of(context).colorScheme.primary),
-        ),
-        onTap: () {
-          pushTo(context, const DictDatabase()).then((value) {
-            setState(() {});
-          });
-        },
-      ))));
-      return Padding(
-        padding: padding,
-        child: Column(
-          children: children,
-        ),
-      );
-    }
-
-    */
     if (searchResult.isNotEmpty) {
       children.add(const SizedBox(height: 10));
       children.add(Expanded(child: buildSearchResult));
     }
     Column column = Column(children: children);
-
-    return Padding(
-      padding: padding,
-      child: column,
-    );
+    return Padding(padding: padding, child: column);
   }
 
   @override

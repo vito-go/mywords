@@ -245,7 +245,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> shareClosed(int port, int code) async {
-    final result = await call("ShareClosed", [port,code]);
+    final result = await call("ShareClosed", [port, code]);
 
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
@@ -280,9 +280,11 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> updateDictName(int id, String name) {
-    // TODO: implement updateDictName
-    throw UnimplementedError();
+  Future<RespData<void>> updateDictName(int id, String name) async {
+    final result = await call("UpdateDictName", [id, name]);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
   }
 
   @override
@@ -399,21 +401,25 @@ class WebHandler implements Handler {
   }
 
   @override
-  RespData<int> dbSize() {
-    // TODO: implement dbSize
-    throw UnimplementedError();
+  Future<RespData<int>> dbSize() async {
+    final resultC = await call("DbSize", []);
+    final RespData<int> respData =
+        RespData.fromJson(jsonDecode(resultC), (json) {
+      return json as int;
+    });
+    return respData;
   }
 
   @override
   RespData<int> vacuumDB() {
-    // TODO: implement vacuumDB
-    throw UnimplementedError();
+    call("VacuumDB", []);
+    return RespData.dataOK(0);
   }
 
   @override
   FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(
       bool archived) async {
-    final result = await call("getFileInfoListByArchived", [archived]);
+    final result = await call("GetFileInfoListByArchived", [archived]);
     final RespData<List<FileInfo>> respData = RespData.fromJson(
         jsonDecode(result),
         (json) => List<FileInfo>.generate(
@@ -423,41 +429,34 @@ class WebHandler implements Handler {
 
   @override
   FutureOr<RespData<void>> syncData(
-      String ip, int port, int code, int syncKind)async {
-    final result =await call("SyncData", [ip, port, code, syncKind]);
+      String ip, int port, int code, int syncKind) async {
+    final result = await call("SyncData", [ip, port, code, syncKind]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
     return respData;
   }
 
-  @override
-  RespData<void> dropAndReCreateDB() {
-    // TODO: implement dropAndReCreateDB
-    throw UnimplementedError();
-  }
+
 
   @override
   String readMessage() {
-    // TODO: implement readMessage
+    // TODO: implement readMessage with websocket on web Platform
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<String> dbExecute(String s) {
-    // TODO: implement dbExecute
-    throw UnimplementedError();
+  FutureOr<List<String>> allWordsByCreateDayAndOrder(
+      int createDay, int order) async {
+    final result =
+        await call("AllWordsByCreateDayAndOrder", [createDay, order]);
+    final items = List<String>.from(jsonDecode(result));
+    return items;
   }
 
   @override
-  FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {
-    // TODO: implement allWordsByCreateDayAndOrder
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<bool> checkDictZipTargetPathExist(String zipPath) {
-    // TODO: implement checkDictZipTargetPathExist
-    throw UnimplementedError();
+  FutureOr<bool> checkDictZipTargetPathExist(String zipPath) async {
+    final result = await call("CheckDictZipTargetPathExist", [zipPath]);
+    return bool.parse(result);
   }
 
   @override
@@ -468,8 +467,8 @@ class WebHandler implements Handler {
 
   @override
   RespData<void> restoreFromOldVersionData() {
-    // TODO: implement restoreFromOldVersionData
-    throw UnimplementedError();
+    call("RestoreFromOldVersionData", []);
+    return RespData.dataOK(null);
   }
 }
 

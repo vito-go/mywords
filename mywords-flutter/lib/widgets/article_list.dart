@@ -268,6 +268,8 @@ class _State extends State<ArticleListView> {
       // TODO: Handle this case.
       case EventType.updateTheme:
         // TODO: Handle this case.
+      case EventType.updateDict:
+        // TODO: Handle this case.
     }
   }
 

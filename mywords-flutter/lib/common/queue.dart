@@ -9,6 +9,7 @@ enum EventType {
   articleListScrollToTop,
   updateLineChart,
   updateTheme,
+  updateDict,
 }
 
 // deprecated use produceEvent

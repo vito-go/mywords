@@ -1,10 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
-import 'package:mywords/libso/handler.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/widgets/tool.dart';
+import '../libso/handler.dart';
 import '../util/util.dart';
-import 'drawer.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
 
@@ -35,11 +36,16 @@ class _State extends State<Home> {
   int get idx => prefs.defaultHomeIndex;
 
   set idx(int v) => prefs.defaultHomeIndex = v;
-  List<Widget> homePages = [const ArticleListPage(), const LoopUpWord()];
+  List<Widget> homePages = [
+    const ArticleListPage(),
+    const LoopUpWord(),
+    const MyTool()
+  ];
   final List<BottomNavigationBarItem> bottomBarItems = [
     const BottomNavigationBarItem(label: ("文章"), icon: Icon(Icons.article)),
     const BottomNavigationBarItem(
         label: ("词典"), icon: Icon(Icons.find_in_page_outlined)),
+    const BottomNavigationBarItem(label: ("工具"), icon: Icon(Icons.settings)),
   ];
 
   void aboutOnTap() async {
@@ -49,7 +55,6 @@ class _State extends State<Home> {
       context: context,
       applicationName: applicationName,
       applicationIcon: InkWell(
-        // child: SizedBox(width: 50,height: 50,child: Image.asset("logo.png")),
         child: CircleAvatar(child: Image.asset("logo.png")),
         onTap: () async {},
       ),
@@ -127,7 +132,7 @@ class _State extends State<Home> {
         // index: idx,
         children: homePages,
       ),
-      drawer: const MyDrawer(),
+      // drawer: const MyDrawer(),
       bottomNavigationBar: bottomBar,
       drawerEnableOpenDragGesture: true,
     );

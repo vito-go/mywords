@@ -707,8 +707,7 @@ class NativeHandler implements Handler {
 
   final _getShareInfo = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetShareInfo');
-  final DropAndReCreateDB = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('DropAndReCreateDB');
+
 // RestoreFromOldVersionData
   final RestoreFromOldVersionData = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(),
@@ -718,10 +717,6 @@ class NativeHandler implements Handler {
   final SyncData = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Int64, Int64, Int64),
       Pointer<Utf8> Function(Pointer<Utf8>, int, int, int)>('SyncData');
-  // DBExecute
-  final DBExecute = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DBExecute');
 
 // allWordsByCreateDayAndOrder
   final AllWordsByCreateDayAndOrder = nativeAddLib.lookupFunction<
@@ -740,15 +735,6 @@ class NativeHandler implements Handler {
         jsonDecode(resultC.toDartString()), (json) => ShareInfo.fromJson(json));
     malloc.free(resultC);
     return respData.data!;
-  }
-
-  @override
-  RespData<void> dropAndReCreateDB() {
-    final resultC = DropAndReCreateDB();
-    final RespData<void> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    return respData;
   }
 
   @override
@@ -792,15 +778,7 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  @override
-  FutureOr<String> dbExecute(String s) {
-    final sC = s.toNativeUtf8();
-    final resultC = DBExecute(sC);
-    final result = resultC.toDartString();
-    malloc.free(sC);
-    malloc.free(resultC);
-    return result;
-  }
+
 
   @override
   FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {

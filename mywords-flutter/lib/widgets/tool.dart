@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global.dart';
@@ -6,27 +8,26 @@ import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/article_archived_list.dart';
 import 'package:mywords/pages/known_words.dart';
-import 'package:mywords/pages/parse_local_file.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../pages/dict_database.dart';
+import '../pages/restore_data.dart';
+import '../pages/share_data.dart';
 import '../util/util.dart';
-import 'dict_database.dart';
-import 'restore_data.dart';
-import 'share_data.dart';
 
-class MyDrawer extends StatefulWidget {
-  const MyDrawer({super.key});
+class MyTool extends StatefulWidget {
+  const MyTool({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return MyDrawerState();
+    return MyToolState();
   }
 }
 
-class MyDrawerState extends State<MyDrawer> {
+class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   Map<String, dynamic> levelCountMap = {};
 
   int get totalCount {
@@ -50,37 +51,51 @@ class MyDrawerState extends State<MyDrawer> {
     return "1级: $count1  2级: $count2  3级: $count3";
   }
 
+  StreamSubscription<Event>? eventConsumer;
+
   void initLevelMap() async {
     final data = await handler.knownWordsCountMap();
     levelCountMap = data;
+    dbSize = (await handler.dbSize()).data ?? 0;
     setState(() {});
   }
+
+  int dbSize = 0;
 
   Widget buildListTileVacuumDB() {
     return ListTile(
       title: const Text('Vacuum DB'),
-      subtitle: Text(formatSize(handler.dbSize().data ?? 0)),
+      subtitle: Text(formatSize(dbSize)),
       // trailing: vacuums the database
       onTap: () {
-        setState(() {});
+        setState(() async {
+          dbSize = (await handler.dbSize()).data ?? 0;
+        });
       },
       trailing: IconButton(
           onPressed: () async {
-            final before = handler.dbSize().data ?? 0;
+            final before = (await handler.dbSize()).data ?? 0;
             final resp = await compute((m) => handler.vacuumDB(), null);
+            if (resp.code != 0) {
+              myToast(context, resp.message);
+              return;
+            }
             myPrint("vacuumDB: ${resp.data}");
-            final after = handler.dbSize().data ?? 0;
+            final after = (await handler.dbSize()).data ?? 0;
             if (!context.mounted) {
+              return;
+            }
+            if (kIsWeb) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Vacuum DB successfully!'),
+              ));
               return;
             }
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(
                   'Vacuum DB successfully! freed: ${formatSize(before - after)}'),
             ));
-            Navigator.pop(context);
-            // if (before != after) {
-            //   setState(() {});
-            // }
+
           },
           icon: const Icon(Icons.cleaning_services)),
       leading: const Icon(Icons.data_usage),
@@ -99,17 +114,23 @@ class MyDrawerState extends State<MyDrawer> {
       leading: const Icon(Icons.http),
     );
   }
+
   Widget buildListTileRestoreFromOld() {
-     return ListTile(
-      title: const Text('RestoreFromOld'),
-       // trailing: vacuums the database
-      onTap: () async{
-        final respData=await handler.restoreFromOldVersionData();
+    return ListTile(
+      title: const Text('从旧版本恢复数据'),
+      // trailing: vacuums the database
+      onTap: () async {
+        // final respData = await handler.restoreFromOldVersionData();
+        // compute handler.restoreFromOldVersionData
+        final respData =
+            await compute((m) => handler.restoreFromOldVersionData(), null);
         if (respData.code != 0) {
           myToast(context, respData.message);
           return;
         }
-        myToast(context, "RestoreFromOldVersionData successfully!");
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('从旧版本恢复数据成功!'),
+        ));
       },
       leading: const Icon(Icons.restore_page),
     );
@@ -122,7 +143,6 @@ class MyDrawerState extends State<MyDrawer> {
         RadioListTile(
           value: ThemeMode.system,
           onChanged: (value) {
-            Navigator.of(context).pop();
             prefs.themeMode = ThemeMode.system;
             produceEvent(EventType.updateTheme, ThemeMode.system);
           },
@@ -132,7 +152,6 @@ class MyDrawerState extends State<MyDrawer> {
         RadioListTile(
           value: ThemeMode.dark,
           onChanged: (value) {
-            Navigator.of(context).pop();
             prefs.themeMode = ThemeMode.dark;
             produceEvent(EventType.updateTheme, ThemeMode.dark);
           },
@@ -142,19 +161,12 @@ class MyDrawerState extends State<MyDrawer> {
         RadioListTile(
           value: ThemeMode.light,
           onChanged: (value) {
-            Navigator.of(context).pop();
             prefs.themeMode = ThemeMode.light;
             produceEvent(EventType.updateTheme, ThemeMode.light);
           },
           title: const Text("light"),
           groupValue: prefs.themeMode,
         ),
-        // SimpleDialogOption(
-        //   child: Text("跟随系统"),
-        //   onPressed: () {
-        //     Navigator.pop(context, "简单对话框1");
-        //   },
-        // ),
       ],
     );
     showDialog(
@@ -164,15 +176,36 @@ class MyDrawerState extends State<MyDrawer> {
         });
   }
 
+  void eventHandler(Event event) {
+    switch (event.eventType) {
+      case EventType.updateArticleList:
+        break;
+      case EventType.syncData:
+        break;
+      case EventType.updateKnownWord:
+        break;
+      case EventType.articleListScrollToTop:
+      case EventType.updateLineChart:
+        break;
+      case EventType.updateTheme:
+        break;
+      case EventType.updateDict:
+        setState(() {});
+        break;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     initLevelMap();
+    eventConsumer = consume(eventHandler);
   }
 
   @override
   void dispose() {
     super.dispose();
+    myPrint("dispose mytool");
   }
 
   Widget get header => ListTile(
@@ -198,88 +231,78 @@ class MyDrawerState extends State<MyDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Drawer(
-            child: ListView(
-      children: [
-        header,
-        const Divider(),
-        ListTile(
-          title: const Text("我的单词库"),
-          leading: const Icon(Icons.wordpress),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.pop(context);
-            pushTo(context, const KnownWords());
-          },
-        ),
-        ListTile(
-          title: const Text("学习统计"),
-          leading: const Icon(Icons.stacked_line_chart),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.pop(context);
-            pushTo(context, const StatisticChart());
-          },
-        ),
-        ListTile(
-          title: const Text("解析本地文章"),
-          leading: const Icon(Icons.article_outlined),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.pop(context);
-            pushTo(context, const ParseLocalFile());
-          },
-        ),
-        ListTile(
-          title: const Text("已归档文章"),
-          leading: const Icon(Icons.archive),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.pop(context);
-            pushTo(context, const ArticleArchivedPage());
-          },
-        ),
-        ListTile(
-          title: const Text("设置网络代理"),
-          leading: const Icon(Icons.network_ping),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.pop(context);
-            pushTo(context, const NetProxy());
-          },
-        ),
-        ListTile(
-          title: const Text("分享/备份数据"),
-          leading: const Icon(Icons.share),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.of(context).pop();
-            pushTo(context, const SyncData());
-          },
-        ),
-        ListTile(
-          title: const Text("同步数据"),
-          leading: const Icon(Icons.sync),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.of(context).pop();
-            pushTo(context, const RestoreData());
-          },
-        ),
-        ListTile(
-          title: const Text("设置词典数据库"),
-          leading: const Icon(Icons.settings_suggest_outlined),
-          trailing: const Icon(Icons.navigate_next),
-          onTap: () {
-            Navigator.of(context).pop();
-            pushTo(context, const DictDatabase());
-          },
-        ),
-        buildListTileVacuumDB(),
-        buildListTileWebDictPort(),
-        buildListTileRestoreFromOld(),
-      ],
-    )));
+    super.build(context);
+    myPrint("build MyTool");
+    final List<Widget> children = [
+      header,
+      const Divider(),
+      ListTile(
+        title: const Text("我的单词库"),
+        leading: const Icon(Icons.wordpress),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const KnownWords());
+        },
+      ),
+      ListTile(
+        title: const Text("学习统计"),
+        leading: const Icon(Icons.stacked_line_chart),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const StatisticChart());
+        },
+      ),
+      ListTile(
+        title: const Text("已归档文章"),
+        leading: const Icon(Icons.archive),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const ArticleArchivedPage());
+        },
+      ),
+      ListTile(
+        title: const Text("设置网络代理"),
+        leading: const Icon(Icons.network_ping),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const NetProxy());
+        },
+      ),
+      ListTile(
+        title: const Text("分享/备份数据"),
+        leading: const Icon(Icons.share),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const SyncData());
+        },
+      ),
+      ListTile(
+        title: const Text("同步数据"),
+        leading: const Icon(Icons.sync),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const RestoreData());
+        },
+      ),
+      ListTile(
+        title: const Text("设置词典数据库"),
+        leading: const Icon(Icons.settings_suggest_outlined),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const DictDatabase());
+        },
+      ),
+      buildListTileVacuumDB(),
+    ];
+    if (false) {
+      children.add(buildListTileRestoreFromOld());
+    }
+    if (Global.defaultDictId > 0) {
+      children.add(buildListTileWebDictPort());
+    }
+    return ListView(children: children);
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
