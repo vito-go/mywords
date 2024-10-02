@@ -200,7 +200,10 @@ func (c *Client) DelDict(ctx context.Context, id int64) error {
 	}
 	_ = os.Remove(dictInfo.Path)
 	c.oneDict.Close()
-	c.defaultDictId.Store(0)
+	if c.defaultDictId.Load() == id {
+		_ = c.allDao.KeyValueDao.UpdateOrCreateByKeyId(ctx, mtype.KeyIdDefaultDictId, "0")
+		c.defaultDictId.Store(0)
+	}
 	return nil
 }
 func (c *Client) SetDefaultDictById(ctx context.Context, id int64) error {

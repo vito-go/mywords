@@ -91,7 +91,6 @@ class _State extends State<Home> {
         items: bottomBarItems,
         type: BottomNavigationBarType.fixed,
         currentIndex: idx,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
         onTap: (int i) {
           if (idx == i && i == 0) {
             // 滚动置顶
@@ -135,7 +134,7 @@ class _State extends State<Home> {
         children: homePages,
       ),
       // drawer: const MyDrawer(),
-      bottomNavigationBar: SizedBox(width: getPlatformWebWidth(context), child: bottomBar),
+      bottomNavigationBar: bottomBar,
       drawerEnableOpenDragGesture: true,
     );
   }
