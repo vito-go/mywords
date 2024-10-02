@@ -220,7 +220,7 @@ class _State extends State<DictDatabase> {
     if (files.isEmpty) {
       return;
     }
-    final file = files[0];
+    final PlatformFile file = files[0];
     if (kIsWeb) {
       myPrint(
           "字典数据库文件: ${file.name}: file.readStream==null: ${file.readStream == null} file.size: ${file.size} 文件大小: ${file.bytes?.length}");
