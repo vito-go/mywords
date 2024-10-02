@@ -407,7 +407,7 @@ func (d *OneDict) getContentByHtmlBasePath(word, htmlBasePath string) ([]byte, e
 	s := string(b)
 	if strings.HasPrefix(s, linkPrefix) {
 		word := strings.TrimSpace(strings.TrimPrefix(s, linkPrefix))
-		htmlName, ok := d.FinalHtmlBasePathWithOutHtml(word)
+		htmlName, ok := d.finalHtmlBasePathWithOutHtml(word)
 		if ok {
 			s = fmt.Sprintf(`<big>👉<a href="/%s.html?word=%s">%s</a></big>`, htmlName, url.QueryEscape(word), word)
 		}

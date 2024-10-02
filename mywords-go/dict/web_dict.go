@@ -7,7 +7,6 @@ import (
 	"mywords/pkg/log"
 	"net"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -169,48 +168,10 @@ func (m *WebDict) query(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, loadFailed, http.StatusInternalServerError)
 		return
 	}
-	htmlPath, ok := d.FinalHtmlBasePathWithOutHtml(word)
+	htmlPath, ok := d.finalHtmlBasePathWithOutHtml(word)
 	if !ok {
 		http.NotFound(w, r)
 		return
 	}
 	d.writeByWordBaseHTMLPath(w, word, htmlPath+".html")
-}
-
-func (m *WebDict) GetUrlByWord(hostname string, word string) (string, bool) {
-
-	runPort := m.runPort
-	if runPort == 0 {
-		return "", false
-	}
-	d := m.oneDict
-	if d.zipFile == "" {
-		return "", false
-	}
-	htmlPath, ok := d.FinalHtmlBasePathWithOutHtml(word)
-	if !ok {
-		return "", false
-	}
-	if hostname == "" {
-		hostname = "localhost"
-	}
-	u := fmt.Sprintf("http://%s:%d/%s.html?word=%s", hostname, m.runPort, htmlPath, url.QueryEscape(word))
-	return u, true
-}
-
-func (m *WebDict) FinalHtmlBasePathWithOutHtml(word string) (string, bool) {
-
-	runPort := m.runPort
-	if runPort <= 0 {
-		return "", false
-	}
-	d := m.oneDict
-	if d.zipFile == "" {
-		return "", false
-	}
-	htmlPath, ok := d.FinalHtmlBasePathWithOutHtml(word)
-	if !ok {
-		return "", false
-	}
-	return htmlPath, true
 }

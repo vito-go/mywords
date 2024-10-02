@@ -315,8 +315,9 @@ class NativeHandler implements Handler {
           bool)>('RestoreFromShareServer');
 
 // func ShareClosed( ) *C.char
-  final _shareClosed = nativeAddLib.lookupFunction<Pointer<Utf8> Function(Int64,Int64),
-      Pointer<Utf8> Function(int,int)>('ShareClosed');
+  final _shareClosed = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64, Int64),
+      Pointer<Utf8> Function(int, int)>('ShareClosed');
 
   @override
   RespData<void> shareClosed(int port, int code) {
@@ -712,11 +713,16 @@ class NativeHandler implements Handler {
   final RestoreFromOldVersionData = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('RestoreFromOldVersionData');
+
   // //export SyncData
   // func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
   final SyncData = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Int64, Int64, Int64),
       Pointer<Utf8> Function(Pointer<Utf8>, int, int, int)>('SyncData');
+
+  // goRuntimeInfo
+  final GoBuildInfoString = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('GoBuildInfoString');
 
 // allWordsByCreateDayAndOrder
   final AllWordsByCreateDayAndOrder = nativeAddLib.lookupFunction<
@@ -778,8 +784,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-
-
   @override
   FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {
     final resultC = AllWordsByCreateDayAndOrder(createDay, order);
@@ -812,9 +816,9 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-
   @override
-  FutureOr<RespData<void>> syncData(String ip, int port, int code, int syncKind) {
+  FutureOr<RespData<void>> syncData(
+      String ip, int port, int code, int syncKind) {
     final ipC = ip.toNativeUtf8();
     final resultC = SyncData(ipC, port, code, syncKind);
     final result = resultC.toDartString();
@@ -823,6 +827,13 @@ class NativeHandler implements Handler {
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
+  }
 
+  @override
+  String goBuildInfoString() {
+    final resultC = GoBuildInfoString();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    return result;
   }
 }

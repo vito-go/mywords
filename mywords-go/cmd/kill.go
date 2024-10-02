@@ -13,6 +13,7 @@ import (
 // killOldPidAndGenNewPid kill old pid and generate new pid.
 // It is used to ensure that only one instance of the program is running.
 func killOldPidAndGenNewPid(rootDir string) {
+	return
 	// kill old pid
 	pidFile := filepath.Join(rootDir, "mywords.pid")
 	defer func() {

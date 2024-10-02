@@ -21,7 +21,6 @@ import (
 var webEmbed embed.FS
 
 func main() {
-
 	defaultRootDir, err := getApplicationDir()
 	if err != nil {
 		panic(err)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"mywords/pkg/log"
+	"reflect"
 
 	"mywords/pkg/util"
 	"net/http"
@@ -177,11 +178,6 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
-	// 通过反射调用flutter的API post 请求 /call/functionName= body: []interface{}
-	//if r.Method != http.MethodPost {
-	//	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-	//	return
-	//}
 	defer r.Body.Close()
 	var args []interface{}
 	err := json.NewDecoder(r.Body).Decode(&args)
@@ -206,11 +202,22 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	if len(response) == 0 {
-		http.Error(w, "Function return nothing", http.StatusInternalServerError)
+		//http.Error(w, "Function return nothing", http.StatusInternalServerError)
 		return
 	}
 	if len(response) == 1 {
+		v := response[0]
+		k := v.Kind()
+		switch k {
+		case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
+		case reflect.Interface, reflect.Slice:
+		default:
+			// return only one value, without json
+			w.Write([]byte(fmt.Sprintf("%v", v)))
+			return
+		}
 		if response[0].IsNil() {
 			http.Error(w, "Function return nil", http.StatusInternalServerError)
 			return

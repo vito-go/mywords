@@ -411,7 +411,9 @@ func (c *Client) RestoreFromOldVersionData() error {
 }
 
 func (c *Client) GetUrlByWord(hostname string, word string) (string, bool) {
-	runPort := 0 //TODO
+	runPort := c.webDict.RunPort()
+	return fmt.Sprintf("http://%s:%d/_query?word=%s", hostname, runPort, url.QueryEscape(word)), true
+
 	htmlPath, ok := c.oneDict.FinalHtmlBasePathWithOutHtml(word)
 	if !ok {
 		return "", false
@@ -419,6 +421,7 @@ func (c *Client) GetUrlByWord(hostname string, word string) (string, bool) {
 	if hostname == "" {
 		hostname = "localhost"
 	}
+	///_query
 	u := fmt.Sprintf("http://%s:%d/%s.html?word=%s", hostname, runPort, htmlPath, url.QueryEscape(word))
 	return u, true
 }

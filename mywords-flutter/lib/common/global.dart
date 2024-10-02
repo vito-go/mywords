@@ -6,6 +6,8 @@ class Global {
   static String parseVersion = '';
   static int defaultDictId = 0;
   static int webDictRunPort = 0;
+  static const version = "3.0.0";
+  static String goBuildInfoString = "";
 
   static Map<int, int> levelDistribute(List<String> words) {
     final Map<int, int> resultMap = {};
@@ -20,6 +22,7 @@ class Global {
     handler.getDefaultDictId();
     defaultDictId = await handler.getDefaultDictId();
     parseVersion = await handler.parseVersion();
+    goBuildInfoString = await handler.goBuildInfoString();
     final respData = await handler.allKnownWordsMap();
     if (respData.code != 0) {
       throw Exception("allKnownWordsMap error: ${respData.message}");

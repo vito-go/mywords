@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/web.dart';
 import 'package:mywords/widgets/tool.dart';
-import '../libso/handler.dart';
+import '../common/global.dart';
 import '../util/util.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
@@ -64,7 +65,8 @@ class _State extends State<Home> {
         const SizedBox(height: 5),
         const Text("author: liushihao888@gmail.com"),
         const SizedBox(height: 2),
-        const Text("address: Beijing, China"),
+        Text(
+            "version: ${Global.version}\n\n${Global.goBuildInfoString}\n${const String.fromEnvironment("FLUTTER_VERSION", defaultValue: "")}"),
       ],
     );
   }
@@ -133,7 +135,7 @@ class _State extends State<Home> {
         children: homePages,
       ),
       // drawer: const MyDrawer(),
-      bottomNavigationBar: bottomBar,
+      bottomNavigationBar: SizedBox(width: getPlatformWebWidth(context), child: bottomBar),
       drawerEnableOpenDragGesture: true,
     );
   }

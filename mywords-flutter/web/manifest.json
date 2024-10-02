@@ -1,6 +1,6 @@
 {
-    "name": "mywords",
-    "short_name": "mywords",
+    "name": "MyWords",
+    "short_name": "MyWords",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -95,7 +96,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
               content: Text(
                   'Vacuum DB successfully! freed: ${formatSize(before - after)}'),
             ));
-
           },
           icon: const Icon(Icons.cleaning_services)),
       leading: const Icon(Icons.data_usage),
@@ -134,6 +134,38 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       },
       leading: const Icon(Icons.restore_page),
     );
+  }
+
+  void showBuildInfo() {
+    //show  handler.goRuntimeInfo()
+    final info = Global.goBuildInfoString;
+    showDialog(
+        context: context,
+        builder: (context) {
+          const flutterVersion =
+              String.fromEnvironment("FLUTTER_VERSION", defaultValue: "");
+          // show flutterVersion and info, support copy and scroll if needed
+          return AlertDialog(
+            title: const Text("Build Info"),
+            content: SingleChildScrollView(
+              child: Text(
+                  "version: ${Global.version}\n\n${Global.goBuildInfoString}\n${const String.fromEnvironment("FLUTTER_VERSION", defaultValue: "")}"),
+            ),
+            actions: [
+              // Copy
+              TextButton(
+                  onPressed: () {
+                    copyToClipBoard(context, "$info\n$flutterVersion");
+                  },
+                  child: const Text("Copy")),
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Close")),
+            ],
+          );
+        });
   }
 
   changeTheme() {
@@ -229,11 +261,38 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
                 : const Icon(Icons.sunny)),
       );
 
+  Widget buildInfo() {
+    final Widget buildInfoLeading;
+    if (kIsWeb) {
+      buildInfoLeading = const Icon(Icons.devices_other);
+    } else if (Platform.isAndroid) {
+      buildInfoLeading = const Icon(Icons.android);
+    } else if (Platform.isIOS) {
+      buildInfoLeading = const Icon(Icons.phone_iphone);
+    } else if (Platform.isMacOS) {
+      buildInfoLeading = const Icon(Icons.desktop_mac);
+    } else if (Platform.isLinux) {
+      buildInfoLeading = const Icon(Icons.computer);
+    } else if (Platform.isWindows) {
+      buildInfoLeading = const Icon(Icons.desktop_windows);
+    } else {
+      buildInfoLeading = const Icon(Icons.devices_other);
+    }
+    return ListTile(
+      title: const Text('Build Info'),
+      onTap: showBuildInfo,
+      leading: buildInfoLeading,
+      trailing: const Icon(Icons.navigate_next),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     myPrint("build MyTool");
-    final List<Widget> children = [
+    final List<Widget> children = [];
+    // children.add(buildInfo());
+    children.addAll([
       header,
       const Divider(),
       ListTile(
@@ -293,7 +352,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         },
       ),
       buildListTileVacuumDB(),
-    ];
+    ]);
     if (false) {
       children.add(buildListTileRestoreFromOld());
     }

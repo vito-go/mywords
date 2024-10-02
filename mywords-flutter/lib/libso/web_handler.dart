@@ -436,8 +436,6 @@ class WebHandler implements Handler {
     return respData;
   }
 
-
-
   @override
   String readMessage() {
     // TODO: implement readMessage with websocket on web Platform
@@ -469,6 +467,12 @@ class WebHandler implements Handler {
   RespData<void> restoreFromOldVersionData() {
     call("RestoreFromOldVersionData", []);
     return RespData.dataOK(null);
+  }
+
+  @override
+  Future<String> goBuildInfoString() async {
+    final result = await call("GoBuildInfoString", []);
+    return result;
   }
 }
 

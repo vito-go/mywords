@@ -71,8 +71,6 @@ abstract class Handler {
 
   FutureOr<String> parseVersion();
 
-
-
   FutureOr<String> proxyURL();
 
   FutureOr<RespData<void>> shareClosed(int port, int code);
@@ -117,8 +115,9 @@ abstract class Handler {
 
   FutureOr<ShareInfo> getShareInfo();
 
-
   RespData<void> restoreFromOldVersionData();
 
   String getHostName();
+
+  FutureOr<String> goBuildInfoString();
 }
