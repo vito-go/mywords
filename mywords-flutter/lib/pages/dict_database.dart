@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -241,8 +242,12 @@ class _State extends State<DictDatabase> {
     final RespData<void> respData;
     if (kIsWeb) {
       // todo sha1
-      respData = await compute(computeAddDictWithFile,
-          {"bytes": file.readStream!, "name": file.name});
+      respData = await compute(computeAddDictWithFile, {
+        "bytes": file.readStream!,
+        "name": file.name,
+        "fileSize": file.size
+      });
+      // respData = await sendStream(file.name, file.size,file.readStream!);
     } else {
       final targetExist = await handler.checkDictZipTargetPathExist(file.path!);
       if (targetExist) {
@@ -331,10 +336,49 @@ class _State extends State<DictDatabase> {
 Future<RespData<void>> computeAddDictWithFile(
     Map<String, dynamic> param) async {
   String name = param['name']!;
+  int fileSize = param['fileSize']!;
   Stream<List<int>> bytes = param['bytes']!;
   final dio = Dio();
   const www = "$debugHostOrigin/_addDictWithFile";
-
+  // 分批发送 bytes
+  var number = 0;
+  final Queue<String> queue = Queue();
+  final String fileUniqueId =
+      "dict-$fileSize-${DateTime.now().millisecondsSinceEpoch}";
+  var accumulative = 0;
+   bytes.listen((List<int> v) async {
+    accumulative += v.length;
+    number++;
+    myPrint("v: ${v.length} number: $number");
+    final seq = number;
+    try {
+      final Response<String> response = await dio.post(
+        www,
+        data: v,
+        queryParameters: {
+          "name": name,
+          "seq": seq,
+          "fileSize": fileSize,
+          "fileUniqueId": fileUniqueId,
+          "accumulative": accumulative
+        },
+        options: Options(
+            responseType: ResponseType.plain,
+            headers: {"Content-Type": "application/octet-stream"},
+            validateStatus: (_) {
+              return true;
+            }),
+      );
+      if (response.statusCode != 200) {
+        return;
+      }
+      return;
+    } catch (e) {
+      myPrint(e);
+    }
+    // dio.post(www, data: v, queryParameters: {"name": name});
+  });
+  return RespData.dataOK(null);
   try {
     final Response<String> response = await dio.post(
       www,

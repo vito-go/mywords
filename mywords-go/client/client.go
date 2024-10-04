@@ -262,6 +262,10 @@ func (c *Client) GetTargetPathAndCheckExist(zipPath string) (targetPath string, 
 	return targetPath, true, nil
 }
 func (c *Client) AddDict(ctx context.Context, zipPath string) error {
+	name := strings.TrimSuffix(filepath.Base(zipPath), ".zip")
+	return c.AddDictWithName(ctx, zipPath, name)
+}
+func (c *Client) AddDictWithName(ctx context.Context, zipPath string, name string) error {
 	c.mux.Lock()
 	c.mux.Unlock()
 	statusInfo, err := os.Stat(zipPath)
@@ -285,12 +289,12 @@ func (c *Client) AddDict(ctx context.Context, zipPath string) error {
 	log.Println("准备设置词典", targetPath)
 	err = c.oneDict.SetDict(targetPath)
 	if err != nil {
+		os.Remove(targetPath)
 		return err
 	}
 	// DictInfo 单词字典信息
 	// name ,path, createAt, updateAt, size
 	now := time.Now().UnixMilli()
-	name := strings.TrimSuffix(filepath.Base(zipPath), ".zip")
 	dictInfo := model.DictInfo{
 		ID:       0,
 		Name:     name,
