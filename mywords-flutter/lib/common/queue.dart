@@ -12,10 +12,6 @@ enum EventType {
   updateDict,
 }
 
-// deprecated use produceEvent
-void produce(Event event) {
-  _globalEventBroadcast.add(event);
-}
 
 void produceEvent(EventType eventType, [dynamic param]) {
   final event = Event(eventType: eventType, param: param);

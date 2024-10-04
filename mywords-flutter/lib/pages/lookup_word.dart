@@ -1,12 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/word_common.dart';
-
-import '../common/global.dart';
 
 class LoopUpWord extends StatefulWidget {
   const LoopUpWord({super.key});
@@ -25,10 +22,7 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
         itemBuilder: (context, index) {
           final word = searchResult[index];
           return InkWell(
-            child: Text(
-              word,
-              style: const TextStyle(fontSize: 20),
-            ),
+            child: Text(word, style: const TextStyle(fontSize: 20)),
             onTap: () {
               showWord(context, word);
             },
@@ -49,11 +43,8 @@ class _State extends State<LoopUpWord> with AutomaticKeepAliveClientMixin {
     }
     final RespData<List<String>> respData;
 
-    if (Global.defaultDictId == 0) {
-      respData = await handler.searchByKeyWordWithDefault(v);
-    } else {
-      respData = await handler.searchByKeyWord(v);
-    }
+    respData = await handler.searchByKeyWord(v);
+
     searchResult = respData.data ?? [];
     setState(() {});
   }

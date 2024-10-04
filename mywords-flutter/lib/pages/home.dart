@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
-import 'package:mywords/util/web.dart';
 import 'package:mywords/widgets/tool.dart';
 import '../common/global.dart';
 import '../util/util.dart';
@@ -75,10 +73,9 @@ class _State extends State<Home> {
     return [
       IconButton(
           onPressed: () {
-            produce(Event(eventType: EventType.updateLineChart));
-            produce(Event(eventType: EventType.updateArticleList));
-            produce(
-                Event(eventType: EventType.articleListScrollToTop, param: 1));
+            produceEvent( EventType.updateLineChart);
+            produceEvent(EventType.updateArticleList);
+            produceEvent(EventType.articleListScrollToTop, 1);
             myToast(context, "Successfully!");
           },
           icon: const Icon(Icons.refresh)),
@@ -94,8 +91,7 @@ class _State extends State<Home> {
         onTap: (int i) {
           if (idx == i && i == 0) {
             // 滚动置顶
-            produce(
-                Event(eventType: EventType.articleListScrollToTop, param: 1));
+            produceEvent(EventType.articleListScrollToTop, 1);
           }
           if (idx == i) return;
           _pageController.jumpToPage(i);

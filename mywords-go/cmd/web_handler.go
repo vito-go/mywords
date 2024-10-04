@@ -101,7 +101,7 @@ func webParseAndSaveArticleFromFile(w http.ResponseWriter, r *http.Request) {
 //          "fileSize": fileSize,
 //          "fileUniqueId": fileUniqueId
 
-func addDictWithFileMany(w http.ResponseWriter, r *http.Request) {
+func addDictWithChunkedFile(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
@@ -110,7 +110,6 @@ func addDictWithFileMany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-
 	accumulativeSize, err := strconv.ParseInt(r.URL.Query().Get("accumulative"), 10, 64)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -159,17 +158,18 @@ func addDictWithFileMany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if accumulativeSize == fileSize {
+	if accumulativeSize >= fileSize {
 		log.Println("merge----------------------")
-		err = mergeToDict(tempPath, name)
+		err = mergeChunkedToDict(tempPath, name)
 		if err != nil {
-			log.Ctx(ctx).Errorf("mergeToDict   error: %v", err)
+			log.Ctx(ctx).Errorf("mergeChunkedToDict   error: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 }
-func mergeToDict(tempPath string, name string) error {
+func mergeChunkedToDict(tempPath string, name string) error {
+	defer os.RemoveAll(tempPath)
 	zipPath := filepath.Join(tempPath, fmt.Sprintf("%d.zip", time.Now().UnixNano()))
 	fw, err := os.Create(zipPath)
 	if err != nil {
@@ -187,7 +187,7 @@ func mergeToDict(tempPath string, name string) error {
 			f.Close()
 			return err
 		}
-		log.Printf("mergeToDict %d: zipPath:%s, name: %s,n:%d", i, zipPath, name, n)
+		log.Printf("mergeChunkedToDict %d: zipPath:%s, name: %s,n:%d", i, zipPath, name, n)
 		f.Close()
 	}
 	if err = fw.Close(); err != nil {
@@ -199,118 +199,6 @@ func mergeToDict(tempPath string, name string) error {
 		return err
 	}
 	return nil
-}
-
-func addDictWithFile(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
-		return
-	}
-	if r.Method != http.MethodPost {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-	defer r.Body.Close()
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	tempPath := filepath.Join(homeDir, ".cache", "mywords")
-	os.MkdirAll(tempPath, os.ModePerm)
-	fileName := r.URL.Query().Get("name")
-	tempFile := filepath.Join(tempPath, fileName)
-	f, err := os.Create(tempFile)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	_, err = io.Copy(f, r.Body)
-	if err != nil {
-		log.Ctx(ctx).Errorf("copy file error: %v", err)
-		_ = f.Close()
-		_ = os.Remove(tempFile)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = f.Close()
-	if err != nil {
-		log.Ctx(ctx).Errorf("close file error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer os.Remove(tempFile)
-	err = serverGlobal.AddDict(ctx, tempFile)
-	if err != nil {
-		log.Ctx(ctx).Errorf("add dict error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-func addDictWithFileWithFormData(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
-		return
-	}
-	err := r.ParseMultipartForm(64 << 20)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if r.Method != http.MethodPost {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-	defer r.Body.Close()
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	tempPath := filepath.Join(homeDir, ".cache", "mywords")
-	os.MkdirAll(tempPath, os.ModePerm)
-	fileName := r.URL.Query().Get("name")
-	tempFile := filepath.Join(tempPath, fileName)
-	f, err := os.Create(tempFile)
-	log.Ctx(ctx).Infof("create file: %s", tempFile)
-	if err != nil {
-		log.Ctx(ctx).Errorf("create file error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer r.MultipartForm.RemoveAll()
-	files := r.MultipartForm.File["file"]
-	if len(files) == 0 {
-		http.Error(w, "file not found", http.StatusBadRequest)
-		return
-	}
-	file := files[0]
-	fOpen, err := file.Open()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer fOpen.Close()
-	log.Printf("ready to copy,file: %s, fileSize: %d, Filename:%s", tempFile, file.Size, file.Filename)
-	_, err = io.Copy(f, fOpen)
-	if err != nil {
-		log.Ctx(ctx).Errorf("copy file error: %v", err)
-		_ = f.Close()
-		_ = os.Remove(tempFile)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = f.Close()
-	if err != nil {
-		log.Ctx(ctx).Errorf("close file error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer os.Remove(tempFile)
-	err = serverGlobal.AddDict(ctx, tempFile)
-	if err != nil {
-		log.Ctx(ctx).Errorf("add dict error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 }
 
 // cors 通用的跨域处理

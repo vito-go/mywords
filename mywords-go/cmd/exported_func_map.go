@@ -51,7 +51,6 @@ var exportedFuncMap = map[string]any{
 	"RestoreFromBackUpData":          RestoreFromBackUpData,
 	"RestoreFromShareServer":         RestoreFromShareServer,
 	"SearchByKeyWord":                SearchByKeyWord,
-	"SearchByKeyWordWithDefault":     SearchByKeyWordWithDefault,
 	"SetDefaultDict":                 SetDefaultDict,
 	"SetProxyUrl":                    SetProxyUrl,
 	"SetXpathExpr":                   SetXpathExpr,

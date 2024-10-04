@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/environment.dart';
-import 'package:mywords/util/web.dart';
+ import 'package:mywords/util/util_native.dart' if (dart.library.html) 'package:mywords/util/util_web.dart';
 
 bool platFormIsMobile() {
   if (kIsWeb) {

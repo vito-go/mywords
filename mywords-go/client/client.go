@@ -325,11 +325,11 @@ func copyFile(src, dst string) error {
 		//}()
 		// 移动平台直接移动文件
 		err := os.Rename(src, dst)
-		if err != nil {
-			return err
+		if err == nil {
+			log.Printf("runtime.GOOS: %s, File Rename success, src: %s, dst: %s", runtime.GOOS, src, dst)
+			return nil
 		}
-		log.Printf("runtime.GOOS: %s, copyFile success, src: %s, dst: %s", runtime.GOOS, src, dst)
-		return nil
+		log.Ctx(ctx).Warnf("runtime.GOOS: %s, File Rename failed, src: %s, dst: %s, copy.", runtime.GOOS, src, dst)
 	}
 	fw, err := os.Create(dst)
 	if err != nil {

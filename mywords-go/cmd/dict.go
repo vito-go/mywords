@@ -1,6 +1,7 @@
 package main
 
 import "C"
+import "mywords/dict"
 
 //export GetUrlByWordForWeb
 func GetUrlByWordForWeb(hostnameC *C.char, wordC *C.char) *C.char {
@@ -69,6 +70,10 @@ func CheckDictZipTargetPathExist(zipPathC *C.char) bool {
 
 //export SearchByKeyWord
 func SearchByKeyWord(keyWordC *C.char) *C.char {
+	if serverGlobal.DefaultDictId() == 0 {
+		items := dict.SearchByKeyWord(C.GoString(keyWordC), dict.DefaultDictWordMap)
+		return CharOk(items)
+	}
 	items := serverGlobal.OneDict().SearchByKeyWord(C.GoString(keyWordC))
 	return CharOk(items)
 }

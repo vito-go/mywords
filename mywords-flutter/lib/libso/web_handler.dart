@@ -12,7 +12,6 @@ import 'package:mywords/environment.dart';
 
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../common/global.dart';
 
 final Handler handlerImplement = WebHandler();
 
@@ -66,8 +65,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> delDict(int id) async {
-    Global.defaultDictId = 0;
-    final result = await call("DelDict", [id]);
+     final result = await call("DelDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
@@ -226,18 +224,8 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<List<String>>> searchByKeyWordWithDefault(String word) async {
-    final result = await call("SearchByKeyWordWithDefault", [word]);
-
-    final RespData<List<String>> respData = RespData.fromJson(
-        jsonDecode(result), (json) => List<String>.from(json));
-    return respData;
-  }
-
-  @override
   Future<RespData<void>> setDefaultDict(int id) async {
-    Global.defaultDictId = 0;
-    final result = await call("SetDefaultDict", [id]);
+     final result = await call("SetDefaultDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;

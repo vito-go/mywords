@@ -1,5 +1,7 @@
 import 'dart:isolate';
 
+import 'package:flutter/foundation.dart';
+
 import '../libso/handler.dart';
 import '../util/util.dart';
 
@@ -30,7 +32,6 @@ void isolateEntry(SendPort sendPort) async {
 * */
 void isolateLoopReadMessage() async {
   // Clean up
-
   final receivePort = ReceivePort();
   final isolate = await Isolate.spawn(isolateEntry, receivePort.sendPort);
   final sendPort = await receivePort.first as SendPort;

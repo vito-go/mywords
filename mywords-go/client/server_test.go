@@ -91,7 +91,7 @@ func TestClient_SyncDataKnownWords(t *testing.T) {
 
 // SyncDataKnownWords
 func TestClient_SyncDataFileInfos(t *testing.T) {
-	err := clientGlobal.SyncDataFileInfos("192.168.0.171", 8964, 890604)
+	err := clientGlobal.SyncDataFileInfos("172.16.1.62", 8964, 890604)
 	if err != nil {
 		t.Fatal(err)
 	}

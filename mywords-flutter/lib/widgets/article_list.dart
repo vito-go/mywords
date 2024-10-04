@@ -70,8 +70,7 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      produce(
-          Event(eventType: EventType.updateArticleList));
+      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -98,8 +97,7 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      produce(
-          Event(eventType: EventType.updateArticleList));
+      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -124,8 +122,7 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      produce(
-          Event(eventType: EventType.updateArticleList));
+      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -165,7 +162,8 @@ class _State extends State<ArticleListView> {
               minLeadingWidth: 0,
               leading: Text("[${index + 1}]",
                   style: TextStyle(
-                      fontSize: 14, color: Theme.of(context).colorScheme.primary)),
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.primary)),
               subtitle: Text(
                   "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updateAt))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
@@ -202,8 +200,7 @@ class _State extends State<ArticleListView> {
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
         onRefresh: () async {
-          produce(
-              Event(eventType: EventType.updateLineChart));
+          produceEvent(EventType.updateLineChart);
           await initFileInfos();
           if (!mounted) return;
           myToast(context, "Successfully!");
@@ -267,9 +264,9 @@ class _State extends State<ArticleListView> {
       case EventType.updateLineChart:
       // TODO: Handle this case.
       case EventType.updateTheme:
-        // TODO: Handle this case.
+      // TODO: Handle this case.
       case EventType.updateDict:
-        // TODO: Handle this case.
+      // TODO: Handle this case.
     }
   }
 
@@ -320,7 +317,7 @@ class _State extends State<ArticleListView> {
       title: CupertinoSearchTextField(
         placeholder: "请输入文章标题关键词",
         controller: controllerSearch,
-           style: Theme.of(context).textTheme.bodyLarge,
+        style: Theme.of(context).textTheme.bodyLarge,
         onChanged: (String v) {
           kw = v;
           setState(() {});

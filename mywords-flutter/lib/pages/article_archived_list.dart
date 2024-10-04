@@ -21,13 +21,11 @@ class _State extends State<ArticleArchivedPage> {
     return getScaffold(context,
         appBar: AppBar(
           title: const Text("已归档文章"),
-           actions: [
+          actions: [
             IconButton(
                 onPressed: () {
                   // 归档置顶
-                  produce(Event(
-                      eventType: EventType.articleListScrollToTop,
-                      param: 2));
+                  produceEvent(EventType.articleListScrollToTop, 2);
                 },
                 icon: const Icon(Icons.vertical_align_top_outlined))
           ],

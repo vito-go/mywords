@@ -274,12 +274,6 @@ func AllKnownWordsMap() *C.char {
 	return CharOk(result)
 }
 
-//export SearchByKeyWordWithDefault
-func SearchByKeyWordWithDefault(keyWordC *C.char) *C.char {
-	items := dict.SearchByKeyWord(C.GoString(keyWordC), dict.DefaultDictWordMap)
-	return CharOk(items)
-}
-
 //export FixMyKnownWords
 func FixMyKnownWords() *C.char {
 	err := serverGlobal.FixMyKnownWords()

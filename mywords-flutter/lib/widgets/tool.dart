@@ -58,6 +58,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     final data = await handler.knownWordsCountMap();
     levelCountMap = data;
     dbSize = (await handler.dbSize()).data ?? 0;
+    defaultDictId = await handler.getDefaultDictId();
     setState(() {});
   }
 
@@ -208,7 +209,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         });
   }
 
-  void eventHandler(Event event) {
+  void eventHandler(Event event) async {
     switch (event.eventType) {
       case EventType.updateArticleList:
         break;
@@ -222,6 +223,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       case EventType.updateTheme:
         break;
       case EventType.updateDict:
+        defaultDictId = await handler.getDefaultDictId();
+
         setState(() {});
         break;
     }
@@ -356,7 +359,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     if (false) {
       children.add(buildListTileRestoreFromOld());
     }
-    if (Global.defaultDictId > 0) {
+
+    if (defaultDictId > 0) {
       children.add(buildListTileWebDictPort());
     }
     return ListView(children: children);
@@ -364,4 +368,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
 
   @override
   bool get wantKeepAlive => true;
+
+  int defaultDictId = 0;
 }

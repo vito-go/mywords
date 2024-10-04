@@ -9,7 +9,6 @@ import 'package:mywords/widgets/word_default_meaning.dart';
 
 import 'package:mywords/widgets/word_webview_for_mobile.dart'
     if (dart.library.html) 'package:mywords/widgets/word_webview_for_web.dart';
-
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'dart:io';
@@ -48,13 +47,15 @@ void _queryWordInDictWithMobile(BuildContext context, String word) async {
 }
 
 void queryWordInDict(BuildContext context, String word) async {
-  if (kIsWeb||Platform.isAndroid || Platform.isIOS) {
+  if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
     _queryWordInDictWithMobile(context, word);
     return;
   }
   // Desktop;
-  // FIXME 不再支持桌面版本, 请使用网页版
-  throw "Unsupported platform, please use web version";
+  // FIXME 后续版本计划不再支持桌面客户端版本, 请使用桌面网页版
+  final url = "http://127.0.0.1:${Global.webDictRunPort}/_query?word=$word";
+  launchUrlString(url);
+  // throw "Unsupported platform, please use web version";
 }
 
 void showWordWithDefault(BuildContext context, String word) async {
@@ -87,9 +88,9 @@ void showWordWithDefault(BuildContext context, String word) async {
 
 void showWord(BuildContext context, String word) async {
   FocusManager.instance.primaryFocus?.unfocus();
-
+  final defaultDictId = await handler.getDefaultDictId();
   if (!context.mounted) return;
-  if (Global.defaultDictId == 0) {
+  if (defaultDictId == 0) {
     showWordWithDefault(context, word);
     return;
   }
@@ -270,8 +271,7 @@ InkWell buildInkWell(BuildContext context, String word, int showLevel) {
         } else {
           Global.allKnownWordsMap[word] = showLevel;
         }
-        produce(Event(
-            eventType: EventType.updateKnownWord,
-            param: <String, dynamic>{"word": word, "level": showLevel}));
+        produceEvent(EventType.updateKnownWord,
+            <String, dynamic>{"word": word, "level": showLevel});
       });
 }

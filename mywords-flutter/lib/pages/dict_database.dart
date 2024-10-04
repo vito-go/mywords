@@ -13,7 +13,6 @@ import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
-import '../common/global.dart';
 import '../libso/types.dart';
 
 class DictDatabase extends StatefulWidget {
@@ -27,6 +26,7 @@ class DictDatabase extends StatefulWidget {
 
 /// blockShowDialog 阻塞 试验
 Future<void> blockShowDialog(BuildContext context, Future<void> future) {
+
   return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -63,7 +63,7 @@ Future<void> blockShowDialog(BuildContext context, Future<void> future) {
 class _State extends State<DictDatabase> {
   List<DictInfo> dictInfos = [];
 
-  _addDict(int id) async {
+  setDefaultDict(int id) async {
     blockShowDialog(context, () async {
       final respData = await compute(handler.setDefaultDict, id);
       if (respData.code != 0) {
@@ -71,7 +71,6 @@ class _State extends State<DictDatabase> {
         return;
       }
       initDictInfos();
-      Global.defaultDictId = id;
       produceEvent(EventType.updateDict, id);
       setState(() {});
     }());
@@ -83,18 +82,22 @@ class _State extends State<DictDatabase> {
   Widget buildDictInfo(DictInfo dictInfo) {
     final id = dictInfo.id;
     final name = dictInfo.name;
+    final sub =
+        "${formatSize(dictInfo.size)} ${formatTime(DateTime.fromMillisecondsSinceEpoch(dictInfo.updateAt))}";
     return ListTile(
       title: Text(
         dictInfo.name,
         maxLines: 4,
         overflow: TextOverflow.ellipsis,
       ),
+      minLeadingWidth: 0,
+      subtitle: Text(sub, style: const TextStyle(fontSize: 12)),
       leading: Radio(
           value: id,
-          groupValue: Global.defaultDictId,
+          groupValue: defaultDictId,
           onChanged: (int? i) {
             if (i == null) return;
-            _addDict(id);
+            setDefaultDict(id);
           }),
       onLongPress: () {
         controllerEdit.text = name;
@@ -178,10 +181,13 @@ class _State extends State<DictDatabase> {
     );
   }
 
+  int defaultDictId = 0;
+
   void initDictInfos() async {
     final respData = await handler.dictList();
     final data = respData.data ?? [];
     dictInfos = data;
+    defaultDictId = await handler.getDefaultDictId();
     setState(() {});
   }
 
@@ -269,7 +275,6 @@ class _State extends State<DictDatabase> {
     myToast(context, "解析成功");
     initDictInfos();
     zipFilePath = '';
-    Global.defaultDictId = await handler.getDefaultDictId();
     setState(() {});
   }
 
@@ -307,13 +312,12 @@ class _State extends State<DictDatabase> {
         title: const Text("内置词典(精简版)"),
         leading: Radio(
             value: 0,
-            groupValue: Global.defaultDictId,
+            groupValue: defaultDictId,
             onChanged: (int? i) {
               if (i == null) return;
               handler.setDefaultDict(0);
               produceEvent(EventType.updateDict, 0);
-              Global.defaultDictId = 0;
-              setState(() {});
+              initDictInfos();
             }),
       ),
       const Divider(),
@@ -346,7 +350,7 @@ Future<RespData<void>> computeAddDictWithFile(
   final String fileUniqueId =
       "dict-$fileSize-${DateTime.now().millisecondsSinceEpoch}";
   var accumulative = 0;
-   bytes.listen((List<int> v) async {
+  await for (List<int> v in bytes) {
     accumulative += v.length;
     number++;
     myPrint("v: ${v.length} number: $number");
@@ -370,31 +374,12 @@ Future<RespData<void>> computeAddDictWithFile(
             }),
       );
       if (response.statusCode != 200) {
-        return;
+        return RespData.err(response.data ?? "");
       }
-      return;
     } catch (e) {
       myPrint(e);
+      return RespData.err(e.toString());
     }
-    // dio.post(www, data: v, queryParameters: {"name": name});
-  });
-  return RespData.dataOK(null);
-  try {
-    final Response<String> response = await dio.post(
-      www,
-      data: bytes,
-      queryParameters: {"name": name},
-      options: Options(
-          responseType: ResponseType.plain,
-          validateStatus: (_) {
-            return true;
-          }),
-    );
-    if (response.statusCode != 200) {
-      return RespData.err(response.data ?? "");
-    }
-    return RespData.dataOK(null);
-  } catch (e) {
-    return RespData.err(e.toString());
   }
+  return RespData();
 }

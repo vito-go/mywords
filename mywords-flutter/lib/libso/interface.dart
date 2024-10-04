@@ -111,7 +111,6 @@ abstract class Handler {
 
   FutureOr<List<String>?> getIPv4s(); // null mean error
 
-  FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
 
   FutureOr<ShareInfo> getShareInfo();
 

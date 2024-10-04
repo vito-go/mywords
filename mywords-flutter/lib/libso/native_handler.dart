@@ -437,23 +437,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-// func SearchByKeyWord(keyWordC *C.char) *C.char {}
-  final _searchByKeyWordWithDefault = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('SearchByKeyWordWithDefault');
-
-  @override
-  RespData<List<String>> searchByKeyWordWithDefault(String word) {
-    final wordC = word.toNativeUtf8();
-    final resultC = _searchByKeyWordWithDefault(wordC);
-    malloc.free(wordC);
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<List<String>> respData = RespData.fromJson(
-        jsonDecode(result), (json) => List<String>.from(json));
-    return respData;
-  }
-
 // func QueryWordLevel(wordC *C.char) *C.char
   final GetUrlByWordForWeb = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
@@ -536,7 +519,6 @@ class NativeHandler implements Handler {
 
   @override
   RespData<void> setDefaultDict(int id) {
-    Global.defaultDictId = 0;
     final resultC = _setDefaultDict(id);
     final result = resultC.toDartString();
     malloc.free(resultC);
@@ -585,7 +567,6 @@ class NativeHandler implements Handler {
 
   @override
   RespData<void> delDict(int id) {
-    Global.defaultDictId = 0;
     final resultC = _delDict(id);
     final result = resultC.toDartString();
     malloc.free(resultC);

@@ -37,7 +37,7 @@ func main() {
 	initGlobal(*rootDir, *dictPort)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/call/", serverHTTPCallFunc)
-	mux.HandleFunc("/_addDictWithFile", addDictWithFileMany)
+	mux.HandleFunc("/_addDictWithFile", addDictWithChunkedFile)
 	mux.HandleFunc("/_downloadBackUpdate", downloadBackUpdate)
 	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
 	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)

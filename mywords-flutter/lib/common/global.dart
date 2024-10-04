@@ -4,8 +4,7 @@ class Global {
   // 需要在main函数中初始化，且在handler.initLib()之后。 如果有更新。本地缓存也需要更新。
   static Map<String, int> allKnownWordsMap = {}; //TODO: 本地缓存 梳理下都有哪些地方会更新这个数据
   static String parseVersion = '';
-  static int defaultDictId = 0;
-  static int webDictRunPort = 0;
+   static int webDictRunPort = 0;
   static const version = "3.0.0";
   static String goBuildInfoString = "";
 
@@ -20,8 +19,7 @@ class Global {
 
   static Future<void> init() async {
     handler.getDefaultDictId();
-    defaultDictId = await handler.getDefaultDictId();
-    parseVersion = await handler.parseVersion();
+     parseVersion = await handler.parseVersion();
     goBuildInfoString = await handler.goBuildInfoString();
     final respData = await handler.allKnownWordsMap();
     if (respData.code != 0) {

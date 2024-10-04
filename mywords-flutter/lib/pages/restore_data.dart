@@ -118,14 +118,13 @@ class _RestoreDataState extends State<RestoreData> {
       controllerCode.text
     ];
     myToast(context, "同步成功!");
-    produce(Event(eventType: EventType.syncData, param: syncToadyWordCount));
+    produceEvent(EventType.syncData, syncToadyWordCount);
     return 0;
   }
 
   bool isSyncing = false;
   bool isSyncingKnownWords = false;
   bool isSyncFileInfos = false;
-
 
   void restoreFromFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -177,7 +176,7 @@ class _RestoreDataState extends State<RestoreData> {
       return;
     }
     myToast(context, "恢复完成");
-    produce(Event(eventType: EventType.updateArticleList));
+    produceEvent(EventType.updateArticleList);
   }
 
   Widget textFieldCode() {
@@ -238,8 +237,6 @@ class _RestoreDataState extends State<RestoreData> {
       ],
     ));
 
-
-
     children.addAll([
       ListTile(
         title: const Text("我的单词库"),
@@ -250,39 +247,40 @@ class _RestoreDataState extends State<RestoreData> {
           child: Icon(Icons.info_outline),
         ),
         trailing: IconButton(
-            onPressed: isSyncingKnownWords?null:() async {
-              prefs.syncIpPortCode = [
-                controllerIP.text.trim(),
-                controllerPort.text.trim(),
-                controllerCode.text.trim(),
-              ];
-              setState(() {
-                isSyncingKnownWords = true;
-              });
-              final respData = await compute((param) {
-                return handler.syncData(
-                    param['ip'] as String,
-                    param['port'] as int,
-                    param['code'] as int,
-                    param['syncKind'] as int);
-              }, <String, dynamic>{
-                'ip': controllerIP.text.trim(),
-                'port': int.parse(controllerPort.text.trim()),
-                'code': int.parse(controllerCode.text.trim()),
-                'syncKind': 1
-              });
+            onPressed: isSyncingKnownWords
+                ? null
+                : () async {
+                    prefs.syncIpPortCode = [
+                      controllerIP.text.trim(),
+                      controllerPort.text.trim(),
+                      controllerCode.text.trim(),
+                    ];
+                    setState(() {
+                      isSyncingKnownWords = true;
+                    });
+                    final respData = await compute((param) {
+                      return handler.syncData(
+                          param['ip'] as String,
+                          param['port'] as int,
+                          param['code'] as int,
+                          param['syncKind'] as int);
+                    }, <String, dynamic>{
+                      'ip': controllerIP.text.trim(),
+                      'port': int.parse(controllerPort.text.trim()),
+                      'code': int.parse(controllerCode.text.trim()),
+                      'syncKind': 1
+                    });
 
-              setState(() {
-                isSyncingKnownWords = false;
-              });
-              if (respData.code != 0) {
-                myToast(context, respData.message);
-                return;
-              }
-              myToast(context, "同步我的单词库成功");
-              produceEvent(EventType.updateKnownWord);
-
-            },
+                    setState(() {
+                      isSyncingKnownWords = false;
+                    });
+                    if (respData.code != 0) {
+                      myToast(context, respData.message);
+                      return;
+                    }
+                    myToast(context, "同步我的单词库成功");
+                    produceEvent(EventType.updateKnownWord);
+                  },
             icon: const Icon(Icons.sync)),
         subtitle: isSyncingKnownWords
             ? const LinearProgressIndicator()
@@ -298,39 +296,40 @@ class _RestoreDataState extends State<RestoreData> {
         subtitle:
             isSyncFileInfos ? const LinearProgressIndicator() : const Text(""),
         trailing: IconButton(
-            onPressed: isSyncFileInfos?null:() async {
-              prefs.syncIpPortCode = [
-                controllerIP.text.trim(),
-                controllerPort.text.trim(),
-                controllerCode.text.trim(),
-              ];
-              setState(() {
-                isSyncFileInfos = true;
-              });
+            onPressed: isSyncFileInfos
+                ? null
+                : () async {
+                    prefs.syncIpPortCode = [
+                      controllerIP.text.trim(),
+                      controllerPort.text.trim(),
+                      controllerCode.text.trim(),
+                    ];
+                    setState(() {
+                      isSyncFileInfos = true;
+                    });
 
-              final respData = await compute((param) {
-                return handler.syncData(
-                    param['ip'] as String,
-                    param['port'] as int,
-                    param['code'] as int,
-                    param['syncKind'] as int);
-              }, <String, dynamic>{
-                'ip': controllerIP.text.trim(),
-                'port': int.parse(controllerPort.text.trim()),
-                'code': int.parse(controllerCode.text.trim()),
-                'syncKind': 2
-              });
-              setState(() {
-                isSyncFileInfos = false;
-              });
-              if (respData.code != 0) {
-                myToast(context, respData.message);
-                return;
-              }
-              myToast(context, "同步文章信息成功");
-              produceEvent(EventType.updateArticleList);
-
-            },
+                    final respData = await compute((param) {
+                      return handler.syncData(
+                          param['ip'] as String,
+                          param['port'] as int,
+                          param['code'] as int,
+                          param['syncKind'] as int);
+                    }, <String, dynamic>{
+                      'ip': controllerIP.text.trim(),
+                      'port': int.parse(controllerPort.text.trim()),
+                      'code': int.parse(controllerCode.text.trim()),
+                      'syncKind': 2
+                    });
+                    setState(() {
+                      isSyncFileInfos = false;
+                    });
+                    if (respData.code != 0) {
+                      myToast(context, respData.message);
+                      return;
+                    }
+                    myToast(context, "同步文章信息成功");
+                    produceEvent(EventType.updateArticleList);
+                  },
             icon: const Icon(Icons.sync)),
       ),
     ]);

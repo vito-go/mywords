@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/global.dart';
 import 'package:mywords/libso/handler.dart';
@@ -14,7 +15,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
   await handler.initLib();
-  // isolateLoopReadMessage(); // 开启后无法热重载,为什么? 可能是因为热重载会重新加载所有的代码，而isolateLoopReadMessage()是一个无限循环的函数
+  if (!kIsWeb){
+    isolateLoopReadMessage(); // 开启后无法热重载,为什么? 可能是因为热重载会重新加载所有的代码，而isolateLoopReadMessage()是一个无限循环的函数
+  }
   await Global.init();
   runApp(const MyApp());
 }

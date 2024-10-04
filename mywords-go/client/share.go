@@ -266,14 +266,14 @@ func (c *shareServerHandler) shareFileInfos(w http.ResponseWriter, r *http.Reque
 
 	fileInfos, err := c.client.allDao.FileInfoDao.AllItems(ctx)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
 	data, err := json.Marshal(fileInfos)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
@@ -288,7 +288,6 @@ func (c *Client) SyncData(host string, port int, code int64, syncKind int) error
 	case 1:
 		return c.SyncDataKnownWords(host, port, code)
 	case 2:
-
 		return c.SyncDataFileInfos(host, port, code)
 	default:
 		return fmt.Errorf("syncKind %d not support", syncKind)
@@ -304,6 +303,7 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 	httpCli := http.Client{}
 	// only set dial timeout
 	httpCli.Transport = &http.Transport{
+		//DisableKeepAlives: true,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, time.Millisecond*1500)
 		},
@@ -412,6 +412,10 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 	httpCli := http.Client{}
 	// only set dial timeout
 	httpCli.Transport = &http.Transport{
+		// https://juejin.cn/post/6997294512053878821
+		// 重复使用了一个TCP连接，导致的问题，但是对方给的文档也没有提示，暂且猜测对方的api不支持连接保持
+		// or set req.Close=true
+		//DisableKeepAlives: true,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, time.Millisecond*1500)
 		},
@@ -425,19 +429,26 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 	defer httpCli.CloseIdleConnections()
 	resp, err := httpCli.Do(req)
 	if err != nil {
+		log.Ctx(ctx).Error(err)
 		return err
 	}
 	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("http status code %d,status %s", resp.StatusCode, resp.Status)
+		log.Ctx(ctx).Errorf("http status code: %d,status: %s,--> body: %s", resp.StatusCode, resp.Status, string(body))
+		return fmt.Errorf("http status code: %d,status: %s,--> body: %s", resp.StatusCode, resp.Status, string(body))
 	}
 	var result []model.FileInfo
-	err = json.NewDecoder(resp.Body).Decode(&result)
+	err = json.Unmarshal(body, &result)
 	if err != nil {
+		log.Ctx(ctx).Error("unmarshal error", err)
 		return err
 	}
 	log.Println("result", result)
-
 	for i := range result {
 		// reset ID
 		item := result[i]
@@ -445,16 +456,20 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 		// 开启事务期间不支持查询? 为什么sqlite3不支持
 		_, err = c.allDao.FileInfoDao.ItemBySourceUrl(ctx, item.SourceUrl)
 		if err == nil {
+			log.Println("ignore", item.SourceUrl)
 			continue
 		}
+		item.FilePath = filepath.ToSlash(filepath.Join(c.gobPathByFileName(filepath.Base(item.FilePath))))
 		//download file
 		err = c.downloadArticleFromSourceURL(host, port, code, item)
 		if err != nil {
-			return err
+			log.Ctx(ctx).Error(err.Error())
+			continue
 		}
 		// create file info
 		_, err = c.allDao.FileInfoDao.Create(ctx, &item)
 		if err != nil {
+			log.Ctx(ctx).Error(err.Error())
 			return err
 		}
 	}

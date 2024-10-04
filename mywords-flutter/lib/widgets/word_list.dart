@@ -69,6 +69,7 @@ class _State extends State<WordList> {
       setState(() {});
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -77,7 +78,7 @@ class _State extends State<WordList> {
   }
 
   Widget buildWordLevelRow(int idx, String word) {
-     List<Widget> children = [
+    List<Widget> children = [
       Text("[${idx + 1}]"),
       TextButton(
           onPressed: () {
@@ -85,13 +86,13 @@ class _State extends State<WordList> {
           },
           child: Text(word, maxLines: 2, style: const TextStyle(fontSize: 18))),
       const Expanded(child: Text('')),
-      buildInkWell(context, word, 0  ),
+      buildInkWell(context, word, 0),
       const SizedBox(width: 6),
-      buildInkWell(context, word, 1 ),
+      buildInkWell(context, word, 1),
       const SizedBox(width: 6),
-      buildInkWell(context, word, 2  ),
+      buildInkWell(context, word, 2),
       const SizedBox(width: 6),
-      buildInkWell(context, word, 3 ),
+      buildInkWell(context, word, 3),
       const SizedBox(width: 10),
     ];
     return Row(children: children);
@@ -189,10 +190,5 @@ Widget buildShowLevel(int level,
           child: Text(label),
         ));
   }
-  return InkWell(
-      onTap: onTap,
-      child: CircleAvatar(
-        backgroundColor: null,
-        child: Text(label),
-      ));
+  return InkWell(onTap: onTap, child: CircleAvatar(child: Text(label)));
 }

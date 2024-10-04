@@ -67,7 +67,7 @@ class ArticlePageState extends State<ArticlePage> {
         myToast(context, respData.message);
         return;
       }
-      produce(Event(eventType: EventType.updateArticleList));
+      produceEvent( EventType.updateArticleList);
       article = respData.data!;
       if (!mounted) return;
       ScaffoldMessenger.of(context)

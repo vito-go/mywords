@@ -19,9 +19,9 @@ class StatisticChart extends StatefulWidget {
 
 class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   List<Widget> get myTabs => [
-          const Tab(
+        const Tab(
           text: "每日统计",
-          icon: Icon(Icons.today ),
+          icon: Icon(Icons.today),
         ),
         const Tab(
           text: "累计统计",
@@ -88,23 +88,21 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     initData();
-    produce(Event(eventType: EventType.updateLineChart));
+    produceEvent(EventType.updateLineChart);
   }
 
   @override
   Widget build(BuildContext context) {
-
     final appBar = AppBar(
       title: const Text("学习统计"),
       bottom: TabBar(
         tabs: myTabs,
-        labelStyle: TextStyle(fontSize: 18,
+        labelStyle: TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            color:prefs.themeMode==ThemeMode.dark?
-        null:Colors.green),
+            color: prefs.themeMode == ThemeMode.dark ? null : Colors.green),
         // unselectedLabelStyle: const TextStyle(),
       ),
-     
       actions: [
         Padding(padding: const EdgeInsets.only(right: 16), child: toolTipToday),
         Padding(
