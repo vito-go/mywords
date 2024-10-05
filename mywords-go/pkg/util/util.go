@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -99,4 +100,16 @@ func zipToWriter(writer io.Writer, zipDir string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func CORS(w http.ResponseWriter, r *http.Request) (aborted bool) {
+	origin := r.Header.Get("origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST,GET")
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return true
+	}
+	return false
 }

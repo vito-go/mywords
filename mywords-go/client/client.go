@@ -76,14 +76,12 @@ type Client struct {
 	//	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
 	//	chartDateLevelCountMap *MySyncMapMap[WordKnownLevel, map[string]struct{}] // date: {1: {"words":{}}, 2: 200, 3: 300}
 	//dictRunPort int64 // -1 means not to start the dictionary service, 0 means random port, >0 means specified port
-	webDict         *dict.WebDict
-	exportedFuncMap map[string]any //map[string]any
-	//serverHTTPCallFunc func(w http.ResponseWriter, r *http.Request)
-	webOnlinePort  int //0 means no web online
-	webOnlineClose *atomic.Bool
+	webDict            *dict.WebDict
+	exportedFuncMap    map[string]any //map[string]any
+	webOnlinePort      int            //0 means no web online
+	webOnlineClose     *atomic.Bool
+	serverHTTPCallFunc func(w http.ResponseWriter, r *http.Request)
 }
-
-type ExportedFuncMap map[string]any
 
 // WebDictRunPort .
 func (c *Client) WebDictRunPort() int {

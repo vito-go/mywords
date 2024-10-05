@@ -12,6 +12,8 @@ package main
 // exportedFuncMap 保存了所有的导出函数, key为导出函数的名字，value为导出函数的实现
 var exportedFuncMap = map[string]any{}
 
+// 使用init函数对exportedFuncMap进行初始化，否则直接对变量复制可能造成循环
+
 func init() {
 	exportedFuncMap = map[string]any{
 		"AddDict":                        AddDict,

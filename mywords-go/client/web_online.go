@@ -3,27 +3,25 @@ package client
 //#include <stdlib.h>
 import "C"
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"mywords/pkg/log"
+	"mywords/pkg/util"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 	"time"
-	"unsafe"
 )
 
-func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, m ExportedFuncMap) error {
-	c.exportedFuncMap = m
+func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, serverHTTPCallFunc func(w http.ResponseWriter, r *http.Request)) error {
+	c.serverHTTPCallFunc = serverHTTPCallFunc
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", webPort))
 	if err != nil {
+		log.Ctx(ctx).Error(err.Error())
 		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", 0))
 		if err != nil {
 			return err
@@ -75,13 +73,8 @@ func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, m Exp
 	return nil
 }
 
-//          "name": name,
-//          "seq": seq,
-//          "fileSize": fileSize,
-//          "fileUniqueId": fileUniqueId
-
 func (c *Client) addDictWithChunkedFile(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
+	if util.CORS(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -180,83 +173,6 @@ func (c *Client) mergeChunkedToDict(tempPath string, name string) error {
 	return nil
 }
 
-func cors(w http.ResponseWriter, r *http.Request) (aborted bool) {
-	origin := r.Header.Get("origin")
-	w.Header().Set("Access-Control-Allow-Origin", origin)
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST,GET")
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusNoContent)
-		return true
-	}
-	return false
-}
-
-func (c *Client) serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
-		return
-	}
-	defer r.Body.Close()
-	var args []interface{}
-	err := json.NewDecoder(r.Body).Decode(&args)
-	// When the method is GET, the body is empty, so the error is io.EOF
-	if err != nil && err != io.EOF {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	funcName := strings.TrimPrefix(r.URL.Path, "/call/")
-	if funcName == "" {
-		http.Error(w, "Please send a functionName", http.StatusBadRequest)
-		return
-	}
-	log.Println("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
-	fn, ok := c.exportedFuncMap[funcName]
-	if !ok {
-		http.Error(w, "Function not found: "+funcName, http.StatusNotFound)
-		return
-	}
-	response, err := call(fn, args)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if len(response) == 0 {
-		//http.Error(w, "Function return nothing", http.StatusInternalServerError)
-		return
-	}
-	if len(response) == 1 {
-		v := response[0]
-		k := v.Kind()
-		switch k {
-		case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
-		case reflect.Interface, reflect.Slice:
-		default:
-			// return only one value, without json
-			w.Write([]byte(fmt.Sprintf("%v", v)))
-			return
-		}
-		if response[0].IsNil() {
-			http.Error(w, "Function return nil", http.StatusInternalServerError)
-			return
-		}
-	}
-	value := response[0].Interface()
-	// 判断 value 的类型，支持 string, []byte, *C.char 类型, 其他类型请先转换为这三种类型之一，例如struct类型转换为json字符串
-	// application/json
-	w.Header().Set("Content-Type", "application/json")
-	switch v := value.(type) {
-	case string:
-		w.Write([]byte(v))
-	case []byte:
-		w.Write(v)
-	case *C.char:
-		defer C.free(unsafe.Pointer(v))
-		w.Write([]byte(C.GoString(v)))
-	default:
-		http.Error(w, fmt.Sprintf("Function return type not support: %T", v), http.StatusInternalServerError)
-	}
-}
 func openBrowser(url string) {
 	var err error
 	switch runtime.GOOS {

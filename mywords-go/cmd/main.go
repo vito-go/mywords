@@ -22,7 +22,7 @@ func main() {
 	}
 	webPort := flag.Int64("port", 18960, "http client port")
 	initGlobal(defaultRootDir, 18961)
-	err = serverGlobal.StartWebOnline(*webPort, http.FS(&webEmbedHandler{webEmbed: webEmbed}), exportedFuncMap)
+	err = serverGlobal.StartWebOnline(*webPort, http.FS(&webEmbedHandler{webEmbed: webEmbed}), serverHTTPCallFunc)
 	if err != nil {
 		panic(err)
 	}

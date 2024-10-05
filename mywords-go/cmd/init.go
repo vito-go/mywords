@@ -25,7 +25,7 @@ func Init(rootDataDirC *C.char) {
 	initGlobal(rootDataDir, 0)
 	// if 18960 start error with 18960, it will use a random port
 	fs := http.Dir(filepath.ToSlash(filepath.Join(rootDataDir, webDir)))
-	err := serverGlobal.StartWebOnline(18960, fs, exportedFuncMap)
+	err := serverGlobal.StartWebOnline(18960, fs, serverHTTPCallFunc)
 	if err != nil {
 		log.Ctx(ctx).Error(err.Error())
 	}
