@@ -12,7 +12,7 @@ import '../common/queue.dart';
 class WordList extends StatefulWidget {
   const WordList({super.key, required this.createDay});
 
-  final int createDay; // 0 all words;  the other day known words
+  final int createDay; // 0 all words; 1 for today, the other day known words
 
   @override
   State<StatefulWidget> createState() {
@@ -21,7 +21,7 @@ class WordList extends StatefulWidget {
 }
 
 class _State extends State<WordList> {
-  late final createDay = widget.createDay; // 1 all words; 2 today known words
+  late final createDay = widget.createDay; // 0 all words; 1 today known words the other day known words
   List<String> allWords = [];
   StreamSubscription<Event>? eventConsumer;
 

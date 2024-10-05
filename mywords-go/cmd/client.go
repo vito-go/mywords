@@ -335,6 +335,7 @@ func DBSize() *C.char {
 
 //export AllWordsByCreateDayAndOrder
 func AllWordsByCreateDayAndOrder(createDay, order int64) *C.char {
+	//createDay 0 all, 1 today, the other is createDay
 	var items []string
 	var err error
 	if order == 1 {

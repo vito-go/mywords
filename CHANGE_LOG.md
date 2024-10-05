@@ -1,4 +1,5 @@
 # v3.0.1
+- Due to the time difference between the underlying library and flutter, todayInt in flutter may be inaccurate, use the time of the underlying library, pass 1 to represent today
 - Fix the display issue of WebDict API interface on web version.
 - Make UI text more English-friendly
 - Support copy of Email and copy of build information in about dialog.
