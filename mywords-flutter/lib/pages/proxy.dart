@@ -95,11 +95,14 @@ class _State extends State<NetProxy> {
           myToast(context, respData.message);
           return;
         }
-        myToast(context, "设置代理成功！\n$netProxy");
+        // myToast(context, "设置代理成功！\n$netProxy");
+        myToast(context, "Set proxy successfully!\n$netProxy");
       },
       icon: const Icon(Icons.save),
-      label: const Text("保存"),
+      // label: const Text("保存"),
+      label: const Text("Save"),
     );
+
   }
 
   Widget get delProxyButton {

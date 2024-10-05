@@ -606,7 +606,7 @@ class NativeHandler implements Handler {
   @override
   String getHostName() {
     // default value is localhost
-    return "";
+    return "127.0.0.1";
   }
 
   final _getShareInfo = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),

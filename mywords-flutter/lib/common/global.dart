@@ -6,7 +6,7 @@ class Global {
   static String parseVersion = '';
    static int webDictRunPort = 0;
    static int webOnlinePort = 0;
-  static const version = "3.0.0";
+  static const version = "3.0.1";
   static String goBuildInfoString = "";
 
   static Map<int, int> levelDistribute(List<String> words) {
