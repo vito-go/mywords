@@ -7,9 +7,7 @@ import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/line_chart.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
-import '../util/local_cache.dart';
 import 'types.dart';
 import 'dart:io';
 
@@ -53,99 +51,76 @@ class NativeHandler implements Handler {
   final init = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
       void Function(Pointer<Utf8>)>('Init');
 
+  @override
+  String readMessage() {
+    final resultC = _readMessage();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    return result;
+  }
+
+  final _readMessage = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('ReadMessage');
+
 //func UpdateKnownWords(level int, c *C.char) *C.char
-  final _updateKnownWords = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
-      Pointer<Utf8> Function(int, Pointer<Utf8>)>('UpdateKnownWords');
+  final UpdateKnownWordLevel = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Int64),
+      Pointer<Utf8> Function(Pointer<Utf8>, int)>('UpdateKnownWordLevel');
 
-// func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
-  final _parseAndSaveArticleFromSourceUrl = nativeAddLib.lookupFunction<
+//func UpdateKnownWords(level int, c *C.char) *C.char
+  final NewArticleFileInfoBySourceURL = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(
-          Pointer<Utf8>)>('ParseAndSaveArticleFromSourceUrl');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('NewArticleFileInfoBySourceURL');
 
-// func parseAndSaveArticleFromSourceUrl(sourceUrl *C.char) *C.char
-  final _parseAndSaveArticleFromFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('ParseAndSaveArticleFromFile');
+//func UpdateKnownWords(level int, c *C.char) *C.char
+  final RenewArticleFileInfo = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('RenewArticleFileInfo');
 
-// func ParseAndSaveArticleFromSourceUrlAndContent(sourceUrl *C.char,htmlContent *C.char) *C.char
-  final _parseAndSaveArticleFromSourceUrlAndContent =
-      nativeAddLib.lookupFunction<
-          Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>, Int64),
-          Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>,
-              int)>('ParseAndSaveArticleFromSourceUrlAndContent');
+  final AllKnownWordsMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('AllKnownWordsMap');
 
-// func DeleteGobFile(fileName *C.char) *C.char
+//func UpdateKnownWords(level int, c *C.char) *C.char
+  final ReparseArticleFileInfo = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('ReparseArticleFileInfo');
+
   final _deleteGobFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DeleteGobFile');
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('DeleteGobFile');
 
   @override
-  RespData<void> deleteGobFile(String fileName) {
+  RespData<void> deleteGobFile(int id) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final c = fileName.toNativeUtf8();
-    final resultC = _deleteGobFile(c);
+    final resultC = _deleteGobFile(id);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);
-    malloc.free(c);
     return respData;
   }
 
 // func ArchiveGobFile(fileName *C.char) *C.char
-  final _archiveGobFile = nativeAddLib.lookupFunction<
+  final UpdateFileInfo = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('ArchiveGobFile');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('UpdateFileInfo');
 
   @override
-  RespData<void> archiveGobFile(String fileName) {
+  RespData<void> updateFileInfo(FileInfo item) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final c = fileName.toNativeUtf8();
-    final resultC = _archiveGobFile(c);
+    final c = item.toRawJson().toNativeUtf8();
+    final resultC = UpdateFileInfo(c);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     return respData;
   }
 
-// func ArchiveGobFile(fileName *C.char) *C.char
-  final _unArchiveGobFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('UnArchiveGobFile');
+  final GetFileInfoListByArchived = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Bool),
+      Pointer<Utf8> Function(bool)>('GetFileInfoListByArchived');
 
   @override
-  RespData<void> unArchiveGobFile(String fileName) {
-    // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final c = fileName.toNativeUtf8();
-    final resultC = _unArchiveGobFile(c);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    return respData;
-  }
-
-// func ShowFileInfoList() *C.char
-  final _showFileInfoList = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('ShowFileInfoList');
-
-  @override
-  RespData<List<FileInfo>> showFileInfoList() {
-    final c = _showFileInfoList();
-    final RespData<List<FileInfo>> respData = RespData.fromJson(
-        jsonDecode(c.toDartString()),
-        (json) => List<FileInfo>.generate(
-            json.length, (index) => FileInfo.fromJson(json[index])));
-    malloc.free(c);
-    return respData;
-  }
-
-// func ArchivedFileInfoList() *C.char
-  final _getArchivedFileInfoList = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('GetArchivedFileInfoList');
-
-  @override
-  RespData<List<FileInfo>> getArchivedFileInfoList() {
-    final c = _getArchivedFileInfoList();
+  RespData<List<FileInfo>> getFileInfoListByArchived(bool archived) {
+    final c = GetFileInfoListByArchived(archived);
     final RespData<List<FileInfo>> respData = RespData.fromJson(
         jsonDecode(c.toDartString()),
         (json) => List<FileInfo>.generate(
@@ -155,65 +130,21 @@ class NativeHandler implements Handler {
   }
 
 // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-  final _articleFromGobFile = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Int64),
-      Pointer<Utf8> Function(Pointer<Utf8>, int)>('ArticleFromGobFile');
+  final ArticleFromFileInfo = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('ArticleFromFileInfo');
 
   @override
-  RespData<Article> articleFromGobFile(String fileName) {
+  RespData<Article> articleFromFileInfo(FileInfo fileInfo) {
     // // func ShowGobContentByLevel(fileName *C.char, level int) *C.char
-    final fileNameC = fileName.toNativeUtf8();
-    final c = _articleFromGobFile(fileNameC, 3);
+    final info = fileInfo.toRawJson().toNativeUtf8();
+    final c = ArticleFromFileInfo(info);
     final RespData<Article> respData = RespData.fromJson(
         jsonDecode(c.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(info);
     malloc.free(c);
-    malloc.free(fileNameC);
     return respData;
   }
-
-// func QueryWordLevel(wordC *C.char) *C.char
-  final _queryWordLevel = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('QueryWordLevel');
-
-// func BackUpData(targetZipPath, srcDataPath string) error
-  final _backUpData = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('BackUpData');
-
-// param includes zipName and dataDirPath
-  @override
-  RespData<String> backUpData(String zipName, String dataDirPath) {
-    final downloadDir = getDefaultDownloadDir();
-    if (downloadDir == null) {
-      return RespData.err("downloadDir is null");
-    }
-    final downloadPathZip = path.join(downloadDir, zipName);
-    myPrint(downloadPathZip);
-    if (File(downloadPathZip).existsSync()) {
-      return RespData.err("文件已存在，请删除或者修改备份文件名: $zipName");
-    }
-    final downloadPathC = downloadPathZip.toNativeUtf8();
-    final srcC = dataDirPath.toNativeUtf8();
-    final resultC = _backUpData(downloadPathC, srcC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => '');
-    malloc.free(downloadPathC);
-    malloc.free(srcC);
-    malloc.free(resultC);
-    respData.data = downloadPathZip;
-    return respData;
-  }
-
-// func LevelDistribute(artC *C.char) *C.char param []string
-  final _levelDistribute = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('LevelDistribute');
-
-  //  QueryWordsLevel(words ...string) map[string]WordKnownLevel
-  final _queryWordsLevel = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('QueryWordsLevel');
 
 // func SetProxyUrl(netProxy *C.char) *C.char {
   final _setProxyUrl = nativeAddLib.lookupFunction<
@@ -232,44 +163,16 @@ class NativeHandler implements Handler {
   }
 
 // func DictWordQuery(wordC *C.char) *C.char //查不到就是空
-  final _dictWordQuery = nativeAddLib.lookupFunction<
+  final DefaultWordMeaning = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DictWordQuery');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('DefaultWordMeaning');
 
   @override
-  RespData<Map<int, int>> levelDistribute(List<String> words) {
-    final c = jsonEncode(words).toNativeUtf8();
-    final resultC = _levelDistribute(c);
-    final respData = RespData.fromJson(
-        jsonDecode(resultC.toDartString()),
-        (json) => (json as Map<String, dynamic>).map(
-            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
-    malloc.free(c);
-    malloc.free(resultC);
-    return respData;
-  }
-
-  @override
-  Map<String, int> queryWordsLevel(List<String> words) {
-    final c = jsonEncode(words).toNativeUtf8();
-    final resultC = _queryWordsLevel(c);
-    final respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
-      return (json as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, value as int));
-    });
-    malloc.free(c);
-    malloc.free(resultC);
-    return respData.data ?? {};
-  }
-
-  @override
-  String dictWordQuery(String word) {
+  String defaultWordMeaning(String word) {
     final wordC = word.toNativeUtf8();
-    final resultC = _dictWordQuery(wordC);
+    final resultC = DefaultWordMeaning(wordC);
     final respData = RespData.fromJson(
         jsonDecode(resultC.toDartString()), (json) => json.toString());
-    myPrint(resultC.toDartString());
     malloc.free(wordC);
     malloc.free(resultC);
     String define = respData.data ?? '';
@@ -295,25 +198,6 @@ class NativeHandler implements Handler {
       return data;
     }
     return word;
-  }
-
-// func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount bool) *C.char {
-  final _restoreFromBackUpData = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool, Bool),
-      Pointer<Utf8> Function(
-          bool, Pointer<Utf8>, bool, bool)>('RestoreFromBackUpData');
-
-  @override
-  RespData<void> restoreFromBackUpData(bool syncKnownWords, String zipPath,
-      bool syncToadyWordCount, bool syncByRemoteArchived) {
-    final pathC = zipPath.toNativeUtf8();
-    final resultC = _restoreFromBackUpData(
-        syncKnownWords, pathC, syncToadyWordCount, syncByRemoteArchived);
-    final respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(pathC);
-    malloc.free(resultC);
-    return respData;
   }
 
 // setXpathExpr . usually for debug
@@ -373,20 +257,14 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetToadyChartDateLevelCountMap');
 
-// func RestoreFromShareServer(ipC *C.char, port int, code int64,syncKnownWords bool, tempDir *C.char) *C.char {
-  final _restoreFromShareServer = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(
-          Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool, Bool),
-      Pointer<Utf8> Function(Pointer<Utf8>, int, int, bool, Pointer<Utf8>, bool,
-          bool)>('RestoreFromShareServer');
-
 // func ShareClosed( ) *C.char
-  final _shareClosed = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('ShareClosed');
+  final _shareClosed = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64, Int64),
+      Pointer<Utf8> Function(int, int)>('ShareClosed');
 
   @override
-  RespData<void> shareClosed() {
-    final resultC = _shareClosed();
+  RespData<void> shareClosed(int port, int code) {
+    final resultC = _shareClosed(port, code);
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);
@@ -399,27 +277,6 @@ class NativeHandler implements Handler {
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);
-    return respData;
-  }
-
-  @override
-  RespData<void> restoreFromShareServer(
-      String ip,
-      int port,
-      int code,
-      bool syncKnownWords,
-      String tempDir,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived) {
-    final tempDirC = tempDir.toNativeUtf8();
-    final ipC = ip.toNativeUtf8();
-    final resultC = _restoreFromShareServer(ipC, port, code, syncKnownWords,
-        tempDirC, syncToadyWordCount, syncByRemoteArchived);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    malloc.free(ipC);
-    malloc.free(tempDirC);
     return respData;
   }
 
@@ -440,30 +297,6 @@ class NativeHandler implements Handler {
         jsonDecode(resultC.toDartString()),
         (json) => ChartLineData.fromJson(json));
     malloc.free(resultC);
-    return respData;
-  }
-
-// compute must be top level function
-  @override
-  RespData<void> parseAndSaveArticleFromSourceUrl(String www) {
-    final sourceUrl = www.toNativeUtf8();
-    final resultC = _parseAndSaveArticleFromSourceUrl(sourceUrl);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    malloc.free(sourceUrl);
-    return respData;
-  }
-
-// compute must be top level function
-  @override
-  RespData<void> parseAndSaveArticleFromFile(String path) {
-    final pathC = path.toNativeUtf8();
-    final resultC = _parseAndSaveArticleFromFile(pathC);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    malloc.free(pathC);
     return respData;
   }
 
@@ -516,9 +349,9 @@ class NativeHandler implements Handler {
   }
 
   @override
-  RespData<void> updateKnownWords(int level, String word) {
-    final wordC = jsonEncode([word]).toNativeUtf8();
-    final resultC = _updateKnownWords(level, wordC);
+  RespData<void> updateKnownWordLevel(String word, int level) {
+    final wordC = word.toNativeUtf8();
+    final resultC = UpdateKnownWordLevel(wordC, level);
     final respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(wordC);
@@ -526,63 +359,18 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  @override
-  int queryWordLevel(String word) {
-    final wordC = word.toNativeUtf8();
-    final resultC = _queryWordLevel(wordC);
-    malloc.free(wordC);
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<int> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as int);
-    final int l = respData.data ?? 0;
-    return l;
-  }
-
-// compute must be top level function
-  @override
-  RespData<Article> parseAndSaveArticleFromSourceUrlAndContent(
-      String www, String htmlContent, int lastModified) {
-    final sourceUrlC = www.toNativeUtf8();
-    final htmlContentC = htmlContent.toNativeUtf8();
-    final resultC = _parseAndSaveArticleFromSourceUrlAndContent(
-        sourceUrlC, htmlContentC, lastModified);
-    final RespData<Article> respData = RespData<Article>.fromJson(
-        jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
-    malloc.free(resultC);
-    malloc.free(sourceUrlC);
-    malloc.free(htmlContentC);
-    return respData;
-  }
-
-// func SearchByKeyWord(keyWordC *C.char) *C.char {}
-  final _searchByKeyWordWithDefault = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('SearchByKeyWordWithDefault');
-
-  @override
-  RespData<List<String>> searchByKeyWordWithDefault(String word) {
-    final wordC = word.toNativeUtf8();
-    final resultC = _searchByKeyWordWithDefault(wordC);
-    malloc.free(wordC);
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<List<String>> respData = RespData.fromJson(
-        jsonDecode(result), (json) => List<String>.from(json));
-    return respData;
-  }
-
 // func QueryWordLevel(wordC *C.char) *C.char
-  final _getUrlByWord = nativeAddLib.lookupFunction<
+  final GetUrlByWordForWeb = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('GetUrlByWord');
+      Pointer<Utf8> Function(
+          Pointer<Utf8>, Pointer<Utf8>)>('GetUrlByWordForWeb');
 
 // getUrlByWord 返回防止携带word参数
   @override
-  String getUrlByWord(String hostName, String word) {
+  String getUrlByWordForWeb(String hostName, String word) {
     final wordC = word.toNativeUtf8();
     final hostNameC = hostName.toNativeUtf8();
-    final resultC = _getUrlByWord(hostNameC, wordC);
+    final resultC = GetUrlByWordForWeb(hostNameC, wordC);
     malloc.free(hostNameC);
     malloc.free(wordC);
     final result = resultC.toDartString();
@@ -594,15 +382,13 @@ class NativeHandler implements Handler {
 
 // func   UpdateDictName(dataDirC, nameC *C.char) *C.char {
   final _updateDictName = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('UpdateDictName');
+      Pointer<Utf8> Function(Int64, Pointer<Utf8>),
+      Pointer<Utf8> Function(int, Pointer<Utf8>)>('UpdateDictName');
 
   @override
-  RespData<void> updateDictName(String dataDir, String name) {
-    final dataDirC = dataDir.toNativeUtf8();
+  RespData<void> updateDictName(int id, String name) {
     final nameC = name.toNativeUtf8();
-    final resultC = _updateDictName(dataDirC, nameC);
-    malloc.free(dataDirC);
+    final resultC = _updateDictName(id, nameC);
     malloc.free(nameC);
     final result = resultC.toDartString();
     malloc.free(resultC);
@@ -613,15 +399,49 @@ class NativeHandler implements Handler {
 
 // func SetDefaultDict(dataDirC *C.char) *C.char {
   final _setDefaultDict = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('SetDefaultDict');
+      Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('SetDefaultDict');
+
+// VacuumDB
+  final VacuumDB = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('VacuumDB');
+
+// func DBSize() *C.char
+  final DBSize = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('DBSize');
+
+  // WebDictRunPort
+  final WebDictRunPort = nativeAddLib
+      .lookupFunction<Int64 Function(), int Function()>('WebDictRunPort');
 
   @override
-  RespData<void> setDefaultDict(String basePath) {
-    LocalCache.defaultDictBasePath = null;
-    final basePathC = basePath.toNativeUtf8();
-    final resultC = _setDefaultDict(basePathC);
-    malloc.free(basePathC);
+  RespData<int> vacuumDB() {
+    final resultC = VacuumDB();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<int> respData =
+        RespData.fromJson(jsonDecode(result), (json) {
+      return json as int;
+    });
+    return respData;
+  }
+
+  //  DBSize
+  @override
+  RespData<int> dbSize() {
+    final resultC = DBSize();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<int> respData =
+        RespData.fromJson(jsonDecode(result), (json) {
+      return json as int;
+    });
+    return respData;
+  }
+
+  @override
+  RespData<void> setDefaultDict(int id) {
+    final resultC = _setDefaultDict(id);
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<void> respData =
@@ -634,12 +454,14 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function()>('DictList');
 
   @override
-  RespData<List<dynamic>> dictList() {
+  RespData<List<DictInfo>> dictList() {
     final resultC = _dictList();
     final result = resultC.toDartString();
     malloc.free(resultC);
-    final RespData<List<dynamic>> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as List<dynamic>);
+    final RespData<List<DictInfo>> respData = RespData.fromJson(
+        jsonDecode(result),
+        (json) => List<DictInfo>.generate(
+            json.length, (index) => DictInfo.fromJson(json[index])));
     return respData;
   }
 
@@ -650,10 +472,10 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Pointer<Utf8>)>('AddDict');
 
   @override
-  RespData<void> addDict(String dataDir) {
-    final dataDirC = dataDir.toNativeUtf8();
-    final resultC = _addDict(dataDirC);
-    malloc.free(dataDirC);
+  RespData<void> addDict(String zipPath) {
+    final zipPathC = zipPath.toNativeUtf8();
+    final resultC = _addDict(zipPathC);
+    malloc.free(zipPathC);
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<void> respData =
@@ -662,16 +484,12 @@ class NativeHandler implements Handler {
   }
 
 // func DelDict(basePath *C.char) *C.char {
-  final _delDict = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('DelDict');
+  final _delDict = nativeAddLib.lookupFunction<Pointer<Utf8> Function(Int64),
+      Pointer<Utf8> Function(int)>('DelDict');
 
   @override
-  RespData<void> delDict(String basePath) {
-    LocalCache.defaultDictBasePath = null;
-    final basePathC = basePath.toNativeUtf8();
-    final resultC = _delDict(basePathC);
-    malloc.free(basePathC);
+  RespData<void> delDict(int id) {
+    final resultC = _delDict(id);
     final result = resultC.toDartString();
     malloc.free(resultC);
     final RespData<void> respData =
@@ -696,26 +514,21 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  final _getDefaultDict = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('GetDefaultDict');
+  final _getDefaultDictId = nativeAddLib
+      .lookupFunction<Int64 Function(), int Function()>('GetDefaultDictId');
 
   @override
-  RespData<String> getDefaultDict() {
-    final resultC = _getDefaultDict();
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData;
+  int getDefaultDictId() {
+    return _getDefaultDictId();
   }
 
   final _getHTMLRenderContentByWord = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('GetHTMLRenderContentByWord');
 
-  final _getFileNameBySourceUrl = nativeAddLib.lookupFunction<
+  final GetFileInfoBySourceURL = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('GetFileNameBySourceUrl');
+      Pointer<Utf8> Function(Pointer<Utf8>)>('GetFileInfoBySourceURL');
 
   @override
   RespData<String> getHTMLRenderContentByWord(String word) {
@@ -730,15 +543,15 @@ class NativeHandler implements Handler {
   }
 
   @override
-  String getFileNameBySourceUrl(String word) {
-    final wordC = word.toNativeUtf8();
-    final resultC = _getFileNameBySourceUrl(wordC);
-    malloc.free(wordC);
+  FileInfo? getFileInfoBySourceURL(String sourceURL) {
+    final sourceURLC = sourceURL.toNativeUtf8();
+    final resultC = GetFileInfoBySourceURL(sourceURLC);
+    malloc.free(sourceURLC);
     final result = resultC.toDartString();
     malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
+    final RespData<FileInfo> respData = RespData.fromJson(
+        jsonDecode(result), (json) => FileInfo.fromJson(json));
+    return respData.data;
   }
 
   final _fixMyKnownWords = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
@@ -753,78 +566,14 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  final _finalHtmlBasePathWithOutHtml = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>)>('FinalHtmlBasePathWithOutHtml');
+  final ExistInDict = nativeAddLib.lookupFunction<Bool Function(Pointer<Utf8>),
+      bool Function(Pointer<Utf8>)>('ExistInDict');
 
   @override
-  String finalHtmlBasePathWithOutHtml(String word) {
+  bool existInDict(String word) {
     final wordC = word.toNativeUtf8();
-    final resultC = _finalHtmlBasePathWithOutHtml(wordC);
-    malloc.free(wordC);
-    final result = resultC.toDartString();
-    malloc.free(resultC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
-  }
-
-  final _setLogUrl = nativeAddLib.lookupFunction<
-      Void Function(Pointer<Utf8>, Pointer<Utf8>, Bool),
-      void Function(Pointer<Utf8>, Pointer<Utf8>, bool)>('SetLogUrl');
-
-  @override
-  void setLogUrl(String logUrl, String logNonce) {
-    final logUrlC = logUrl.toNativeUtf8();
-    final logNonceC = logNonce.toNativeUtf8();
-    _setLogUrl(logUrlC, logNonceC, false);
-    malloc.free(logUrlC);
-    malloc.free(logNonceC);
-    return;
-  }
-
-// _println equal to _printInfo
-  final _println = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('Println');
-
-  final _printWarn = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('PrintWarn');
-
-  final _printInfo = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('PrintInfo');
-
-  final _printError = nativeAddLib.lookupFunction<Void Function(Pointer<Utf8>),
-      void Function(Pointer<Utf8>)>('PrintError');
-  final setLogDebug = nativeAddLib
-      .lookupFunction<Void Function(Bool), void Function(bool)>('SetLogDebug');
-  final setLogCallerSkip =
-      nativeAddLib.lookupFunction<Void Function(Int64), void Function(int)>(
-          'SetLogCallerSkip');
-
-  void printWarn(String msg) {
-    final c = msg.toNativeUtf8();
-    _printWarn(c);
-    malloc.free(c);
-  }
-
-  void printInfo(String msg) {
-    final c = msg.toNativeUtf8();
-    _printInfo(c);
-    malloc.free(c);
-  }
-
-// equal to printInfo
-  @override
-  void println(String msg) {
-    final c = msg.toNativeUtf8();
-    _println(c);
-    malloc.free(c);
-  }
-
-  void printError(String msg) {
-    final c = msg.toNativeUtf8();
-    _printError(c);
-    malloc.free(c);
+    final result = ExistInDict(wordC);
+    return result;
   }
 
   @override
@@ -863,6 +612,53 @@ class NativeHandler implements Handler {
   final _getShareInfo = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetShareInfo');
 
+// RestoreFromOldVersionData
+  final RestoreFromOldVersionData = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('RestoreFromOldVersionData');
+
+  // //export SyncData
+  // func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
+  final SyncData = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>, Int64, Int64, Int64),
+      Pointer<Utf8> Function(Pointer<Utf8>, int, int, int)>('SyncData');
+
+  // goRuntimeInfo
+  final GoBuildInfoString = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('GoBuildInfoString');
+
+  // getWebOnlineClose
+  final GetWebOnlineClose = nativeAddLib
+      .lookupFunction<Bool Function(), bool Function()>('GetWebOnlineClose');
+
+  final SetWebOnlineClose =
+      nativeAddLib.lookupFunction<Void Function(Bool), void Function(bool)>(
+          'SetWebOnlineClose');
+
+  // //export WebOnlinePort
+  final WebOnlinePort = nativeAddLib
+      .lookupFunction<Int64 Function(), int Function()>('WebOnlinePort');
+
+  @override
+  void setWebOnlineClose(bool v) {
+    SetWebOnlineClose(v);
+  }
+
+  @override
+  int webOnlinePort() {
+    return WebOnlinePort();
+  }
+
+// allWordsByCreateDayAndOrder
+  final AllWordsByCreateDayAndOrder = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Int64, Int64),
+      Pointer<Utf8> Function(int, int)>('AllWordsByCreateDayAndOrder');
+
+// checkDictZipTargetPathExist
+  final CheckDictZipTargetPathExist = nativeAddLib.lookupFunction<
+      Bool Function(Pointer<Utf8>),
+      bool Function(Pointer<Utf8>)>('CheckDictZipTargetPathExist');
+
   @override
   ShareInfo getShareInfo() {
     final resultC = _getShareInfo();
@@ -870,5 +666,104 @@ class NativeHandler implements Handler {
         jsonDecode(resultC.toDartString()), (json) => ShareInfo.fromJson(json));
     malloc.free(resultC);
     return respData.data!;
+  }
+
+  @override
+  RespData<void> newArticleFileInfoBySourceURL(String www) {
+    final wordC = www.toNativeUtf8();
+    final resultC = NewArticleFileInfoBySourceURL(wordC);
+    final respData =
+        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
+    malloc.free(wordC);
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> renewArticleFileInfo(int id) {
+    final resultC = RenewArticleFileInfo(id);
+    final respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int id) {
+    final resultC = ReparseArticleFileInfo(id);
+    final respData = RespData.fromJson(
+        jsonDecode(resultC.toDartString()), (json) => Article.fromJson(json));
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Map<String, int>>> allKnownWordsMap() {
+    final resultC = AllKnownWordsMap();
+    final respData =
+        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
+      return (json as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as int));
+    });
+    malloc.free(resultC);
+    return respData;
+  }
+
+  @override
+  FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order) {
+    final resultC = AllWordsByCreateDayAndOrder(createDay, order);
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final items = List<String>.from(jsonDecode(result));
+    return items;
+  }
+
+  @override
+  bool checkDictZipTargetPathExist(String zipPath) {
+    final zipPathC = zipPath.toNativeUtf8();
+    final result = CheckDictZipTargetPathExist(zipPathC);
+    malloc.free(zipPathC);
+    return result;
+  }
+
+  @override
+  int webDictRunPort() {
+    return WebDictRunPort();
+  }
+
+  @override
+  RespData<void> restoreFromOldVersionData() {
+    final resultC = RestoreFromOldVersionData();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<void>> syncData(
+      String ip, int port, int code, int syncKind) {
+    final ipC = ip.toNativeUtf8();
+    final resultC = SyncData(ipC, port, code, syncKind);
+    final result = resultC.toDartString();
+    malloc.free(ipC);
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
+  }
+
+  @override
+  String goBuildInfoString() {
+    final resultC = GoBuildInfoString();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    return result;
+  }
+
+  @override
+  bool getWebOnlineClose() {
+    return GetWebOnlineClose();
   }
 }

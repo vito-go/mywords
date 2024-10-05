@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_common.dart';
 import 'package:mywords/libso/handler.dart';
 
 class WordDefaultMeaning extends StatefulWidget {
-  const WordDefaultMeaning(
-      {super.key,
-      required this.word,
-      required this.meaning,
-      required this.realLevel});
+  const WordDefaultMeaning({
+    super.key,
+    required this.word,
+    required this.meaning,
+  });
 
   final String word;
 
   final String meaning;
-  final int realLevel;
 
   @override
   State<StatefulWidget> createState() {
@@ -23,14 +23,12 @@ class WordDefaultMeaning extends StatefulWidget {
 class _State extends State<WordDefaultMeaning> {
   String word = "";
   String meaning = "";
-  int realLevel = -1;
 
   @override
   void initState() {
     super.initState();
     word = widget.word;
     meaning = widget.meaning;
-    realLevel = widget.realLevel;
   }
 
   Widget get buildWordHeaderRow {
@@ -40,16 +38,40 @@ class _State extends State<WordDefaultMeaning> {
     ];
     if (!word.contains("_") && !word.contains(" ") && !word.contains(",")) {
       children.addAll([
-        buildInkWell(context, word, 0, realLevel),
+        buildInkWell(context, word, 0),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 1, realLevel),
+        buildInkWell(context, word, 1),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 2, realLevel),
+        buildInkWell(context, word, 2),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 3, realLevel),
+        buildInkWell(context, word, 3),
       ]);
     }
     return Row(children: children);
+  }
+
+  void loopUp(String selectText) async {
+    String tempWord = selectText;
+    String m = await handler.defaultWordMeaning(tempWord);
+    if (m == "") {
+      tempWord = await handler.dictWordQueryLink(tempWord);
+      m = await handler.defaultWordMeaning(tempWord);
+    }
+    if (m == '') {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text('无结果: $word', maxLines: 1, overflow: TextOverflow.ellipsis),
+        duration: const Duration(milliseconds: 2000),
+      ));
+      return;
+    }
+
+    myPrint(word);
+    meaning = fixDefaultMeaning(m);
+    word = tempWord;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {});
   }
 
   @override
@@ -71,26 +93,8 @@ class _State extends State<WordDefaultMeaning> {
                   selection.textInside(textEditingValue.text).trim();
               if (!selectText.contains(" ")) {
                 buttonItems.add(ContextMenuButtonItem(
-                    onPressed: () async {
-                      String tempWord = selectText;
-                      String m = await handler.dictWordQuery(tempWord);
-                      if (m == "") {
-                        tempWord = await handler.dictWordQueryLink(tempWord);
-                        m = await handler.dictWordQuery(tempWord);
-                      }
-                      if (m == '') {
-                        if (!context.mounted)return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('无结果: $word',
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
-                          duration: const Duration(milliseconds: 2000),
-                        ));
-                        return;
-                      }
-                      meaning = fixDefaultMeaning(m);
-                      word = tempWord;
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      setState(() {});
+                    onPressed: () {
+                      loopUp(selectText);
                     },
                     label: "Lookup"));
               }

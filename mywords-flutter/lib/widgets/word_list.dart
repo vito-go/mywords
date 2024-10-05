@@ -1,28 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:mywords/common/global.dart';
 import 'package:mywords/common/prefs/prefs.dart';
+import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/widgets/word_common.dart';
 
-import 'package:mywords/common/global_event.dart';
-import 'package:mywords/libso/resp_data.dart';
-
-class _WordLevel {
-  String word;
-  int level;
-
-  _WordLevel(this.word, this.level);
-}
+import '../common/queue.dart';
 
 class WordList extends StatefulWidget {
-  const WordList(
-      {super.key, required this.showLevel, required this.getLevelWordsMap});
+  const WordList({super.key, required this.createDay});
 
-  final int showLevel;
-
-  final FutureOr<RespData<Map<int, List<String>>>> Function()
-      getLevelWordsMap; // level: [word1,word2]
+  final int createDay; // 0 all words;  the other day known words
 
   @override
   State<StatefulWidget> createState() {
@@ -31,81 +21,64 @@ class WordList extends StatefulWidget {
 }
 
 class _State extends State<WordList> {
-  late final FutureOr<RespData<Map<int, List<String>>>> Function()
-      getLevelWordsMap = widget.getLevelWordsMap; // level: [word1,word2]
+  late final createDay = widget.createDay; // 1 all words; 2 today known words
+  List<String> allWords = [];
+  StreamSubscription<Event>? eventConsumer;
 
-  Map<int, List<String>> levelWordsMap = {}; // level: [word1,word2]
-  late int showLevel = widget.showLevel;
+  Map<int, int> get levelWordsMap => Global.levelDistribute(allWords);
+  int showLevel = prefs.showWordLevel;
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.updateKnownWord) {
-      if (event.param is Map) {
-        if (event.param["word"] != null && event.param["level"] != null) {
-          final word = event.param["word"].toString();
-          final level = event.param["level"] as int;
-          levelWordsMap[1]?.remove(word);
-          levelWordsMap[2]?.remove(word);
-          levelWordsMap[3]?.remove(word);
-          // no need to add when 0
-          levelWordsMap[level]?.add(word);
-          setState(() {});
-        }
-      }
-    }
-  }
+  int get count1 => levelWordsMap[1] ?? 0;
 
-  int get count1 => (levelWordsMap[1] ?? []).length;
+  int get count2 => levelWordsMap[2] ?? 0;
 
-  int get count2 => (levelWordsMap[2] ?? []).length;
-
-  int get count3 => (levelWordsMap[3] ?? []).length;
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  int get count3 => levelWordsMap[3] ?? 0;
 
   Widget wordLevelRichText() {
+    final normalStyle = Theme.of(context).textTheme.bodyMedium;
+    final TextStyle levelStyle = TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.normal);
     return RichText(
       text: TextSpan(
           style: const TextStyle(color: Colors.black),
           text: "",
           children: [
             const TextSpan(
-                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                // text: "词汇分级 (0:陌生, L1:认识, 2:了解, 3:熟悉)\n", //
+              text: "word level (0:unknown, 1:known, 2:understand, 3:familiar)\n",
                 style: TextStyle(color: Colors.blueGrey)),
-            const TextSpan(text: "1级: "),
-            TextSpan(
-                text: "$count1",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
-            const TextSpan(text: "  2级: "),
-            TextSpan(
-                text: "$count2",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
-            const TextSpan(text: "  3级: "),
-            TextSpan(
-                text: "$count3",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.normal)),
+            TextSpan(text: "L1: ", style: normalStyle),
+            TextSpan(text: "$count1", style: levelStyle),
+            TextSpan(text: "  L2: ", style: normalStyle),
+            TextSpan(text: "$count2", style: levelStyle),
+            TextSpan(text: "  L3: ", style: normalStyle),
+            TextSpan(text: "$count3", style: levelStyle),
           ]),
     );
+  }
+
+  int order = 1; //  1: id desc, 2: id asc ,3 words desc, 4 words asc
+
+  void updateAllWords() async {
+    allWords = await handler.allWordsByCreateDayAndOrder(createDay, order);
+    setState(() {});
+  }
+
+  void eventHandler(Event event) {
+    if (event.eventType == EventType.updateKnownWord) {
+      setState(() {});
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
-    _updateLevelWordsMap();
+    updateAllWords();
+    eventConsumer = consume(eventHandler);
   }
 
-  void _updateLevelWordsMap() async {
-    final value = await getLevelWordsMap();
-    levelWordsMap = value.data ?? {};
-    setState(() {});
-  }
-
-  Widget buildWordLevelRow(int idx, String word, int realLevel) {
+  Widget buildWordLevelRow(int idx, String word) {
     List<Widget> children = [
       Text("[${idx + 1}]"),
       TextButton(
@@ -114,67 +87,61 @@ class _State extends State<WordList> {
           },
           child: Text(word, maxLines: 2, style: const TextStyle(fontSize: 18))),
       const Expanded(child: Text('')),
-      buildInkWell(context, word, 0, realLevel),
+      buildInkWell(context, word, 0),
       const SizedBox(width: 6),
-      buildInkWell(context, word, 1, realLevel),
+      buildInkWell(context, word, 1),
       const SizedBox(width: 6),
-      buildInkWell(context, word, 2, realLevel),
+      buildInkWell(context, word, 2),
       const SizedBox(width: 6),
-      buildInkWell(context, word, 3, realLevel),
+      buildInkWell(context, word, 3),
       const SizedBox(width: 10),
     ];
     return Row(children: children);
   }
 
-  Widget get listViewBuild {
-    final List<_WordLevel> items = [];
+  List<String> get showWords {
+    final List<String> result = [];
     switch (showLevel) {
       case 0:
-        final l1 = levelWordsMap[1] ?? [];
-        items.addAll(List<_WordLevel>.generate(
-            l1.length, (index) => _WordLevel(l1[index], 1)));
-        final l2 = levelWordsMap[2] ?? [];
-        items.addAll(List<_WordLevel>.generate(
-            l2.length, (index) => _WordLevel(l2[index], 2)));
-        final l3 = levelWordsMap[3] ?? [];
-        items.addAll(List<_WordLevel>.generate(
-            l3.length, (index) => _WordLevel(l3[index], 3)));
+        result.addAll(allWords);
         break;
       case 1:
-        final l1 = levelWordsMap[1] ?? [];
-        items.addAll(List<_WordLevel>.generate(
-            l1.length, (index) => _WordLevel(l1[index], 1)));
+        result.addAll(
+            allWords.where((element) => Global.allKnownWordsMap[element] == 1));
         break;
       case 2:
-        final l2 = levelWordsMap[2] ?? [];
-        items.addAll(List<_WordLevel>.generate(
-            l2.length, (index) => _WordLevel(l2[index], 2)));
+        result.addAll(
+            allWords.where((element) => Global.allKnownWordsMap[element] == 2));
         break;
       case 3:
-        final l3 = levelWordsMap[3] ?? [];
-        items.addAll(List<_WordLevel>.generate(
-            l3.length, (index) => _WordLevel(l3[index], 3)));
+        result.addAll(
+            allWords.where((element) => Global.allKnownWordsMap[element] == 3));
         break;
     }
+    return result;
+  }
+
+  Widget get listViewBuild {
     return ListView.separated(
       itemBuilder: (BuildContext context, int index) {
-        return buildWordLevelRow(index, items[index].word, items[index].level);
+        final word = showWords[index];
+        return buildWordLevelRow(index, word);
       },
       separatorBuilder: (BuildContext context, int index) => const Divider(),
-      itemCount: items.length,
+      itemCount: showWords.length,
     );
   }
 
   @override
   void dispose() {
     super.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-       crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         wordLevelRichText(),
         const Divider(),
@@ -182,7 +149,7 @@ class _State extends State<WordList> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              const Text("分级筛选"),
+               const Text("Level Filter"),
               buildShowLevel(0, label: "all", onTap: () {
                 showLevel = 0;
                 prefs.showWordLevel = 0;
@@ -224,10 +191,5 @@ Widget buildShowLevel(int level,
           child: Text(label),
         ));
   }
-  return InkWell(
-      onTap: onTap,
-      child: CircleAvatar(
-        backgroundColor: null,
-        child: Text(label),
-      ));
+  return InkWell(onTap: onTap, child: CircleAvatar(child: Text(label)));
 }

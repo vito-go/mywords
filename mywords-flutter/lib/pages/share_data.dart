@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/libso/handler.dart';
-import 'package:mywords/widgets/stream_log.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:mywords/widgets/private_ip.dart';
@@ -10,6 +9,7 @@ import 'package:mywords/widgets/private_ip.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../libso/types.dart';
 
@@ -32,7 +32,7 @@ class _SyncDataState extends State<SyncData> {
   @override
   void initState() {
     super.initState();
-    initController();
+    updateShareInfo();
     updateLocalExampleIP();
   }
 
@@ -44,7 +44,7 @@ class _SyncDataState extends State<SyncData> {
     setState(() {});
   }
 
-  void initController() async {
+  void updateShareInfo() async {
     shareInfo = await handler.getShareInfo();
     controllerPort.text = '${shareInfo.port}';
     controllerCode.text = '${shareInfo.code}';
@@ -64,76 +64,28 @@ class _SyncDataState extends State<SyncData> {
     return path.join(dir.path, "data");
   }
 
-  void _onTapBackUpData() async {
-    await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("备份数据到下载目录"),
-            content: TextField(
-                controller: controllerBackUpZipName,
-                decoration: const InputDecoration(
-                    hintText: "请输入备份文件名字", suffix: Text(".zip"))),
-            actions: [
-              TextButton(
-                  onPressed: () async {
-                    if (controllerBackUpZipName.text == "") {
-                      myToast(context, "文件名不能为空");
-                      return;
-                    }
-                    if (controllerBackUpZipName.text.startsWith("..")) {
-                      myToast(context, "文件名不能以..开头");
-                    }
-                    if (controllerBackUpZipName.text.startsWith("/")) {
-                      myToast(context, "文件名不能包含特殊字符/");
-                    }
-                    final zipName = "${controllerBackUpZipName.text}.zip";
-                    final dirPath = await dataDirPath();
-                    final respData =
-                        await compute(computeBackUpData, <String, String>{
-                      "zipName": zipName,
-                      "dataDirPath": dirPath,
-                    });
-                    if (respData.code != 0) {
-                      myToast(context, "备份失败!\n${respData.message}");
-                      return;
-                    }
-                    myToast(context, "备份成功!\n${respData.data}");
-                    Navigator.pop(context);
-                  },
-                  child: const Text("保存")),
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("取消"))
-            ],
-          );
-        });
-    if (!context.mounted) {
-      return;
-    }
-  }
-
   Future<void> doShareClose() async {
-    final respData = await handler.shareClosed();
+    final respData = await handler.shareClosed(
+      int.tryParse(controllerPort.text.trim()) ?? 0,
+      int.tryParse(controllerCode.text.trim()) ?? 0,
+    );
     if (respData.code != 0) {
       myToast(context, respData.message);
       return;
     }
-    shareInfo.open = false;
-    setState(() {});
-    handler.println("share server closed!");
+    updateShareInfo();
     return;
   }
 
   Future<void> doShareOpen() async {
     if (controllerPort.text.trim() == "") {
-      myToast(context, "端口号不能为空");
+      // myToast(context, "端口号不能为空");
+      myToast(context, "Port number cannot be empty");
       return;
     }
     if (controllerCode.text.trim() == "") {
-      myToast(context, "Code码不能为空");
+      // myToast(context, "Code码不能为空");
+      myToast(context, "Auth Code cannot be empty");
       return;
     }
     final port = int.parse(controllerPort.text.trim());
@@ -143,10 +95,7 @@ class _SyncDataState extends State<SyncData> {
       myToast(context, respData.message);
       return;
     }
-    shareInfo.open = true;
-    shareInfo.port = port;
-    shareInfo.code = code;
-    setState(() {});
+    updateShareInfo();
     return;
   }
 
@@ -154,6 +103,7 @@ class _SyncDataState extends State<SyncData> {
     return Switch(
         value: shareInfo.open,
         onChanged: (v) async {
+          unFocus();
           if (v) {
             doShareOpen();
           } else {
@@ -167,21 +117,7 @@ class _SyncDataState extends State<SyncData> {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [const PrivateIP()];
-    children.add(ListTile(
-      title: const Text("备份数据"),
-      leading: const Tooltip(
-        message: "学习数据备份文件将保存在本地",
-        triggerMode: TooltipTriggerMode.tap,
-        child: Icon(Icons.info_outline),
-      ),
-      trailing: IconButton(
-        onPressed: _onTapBackUpData,
-        icon: Icon(
-          Icons.save_alt,
-          color: Theme.of(context).primaryColor,
-        ),
-      ),
-    ));
+
     children.add(ListTile(
       leading: Tooltip(
         message:
@@ -196,7 +132,8 @@ class _SyncDataState extends State<SyncData> {
               controller: controllerPort,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: "端口",
+                // labelText: "端口",
+                labelText: "Port",
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -212,7 +149,8 @@ class _SyncDataState extends State<SyncData> {
               keyboardType: TextInputType.number,
               controller: controllerCode,
               decoration: const InputDecoration(
-                labelText: "Code码",
+                // labelText: "Code码",// auth
+                labelText: "Auth Code",
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -226,25 +164,42 @@ class _SyncDataState extends State<SyncData> {
       ),
       trailing: switchBuild(),
     ));
-    if (!kIsWeb) {
-      children.add(const Flexible(child: StreamLog(maxLines: 200)));
+    if (shareInfo.open) {
+      final shareFileInfosURL =
+          "http://127.0.0.1:${shareInfo.port}/share/shareFileInfos?code=${shareInfo.code}";
+
+      children.add(ListTile(
+        title: const Text("文件列表"),
+        leading: const Icon(Icons.http),
+        subtitle: Text(shareFileInfosURL),
+        trailing: IconButton(
+            onPressed: () {
+              launchUrlString(shareFileInfosURL);
+            },
+            icon: const Icon(Icons.open_in_browser)),
+      ));
+
+      final shareKnownWordsURL =
+          "http://127.0.0.1:${shareInfo.port}/share/shareKnownWords?code=${shareInfo.code}";
+      children.add(ListTile(
+        leading: const Icon(Icons.http),
+        title: const Text("Known Words"),
+        subtitle: Text(shareKnownWordsURL),
+        trailing: IconButton(
+            onPressed: () {
+              launchUrlString(shareKnownWordsURL);
+            },
+            icon: const Icon(Icons.open_in_browser)),
+      ));
     }
     final body = Column(children: children);
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: const Text("分享/备份数据"),
+      title: const Text("Share Data"),
     );
-
     return getScaffold(
       context,
       appBar: appBar,
       body: Padding(padding: const EdgeInsets.all(10), child: body),
     );
   }
-}
-
-Future<RespData<String>> computeBackUpData(Map<String, String> param) async {
-  final String zipName = param['zipName']!;
-  final String dataDirPath = param['dataDirPath']!;
-  return handler.backUpData(zipName, dataDirPath);
 }

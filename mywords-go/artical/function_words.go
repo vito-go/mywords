@@ -19,8 +19,15 @@ package artical
 */
 
 var functionWordsMap = map[string]struct{}{
-	"the":        {},
-	"a":          {},
+	"the": {},
+	"a":   {},
+	//in, on, at, to, for, with, by, over, under.
+	"in":   {},
+	"at":   {},
+	"to":   {},
+	"with": {},
+	"by":   {},
+
 	"an":         {},
 	"they":       {},
 	"them":       {},

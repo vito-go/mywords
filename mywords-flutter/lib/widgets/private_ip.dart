@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
 
+import '../util/util.dart';
+
 class PrivateIP extends StatefulWidget {
   const PrivateIP({super.key});
 
@@ -23,6 +25,20 @@ class PrivateIPState extends State {
   void initState() {
     super.initState();
     updateIP();
+  }
+
+  Widget buildIPV4sListTile() {
+    return ListTile(
+      title: const Text('Private IP'),
+      subtitle: Text(ips.join("\n")),
+      onTap: updateIP,
+      trailing: IconButton(
+          onPressed: () {
+            copyToClipBoard(context, ips.join("\n"));
+          },
+          icon: const Icon(Icons.copy_all)),
+      leading: const Icon(Icons.network_check),
+    );
   }
 
   Widget _buildListTileIP() {
@@ -55,6 +71,6 @@ class PrivateIPState extends State {
 
   @override
   Widget build(BuildContext context) {
-    return _buildListTileIP();
+    return buildIPV4sListTile();
   }
 }

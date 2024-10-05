@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:path_provider/path_provider.dart';
@@ -69,135 +69,23 @@ class _RestoreDataState extends State<RestoreData> {
     controllerPort.dispose();
     controllerCode.dispose();
     controllerIP.dispose();
-   }
-
-  Future<int> syncShareData() async {
-    if (controllerIP.text == "") {
-      myToast(context, "IP/域名不能为空");
-      return -1;
-    }
-    if (controllerPort.text == "") {
-      myToast(context, "端口号不能为空");
-      return -1;
-    }
-    if (controllerCode.text == "") {
-      myToast(context, "Code码不能为空");
-      return -1;
-    }
-    setState(() {
-      isSyncing = true;
-    });
-    final port = int.parse(controllerPort.text);
-    final code = int.parse(controllerCode.text);
-    String tempDir = "";
-    if (!kIsWeb) {
-      final dir = await getTemporaryDirectory();
-      tempDir = dir.path;
-    }
-
-    final respData = await compute(
-        computeRestoreFromShareServer, <String, dynamic>{
-      'ip': controllerIP.text,
-      'port': port,
-      'code': code,
-      'tempDir': tempDir,
-      'syncKnownWords': syncKnownWords,
-      'syncToadyWordCount': syncToadyWordCount,
-      "syncByRemoteArchived": syncByRemoteArchived,
-    });
-    setState(() {
-      isSyncing = false;
-    });
-
-    if (respData.code != 0) {
-      myToast(context, respData.message);
-      return -1;
-    }
-    prefs.syncIpPortCode = [
-      controllerIP.text,
-      controllerPort.text,
-      controllerCode.text
-    ];
-    myToast(context, "同步成功!");
-    addToGlobalEvent(GlobalEvent(
-        eventType: GlobalEventType.syncData, param: syncToadyWordCount));
-    return 0;
   }
+
 
   bool isSyncing = false;
+  bool isSyncingKnownWords = false;
+  bool isSyncFileInfos = false;
 
-  Widget syncShareDataBuild() {
-    return ElevatedButton.icon(
-      onPressed: isSyncing ? null : syncShareData,
-      icon: const Icon(Icons.sync),
-      label: const Text("开始同步"),
-    );
-  }
 
-  void restoreFromFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-        initialDirectory: getDefaultDownloadDir(),
-        allowMultiple: false,
-        withReadStream: kIsWeb,
-        type: FileType.custom,
-        allowedExtensions: ["zip"]);
-    if (result == null) {
-      return;
-    }
-    final files = result.files;
-    if (files.isEmpty) {
-      return;
-    }
-    final file = files[0];
-    final p = kIsWeb ? file.name : file.path;
-    if (p == null) {
-      return;
-    }
-    setState(() {
-      isSyncing = true;
-    });
-
-    final RespData<void> respData;
-    if (!kIsWeb) {
-      if (file.readStream == null) {
-        myToast(context, 'null stream: $p');
-        return;
-      }
-      respData = await compute(
-          computeRestoreFromBackUpData, <String, dynamic>{
-        "syncKnownWords": syncKnownWords,
-        "zipPath": file.path!,
-        "syncToadyWordCount": syncToadyWordCount,
-        "syncByRemoteArchived": syncByRemoteArchived,
-      });
-    } else {
-      respData = await compute(
-          computeWebRestoreFromBackUpData,
-          <String, dynamic>{
-            "syncKnownWords": syncKnownWords,
-            "bytes": file.readStream,
-            "syncToadyWordCount": syncToadyWordCount,
-            "syncByRemoteArchived": syncByRemoteArchived,
-          });
-    }
-    setState(() {
-      isSyncing = false;
-    });
-    if (respData.code != 0) {
-      myToast(context, "恢复失败!\n${respData.message}");
-      return;
-    }
-    myToast(context, "恢复完成");
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
-  }
 
   Widget textFieldCode() {
     return TextField(
       keyboardType: TextInputType.number,
       controller: controllerCode,
       decoration: const InputDecoration(
-        labelText: "Code码",
-        isDense: true,
+        // labelText: "Code码",
+        labelText: "Auth Code",
+          isDense: true,
       ),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
@@ -211,7 +99,8 @@ class _RestoreDataState extends State<RestoreData> {
       controller: controllerPort,
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
-        labelText: "端口",
+        // labelText: "端口",
+        labelText: "Port",
         isDense: true,
       ),
       inputFormatters: [
@@ -226,7 +115,8 @@ class _RestoreDataState extends State<RestoreData> {
       controller: controllerIP,
       keyboardType: TextInputType.url,
       decoration: const InputDecoration(
-        labelText: "IP/域名",
+        // labelText: "IP/域名",
+        labelText: "IP/domain name",
         // border: OutlineInputBorder(),
         isDense: true,
       ),
@@ -234,55 +124,13 @@ class _RestoreDataState extends State<RestoreData> {
   }
 
   bool syncToadyWordCount = prefs.syncToadyWordCount;
-  bool syncByRemoteArchived = prefs.syncByRemoteArchived;
   bool syncKnownWords = prefs.syncKnownWords;
 
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [
       const PrivateIP(),
-      SwitchListTile(
-        value: syncToadyWordCount,
-        onChanged: (v) {
-          syncToadyWordCount = v;
-          prefs.syncToadyWordCount = v;
-          setState(() {});
-        },
-        title: const Text("同步每日/累计单词学习统计"),
-      ),
-      SwitchListTile(
-        value: syncKnownWords,
-        onChanged: (v) {
-          syncKnownWords = v;
-          prefs.syncKnownWords = v;
-          setState(() {});
-        },
-        title: const Text("同步已知单词库"),
-      ),
-      SwitchListTile(
-        value: syncByRemoteArchived,
-        onChanged: (v) {
-          syncByRemoteArchived = v;
-          prefs.syncByRemoteArchived = v;
-          setState(() {});
-        },
-        title: const Text("同步文章归档信息"),
-      )
     ];
-    children.add(
-      ListTile(
-        title: const Text("从本地同步"),
-        leading: const Tooltip(
-          message: "从本地选择zip文件进行数据同步",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info_outline),
-        ),
-        trailing: IconButton(
-          onPressed: restoreFromFile,
-          icon: Icon(Icons.file_open, color: Theme.of(context).primaryColor),
-        ),
-      ),
-    );
     children.add(ListTile(title: textFieldIP()));
     children.add(Row(
       children: [
@@ -290,87 +138,117 @@ class _RestoreDataState extends State<RestoreData> {
         Flexible(child: ListTile(title: textFieldCode())),
       ],
     ));
-    children.add(ListTile(
-      trailing: syncShareDataBuild(),
-      title: isSyncing ? const LinearProgressIndicator() : null,
-      leading: const Tooltip(
-        message: "同步数据时，本地数据将不会被覆盖，而是与同步数据进行合并。",
-        triggerMode: TooltipTriggerMode.tap,
-        showDuration: Duration(seconds: 15),
-        child: Icon(Icons.info),
-      ),
-    ));
 
-    final col =
-        ListView(children: children);
+    children.addAll([
+      ListTile(
+        title: const Text("Known Words"),
+        leading: const Tooltip(
+          message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
+          triggerMode: TooltipTriggerMode.tap,
+          showDuration: Duration(seconds: 15),
+          child: Icon(Icons.info_outline),
+        ),
+        trailing: IconButton(
+            onPressed: isSyncingKnownWords
+                ? null
+                : () async {
+                    prefs.syncIpPortCode = [
+                      controllerIP.text.trim(),
+                      controllerPort.text.trim(),
+                      controllerCode.text.trim(),
+                    ];
+                    setState(() {
+                      isSyncingKnownWords = true;
+                    });
+                    final respData = await compute((param) {
+                      return handler.syncData(
+                          param['ip'] as String,
+                          param['port'] as int,
+                          param['code'] as int,
+                          param['syncKind'] as int);
+                    }, <String, dynamic>{
+                      'ip': controllerIP.text.trim(),
+                      'port': int.parse(controllerPort.text.trim()),
+                      'code': int.parse(controllerCode.text.trim()),
+                      'syncKind': 1
+                    });
+
+                    setState(() {
+                      isSyncingKnownWords = false;
+                    });
+                    if (respData.code != 0) {
+                      myToast(context, respData.message);
+                      return;
+                    }
+                    myToast(context, "同步我的单词库成功");
+                    produceEvent(EventType.updateKnownWord);
+                  },
+            icon: const Icon(Icons.sync)),
+        subtitle: isSyncingKnownWords
+            ? const LinearProgressIndicator()
+            : const Text(""),
+      ),
+      ListTile(
+        // title: const Text("同步文章信息"),
+        title: const Text("Sync Articles"),
+        leading: const Tooltip(
+          // message: "同步数据后，本地数据将与远程数据进行合并",
+          message: "After syncing data, local data will be merged with remote data",
+          triggerMode: TooltipTriggerMode.tap,
+          child: Icon(Icons.info_outline),
+        ),
+        subtitle:
+            isSyncFileInfos ? const LinearProgressIndicator() : const Text(""),
+        trailing: IconButton(
+            onPressed: isSyncFileInfos
+                ? null
+                : () async {
+                    prefs.syncIpPortCode = [
+                      controllerIP.text.trim(),
+                      controllerPort.text.trim(),
+                      controllerCode.text.trim(),
+                    ];
+                    setState(() {
+                      isSyncFileInfos = true;
+                    });
+
+                    final respData = await compute((param) {
+                      return handler.syncData(
+                          param['ip'] as String,
+                          param['port'] as int,
+                          param['code'] as int,
+                          param['syncKind'] as int);
+                    }, <String, dynamic>{
+                      'ip': controllerIP.text.trim(),
+                      'port': int.parse(controllerPort.text.trim()),
+                      'code': int.parse(controllerCode.text.trim()),
+                      'syncKind': 2
+                    });
+                    setState(() {
+                      isSyncFileInfos = false;
+                    });
+                    if (respData.code != 0) {
+                      myToast(context, respData.message);
+                      return;
+                    }
+                    myToast(context, "同步文章信息成功");
+                    produceEvent(EventType.updateArticleList);
+                  },
+            icon: const Icon(Icons.sync)),
+      ),
+    ]);
+
+    final col = ListView(children: children);
 
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: const Text("同步数据"),
+      // title: const Text("同步数据"),
+      title: const Text("Sync Data"),
     );
     return getScaffold(
       context,
       appBar: appBar,
-      body:col,
+      body: col,
     );
   }
 }
 
-Future<RespData<void>> computeRestoreFromShareServer(
-    Map<String, dynamic> param) async {
-  final ip = param['ip'] as String;
-  final port = param['port'] as int;
-  final code = param['code'] as int;
-  final tempDir = param['tempDir'] as String;
-  final syncToadyWordCount = param['syncToadyWordCount'] as bool;
-  final syncKnownWords = param['syncKnownWords'] as bool;
-  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-  return handler.restoreFromShareServer(ip, port, code, syncKnownWords, tempDir,
-      syncToadyWordCount, syncByRemoteArchived);
-}
-
-// bool syncKnownWords,
-// String zipPath,
-// bool syncToadyWordCount,
-Future<RespData<void>> computeRestoreFromBackUpData(
-    Map<String, dynamic> param) async {
-  final zipPath = param['zipPath'] as String;
-  final syncToadyWordCount = param['syncToadyWordCount'] as bool;
-  final syncKnownWords = param['syncKnownWords'] as bool;
-  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-  return handler.restoreFromBackUpData(
-      syncKnownWords, zipPath, syncToadyWordCount, syncByRemoteArchived);
-}
-
-Future<RespData<void>> computeWebRestoreFromBackUpData(
-    Map<String, dynamic> param) async {
-  Stream<List<int>> bytes = param['bytes']!;
-  final syncToadyWordCount = param['syncToadyWordCount'] as bool;
-  final syncKnownWords = param['syncKnownWords'] as bool;
-  final syncByRemoteArchived = param['syncByRemoteArchived'] as bool;
-
-  final dio = Dio();
-  const www = "$debugHostOrigin/_webRestoreFromBackUpData";
-  try {
-    final Response<String> response = await dio.post(
-      www,
-      data: bytes,
-      queryParameters: {
-        "syncToadyWordCount": syncToadyWordCount,
-        "syncKnownWords": syncKnownWords,
-        "syncByRemoteArchived": syncByRemoteArchived,
-      },
-      options: Options(
-          responseType: ResponseType.plain,
-          validateStatus: (_) {
-            return true;
-          }),
-    );
-    if (response.statusCode != 200) {
-      return RespData.err(response.data ?? "");
-    }
-    return RespData.dataOK(null);
-  } catch (e) {
-    return RespData.err(e.toString());
-  }
-}

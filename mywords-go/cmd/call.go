@@ -5,7 +5,12 @@ import "C"
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"mywords/pkg/log"
+	"mywords/pkg/util"
+	"net/http"
 	"reflect"
+	"strings"
 	"unsafe"
 )
 
@@ -117,4 +122,70 @@ func call(function any, args []interface{}) (response []reflect.Value, err error
 		argValues[i] = newValue
 	}
 	return f.Call(argValues), nil
+}
+
+func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
+	if util.CORS(w, r) {
+		return
+	}
+	defer r.Body.Close()
+	var args []interface{}
+	err := json.NewDecoder(r.Body).Decode(&args)
+	// When the method is GET, the body is empty, so the error is io.EOF
+	if err != nil && err != io.EOF {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	funcName := strings.TrimPrefix(r.URL.Path, "/call/")
+	if funcName == "" {
+		http.Error(w, "Please send a functionName", http.StatusBadRequest)
+		return
+	}
+	log.Println("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
+	fn, ok := exportedFuncMap[funcName]
+	if !ok {
+		http.Error(w, "Function not found: "+funcName, http.StatusNotFound)
+		return
+	}
+	response, err := call(fn, args)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(response) == 0 {
+		//http.Error(w, "Function return nothing", http.StatusInternalServerError)
+		return
+	}
+	if len(response) == 1 {
+		v := response[0]
+		k := v.Kind()
+		switch k {
+		case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
+		case reflect.Interface, reflect.Slice:
+		default:
+			// return only one value, without json
+			w.Write([]byte(fmt.Sprintf("%v", v)))
+			return
+		}
+		if response[0].IsNil() {
+			http.Error(w, "Function return nil", http.StatusInternalServerError)
+			return
+		}
+	}
+	value := response[0].Interface()
+	// 判断 value 的类型，支持 string, []byte, *C.char 类型, 其他类型请先转换为这三种类型之一，例如struct类型转换为json字符串
+	// application/json
+	w.Header().Set("Content-Type", "application/json")
+	switch v := value.(type) {
+	case string:
+		w.Write([]byte(v))
+	case []byte:
+		w.Write(v)
+	case *C.char:
+		defer C.free(unsafe.Pointer(v))
+		w.Write([]byte(C.GoString(v)))
+	default:
+		http.Error(w, fmt.Sprintf("Function return type not support: %T, value: %+v", v, v), http.StatusInternalServerError)
+	}
 }

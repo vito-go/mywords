@@ -25,4 +25,4 @@ vendor/
 
 *.profile
 _*.*
-cmd/web/*
+cmd/web/

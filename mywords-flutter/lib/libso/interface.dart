@@ -8,76 +8,80 @@ import 'package:mywords/widgets/line_chart.dart';
 abstract class Handler {
   FutureOr<void> initLib();
 
-  FutureOr<RespData<void>> parseAndSaveArticleFromSourceUrl(String www);
+  FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
 
-  FutureOr<RespData<void>> parseAndSaveArticleFromFile(String path);
+  //readMessage 阻塞性获取消息 0 意味着不超时
+  String readMessage();
 
   // hostname 可以为空，默认localhost
-  FutureOr<String> getUrlByWord(String hostname, String word);
+  FutureOr<String> getUrlByWordForWeb(String hostname, String word);
 
-  FutureOr<RespData<void>> updateDictName(String dataDir, String name);
+  FutureOr<RespData<void>> updateDictName(int id, String name);
 
-  FutureOr<RespData<void>> setDefaultDict(String basePath);
+  FutureOr<RespData<void>> setDefaultDict(int id);
 
-  FutureOr<RespData<List<dynamic>>> dictList();
+  FutureOr<RespData<List<DictInfo>>> dictList();
 
   FutureOr<RespData<void>> addDict(String dataDir);
 
-  FutureOr<RespData<void>> delDict(String basePath);
+  FutureOr<RespData<void>> delDict(int id);
 
   FutureOr<RespData<List<String>>> searchByKeyWord(String word);
 
-  FutureOr<RespData<String>> getDefaultDict();
+  FutureOr<int> getDefaultDictId();
+
+  FutureOr<bool> checkDictZipTargetPathExist(String zipPath);
 
   FutureOr<RespData<String>> getHTMLRenderContentByWord(String word);
 
-  FutureOr<String> finalHtmlBasePathWithOutHtml(String word);
+  FutureOr<bool> existInDict(String word);
 
-  FutureOr<RespData<void>> deleteGobFile(String fileName);
+  FutureOr<RespData<void>> deleteGobFile(int id);
 
-  FutureOr<RespData<void>> archiveGobFile(String fileName);
+  FutureOr<RespData<void>> updateFileInfo(FileInfo item);
 
-  FutureOr<RespData<void>> unArchiveGobFile(String fileName);
-
-  FutureOr<RespData<List<FileInfo>>> showFileInfoList();
-
-  FutureOr<RespData<List<FileInfo>>> getArchivedFileInfoList();
+  FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(bool archived);
 
   FutureOr<Map<String, dynamic>> knownWordsCountMap();
 
-  FutureOr<RespData<Article>> articleFromGobFile(String fileName);
+  FutureOr<int> webOnlinePort();
 
-  FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
+  void setWebOnlineClose(bool v);
+  FutureOr<bool> getWebOnlineClose();
 
-  FutureOr<String> dictWordQuery(String word);
+  FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
 
-  FutureOr<RespData<Map<int, int>>> levelDistribute(List<String> words);
+  FutureOr<RespData<Article>> renewArticleFileInfo(int int);
+
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int int);
+
+  RespData<int> vacuumDB();
+
+  FutureOr<RespData<int>> dbSize();
+
+  FutureOr<int> webDictRunPort();
+
+  FutureOr<String> defaultWordMeaning(String word);
 
   FutureOr<String> dictWordQueryLink(String word);
 
-  FutureOr<String> getFileNameBySourceUrl(String word);
+  FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
-
-  FutureOr<RespData<void>> restoreFromBackUpData(bool syncKnownWords,
-      String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
 
   FutureOr<String> proxyURL();
 
-  FutureOr<RespData<void>> shareClosed();
+  FutureOr<RespData<void>> shareClosed(int port, int code);
 
   FutureOr<RespData<void>> shareOpen(int port, int code);
 
-  FutureOr<RespData<void>> restoreFromShareServer(
-      String ip,
-      int port,
-      int code,
-      bool syncKnownWords,
-      String tempDir,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived);
+// //export SyncData
+// func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
+  // 1 sync known words, 2 sync file infos
+  FutureOr<RespData<void>> syncData(
+      String ip, int port, int code, int syncKind);
 
   FutureOr<RespData<ChartLineData>> getChartData();
 
@@ -85,28 +89,24 @@ abstract class Handler {
 
   FutureOr<RespData<Map<String, dynamic>>> getToadyChartDateLevelCountMap();
 
+  FutureOr<RespData<Map<String, int>>> allKnownWordsMap();
+
   FutureOr<RespData<Map<int, List<String>>>> allKnownWordMap();
+
+//  1: id desc, 2: id asc ,3 words desc, 4 words asc  ,createDay 0 mean all
+  FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order);
 
   FutureOr<RespData<Map<int, List<String>>>> todayKnownWordMap();
 
-  FutureOr<RespData<void>> updateKnownWords(int level, String word);
-
-  FutureOr<int> queryWordLevel(String word);
-
-  FutureOr<Map<String, int>> queryWordsLevel(List<String> words);
+  FutureOr<RespData<void>> updateKnownWordLevel(String word, int level);
 
   FutureOr<List<String>?> getIPv4s(); // null mean error
 
-  FutureOr<RespData<Article>> parseAndSaveArticleFromSourceUrlAndContent(
-      String www, String htmlContent, int lastModified);
-
-  FutureOr<RespData<List<String>>> searchByKeyWordWithDefault(String word);
-
   FutureOr<ShareInfo> getShareInfo();
 
-  void setLogUrl(String logUrl, String logNonce);
-
-  void println(String msg);
+  RespData<void> restoreFromOldVersionData();
 
   String getHostName();
+
+  FutureOr<String> goBuildInfoString();
 }
