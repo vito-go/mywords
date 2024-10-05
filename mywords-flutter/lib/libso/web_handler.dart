@@ -10,14 +10,11 @@ import 'package:mywords/widgets/line_chart.dart';
 
 import 'package:mywords/environment.dart';
 
-import 'package:mywords/util/local_cache.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-
 final Handler handlerImplement = WebHandler();
 
 class WebHandler implements Handler {
   @override
-  Future<RespData<void>> addDict(String dataDir) async {
+  Future<RespData<void>> addDict(String zipPath) async {
     throw "not support add dict on web platform in this way";
   }
 
@@ -39,24 +36,16 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> archiveGobFile(String fileName) async {
-    final result = await call("ArchiveGobFile", [fileName]);
+  Future<RespData<void>> updateFileInfo(FileInfo item) async {
+    final result = await call("ArchiveGobFile", [item.toRawJson()]);
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
     return respData;
   }
 
   @override
-  Future<RespData<String>> backUpData(
-      String zipName, String dataDirPath) async {
-    final www = "$debugHostOrigin/_downloadBackUpdate?name=$zipName";
-    launchUrlString(www);
-    return RespData.dataOK("");
-  }
-
-  @override
-  Future<RespData<Article>> articleFromGobFile(String fileName) async {
-    final result = await call("ArticleFromGobFile", [fileName]);
+  Future<RespData<Article>> articleFromFileInfo(FileInfo fileInfo) async {
+    final result = await call("ArticleFromFileInfo", [fileInfo]);
 
     final RespData<Article> respData =
         RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
@@ -64,34 +53,35 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> delDict(String basePath) async {
-    LocalCache.defaultDictBasePath = null;
-    final result = await call("DelDict", [basePath]);
+  Future<RespData<void>> delDict(int id) async {
+    final result = await call("DelDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
   }
 
   @override
-  Future<RespData<void>> deleteGobFile(String fileName) async {
-    final result = await call("DeleteGobFile", [fileName]);
+  Future<RespData<void>> deleteGobFile(int id) async {
+    final result = await call("DeleteGobFile", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
   }
 
   @override
-  Future<RespData<List>> dictList() async {
+  Future<RespData<List<DictInfo>>> dictList() async {
     final result = await call("DictList", []);
 
-    final RespData<List<dynamic>> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as List<dynamic>);
+    final RespData<List<DictInfo>> respData = RespData.fromJson(
+        jsonDecode(result),
+        (json) => List<DictInfo>.generate(
+            json.length, (index) => DictInfo.fromJson(json[index])));
     return respData;
   }
 
   @override
-  Future<String> dictWordQuery(String word) async {
-    final result = await call("DictWordQuery", [word]);
+  Future<String> defaultWordMeaning(String word) async {
+    final result = await call("DefaultWordMeaning", [word]);
     final respData =
         RespData.fromJson(jsonDecode(result), (json) => json.toString());
     String define = respData.data ?? '';
@@ -112,22 +102,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<String> finalHtmlBasePathWithOutHtml(String word) async {
-    final result = await call("FinalHtmlBasePathWithOutHtml", [word]);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
-  }
-
-  @override
-  Future<RespData<List<FileInfo>>> getArchivedFileInfoList() async {
-    final result = await call("GetArchivedFileInfoList", []);
-
-    final RespData<List<FileInfo>> respData = RespData.fromJson(
-        jsonDecode(result),
-        (json) => List<FileInfo>.generate(
-            json.length, (index) => FileInfo.fromJson(json[index])));
-    return respData;
+  Future<bool> existInDict(String word) async {
+    final result = await call("ExistInDict", [word]);
+    return bool.parse(result);
   }
 
   @override
@@ -149,11 +126,9 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<String>> getDefaultDict() async {
-    final result = await call("GetDefaultDict", []);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData;
+  Future<int> getDefaultDictId() async {
+    final result = await call("GetDefaultDictId", []);
+    return int.parse(result);
   }
 
   @override
@@ -175,32 +150,11 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<String> getUrlByWord(String hostname, String word) async {
-    final result = await call("GetUrlByWord", [hostname, word]);
+  Future<String> getUrlByWordForWeb(String hostname, String word) async {
+    final result = await call("GetUrlByWordForWeb", [hostname, word]);
     final RespData<String> respData =
         RespData.fromJson(jsonDecode(result), (json) => json as String);
     return respData.data ?? '';
-  }
-
-  @override
-  Future<RespData<void>> parseAndSaveArticleFromSourceUrl(String www) async {
-    final result = await call("ParseAndSaveArticleFromSourceUrl", [www]);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
-
-  @override
-  Future<RespData<Article>> parseAndSaveArticleFromSourceUrlAndContent(
-      String www, String htmlContent, int lastModified) async {
-    final result = await call("ParseAndSaveArticleFromSourceUrlAndContent",
-        [www, htmlContent, lastModified]);
-
-    final RespData<Article> respData = RespData<Article>.fromJson(
-        jsonDecode(result), (json) => Article.fromJson(json));
-
-    return respData;
   }
 
   @override
@@ -212,61 +166,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  void println(String msg) {
-    // TODO: implement println
-    // console.log
-  }
-
-  // Deprecated please use queryWordsLevel
-  @override
-  Future<int> queryWordLevel(String word) async {
-    final result = await call("QueryWordLevel", [word]);
-    final RespData<int> respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as int);
-    final int l = respData.data ?? 0;
-    return l;
-  }
-
-  @override
-  Future<RespData<void>> restoreFromBackUpData(
-      bool syncKnownWords,
-      String zipPath,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived) async {
-    final result = await call("RestoreFromBackUpData",
-        [zipPath, syncToadyWordCount, syncByRemoteArchived]);
-
-    final respData = RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
-
-  @override
-  Future<RespData<void>> restoreFromShareServer(
-      String ip,
-      int port,
-      int code,
-      bool syncKnownWords,
-      String tempDir,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived) async {
-    final result = await call("RestoreFromShareServer", [
-      ip,
-      port,
-      code,
-      syncKnownWords,
-      tempDir,
-      syncToadyWordCount,
-      syncByRemoteArchived
-    ]);
-
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
-
-  @override
   Future<RespData<List<String>>> searchByKeyWord(String word) async {
     final result = await call("SearchByKeyWord", [word]);
     final RespData<List<String>> respData = RespData.fromJson(
@@ -275,32 +174,16 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<List<String>>> searchByKeyWordWithDefault(String word) async {
-    final result = await call("SearchByKeyWordWithDefault", [word]);
-
-    final RespData<List<String>> respData = RespData.fromJson(
-        jsonDecode(result), (json) => List<String>.from(json));
-    return respData;
-  }
-
-  @override
-  Future<RespData<void>> setDefaultDict(String basePath) async {
-    LocalCache.defaultDictBasePath = null;
-    final result = await call("SetDefaultDict", [basePath]);
+  Future<RespData<void>> setDefaultDict(int id) async {
+    final result = await call("SetDefaultDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
   }
 
   @override
-  void setLogUrl(String logUrl, String logNonce) {
-    // TODO: implement setLogUrl
-    // not supported web
-  }
-
-  @override
-  Future<RespData<void>> shareClosed() async {
-    final result = await call("ShareClosed", []);
+  Future<RespData<void>> shareClosed(int port, int code) async {
+    final result = await call("ShareClosed", [port, code]);
 
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
@@ -312,16 +195,6 @@ class WebHandler implements Handler {
     final result = await call("ShareOpen", [port, code]);
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
-    return respData;
-  }
-
-  @override
-  Future<RespData<List<FileInfo>>> showFileInfoList() async {
-    final result = await call("ShowFileInfoList", []);
-    final RespData<List<FileInfo>> respData = RespData.fromJson(
-        jsonDecode(result),
-        (json) => List<FileInfo>.generate(
-            json.length, (index) => FileInfo.fromJson(json[index])));
     return respData;
   }
 
@@ -345,25 +218,21 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> unArchiveGobFile(String fileName) async {
-    final result = await call("UnArchiveGobFile", [fileName]);
-
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
+  Future<RespData<void>> updateDictName(int id, String name) async {
+    final result = await call("UpdateDictName", [id, name]);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
   }
 
   @override
-  Future<RespData<void>> updateDictName(String dataDir, String name) {
-    // TODO: implement updateDictName
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<RespData<void>> updateKnownWords(int level, String word) async {
-    final result = await call("UpdateKnownWords", [
+  Future<RespData<void>> updateKnownWordLevel(
+    String word,
+    int level,
+  ) async {
+    final result = await call("UpdateKnownWordLevel", [
+      word,
       level,
-      [word]
     ]);
 
     final respData = RespData.fromJson(jsonDecode(result), (json) => null);
@@ -379,18 +248,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<Map<int, int>>> levelDistribute(List<String> words) async {
-    final result = await call("LevelDistribute", [words]);
-
-    final respData = RespData.fromJson(
-        jsonDecode(result),
-        (json) => (json as Map<String, dynamic>).map(
-            (key, value) => MapEntry(int.parse(key.toString()), value as int)));
-
-    return respData;
-  }
-
-  @override
   Future<Map<String, dynamic>> knownWordsCountMap() async {
     final result = await call("KnownWordsCountMap", []);
 
@@ -398,16 +255,6 @@ class WebHandler implements Handler {
         jsonDecode(result) ?? {}, (json) => json as Map<String, dynamic>);
 
     return respData.data ?? {};
-  }
-
-  @override
-  Future<RespData<void>> parseAndSaveArticleFromFile(String path) async {
-    final result = await call("ParseAndSaveArticleFromFile", [path]);
-
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
   }
 
   @override
@@ -420,21 +267,11 @@ class WebHandler implements Handler {
   }
 
   @override
-  FutureOr<Map<String, int>> queryWordsLevel(List<String> words) async {
-    final result = await call("QueryWordsLevel", [words]);
-    final respData = RespData.fromJson(jsonDecode(result), (json) {
-      return (json as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, value as int));
-    });
-    return respData.data ?? {};
-  }
-
-  @override
-  FutureOr<String> getFileNameBySourceUrl(String sourceUrl) async {
-    final result = await call("GetFileNameBySourceUrl", [sourceUrl]);
-    final respData =
-        RespData.fromJson(jsonDecode(result), (json) => json as String);
-    return respData.data ?? "";
+  FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceUrl) async {
+    final result = await call("GetFileInfoBySourceURL", [sourceUrl]);
+    final respData = RespData.fromJson(
+        jsonDecode(result), (json) => FileInfo.fromJson(json));
+    return respData.data;
   }
 
   @override
@@ -465,6 +302,132 @@ class WebHandler implements Handler {
     final RespData<ShareInfo> respData = RespData.fromJson(
         jsonDecode(result), (json) => ShareInfo.fromJson(json));
     return respData.data!;
+  }
+
+  @override
+  FutureOr<RespData<Article>> newArticleFileInfoBySourceURL(String www) async {
+    final result = await call("NewArticleFileInfoBySourceURL", [www]);
+    final RespData<Article> respData =
+        RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> renewArticleFileInfo(int id) async {
+    final result = await call("RenewArticleFileInfo", [id]);
+    final RespData<Article> respData =
+        RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Article>> reparseArticleFileInfo(int id) async {
+    final result = await call("ReparseArticleFileInfo", [id]);
+    final RespData<Article> respData =
+        RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<Map<String, int>>> allKnownWordsMap() async {
+    final resultC = await call("AllKnownWordsMap", []);
+    final respData = RespData.fromJson(jsonDecode(resultC), (json) {
+      return (json as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as int));
+    });
+    return respData;
+  }
+
+  @override
+  Future<RespData<int>> dbSize() async {
+    final resultC = await call("DbSize", []);
+    final RespData<int> respData =
+        RespData.fromJson(jsonDecode(resultC), (json) {
+      return json as int;
+    });
+    return respData;
+  }
+
+  @override
+  RespData<int> vacuumDB() {
+    call("VacuumDB", []);
+    return RespData.dataOK(0);
+  }
+
+  @override
+  FutureOr<RespData<List<FileInfo>>> getFileInfoListByArchived(
+      bool archived) async {
+    final result = await call("GetFileInfoListByArchived", [archived]);
+    final RespData<List<FileInfo>> respData = RespData.fromJson(
+        jsonDecode(result),
+        (json) => List<FileInfo>.generate(
+            json.length, (index) => FileInfo.fromJson(json[index])));
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<void>> syncData(
+      String ip, int port, int code, int syncKind) async {
+    final result = await call("SyncData", [ip, port, code, syncKind]);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) => null);
+    return respData;
+  }
+
+  @override
+  String readMessage() {
+    // TODO: implement readMessage with websocket on web Platform
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<String>> allWordsByCreateDayAndOrder(
+      int createDay, int order) async {
+    final result =
+        await call("AllWordsByCreateDayAndOrder", [createDay, order]);
+    final items = List<String>.from(jsonDecode(result));
+    return items;
+  }
+
+  @override
+  FutureOr<bool> checkDictZipTargetPathExist(String zipPath) async {
+    final result = await call("CheckDictZipTargetPathExist", [zipPath]);
+    return bool.parse(result);
+  }
+
+  @override
+  Future<int> webDictRunPort() async {
+    final result = await call("WebDictRunPort", []);
+    return int.parse(result);
+  }
+
+  @override
+  RespData<void> restoreFromOldVersionData() {
+    call("RestoreFromOldVersionData", []);
+    return RespData.dataOK(null);
+  }
+
+  @override
+  Future<String> goBuildInfoString() async {
+    final result = await call("GoBuildInfoString", []);
+    return result;
+  }
+
+  @override
+  void setWebOnlineClose(bool v) {
+    call("SetWebOnlineClose", [v]);
+  }
+
+  @override
+  FutureOr<int> webOnlinePort() async {
+    final result = await call("WebOnlinePort", []);
+    return int.parse(result);
+  }
+
+  @override
+  FutureOr<bool> getWebOnlineClose()async {
+    final result = await call("GetWebOnlineClose", []);
+    return bool.parse(result);
   }
 }
 

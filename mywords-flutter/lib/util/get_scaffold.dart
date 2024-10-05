@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/environment.dart';
+ import 'package:mywords/util/util_native.dart' if (dart.library.html) 'package:mywords/util/util_web.dart';
 
 bool platFormIsMobile() {
   if (kIsWeb) {
@@ -24,20 +24,15 @@ Widget getScaffold(
   final double noMobileWidthRate = 0.35,
 }) {
   final Widget adjustedBody;
-  final webBodyWidthDouble = webBodyWidth.toDouble();
-  double mediaWidth = MediaQuery.of(context).size.width;
 
-  if (platFormIsMobile()) {
-    adjustedBody = body;
-  } else if (webBodyWidthDouble <= 0) {
-    adjustedBody = body;
-  } else if (mediaWidth > webBodyWidthDouble) {
-    double width = double.infinity;
-    width = mediaWidth * noMobileWidthRate;
-    if (width < webBodyWidthDouble) {
-      width = webBodyWidthDouble;
+  if (kIsWeb) {
+    if (platFormWebIsMobile()) {
+      adjustedBody = body;
+    } else {
+      // desktop web
+      double width = getPlatformWebWidth(context);
+      adjustedBody = Center(child: SizedBox(width: width, child: body));
     }
-    adjustedBody = Center(child: SizedBox(width: width, child: body));
   } else {
     adjustedBody = body;
   }

@@ -40,6 +40,9 @@ class _State extends State<NetProxy> {
     controllerIP.text = uri.host;
     controllerPort.text = uri.port.toString();
     scheme = uri.scheme;
+    setState(() {
+
+    });
   }
 
   @override
@@ -76,12 +79,14 @@ class _State extends State<NetProxy> {
       onPressed: () async {
         final host = controllerIP.text.trim();
         if (host.isEmpty) {
-          myToast(context, "ip/域名不能为空");
+          // myToast(context, "ip/域名不能为空");
+          myToast(context, "IP/domain name cannot be empty");
           return;
         }
         final port = controllerPort.text.trim();
         if (port.isEmpty) {
-          myToast(context, "端口号不能为空");
+          // myToast(context, "端口号不能为空");
+          myToast(context, "Port number cannot be empty");
           return;
         }
         final netProxy = "$scheme://$host:$port";
@@ -118,7 +123,8 @@ class _State extends State<NetProxy> {
       controller: controllerPort,
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
-        labelText: "端口",
+        // labelText: "端口",
+        labelText: "Port",
         isDense: true,
       ),
       inputFormatters: [
@@ -132,7 +138,8 @@ class _State extends State<NetProxy> {
     return TextField(
       controller: controllerIP,
       keyboardType: TextInputType.url,
-      decoration: const InputDecoration(labelText: "IP/域名"),
+      // decoration: const InputDecoration(labelText: "IP/域名"),
+      decoration: const InputDecoration(labelText: "IP/domain name"),
     );
   }
 
@@ -142,7 +149,8 @@ class _State extends State<NetProxy> {
       ListTile(
           title: Row(
         children: [
-          const Text("请选择协议"),
+          // const Text("请选择协议"),
+          const Text("Select protocol"),
           const SizedBox(width: 20),
           dropButton,
         ],
@@ -162,8 +170,8 @@ class _State extends State<NetProxy> {
 
     final body = ListView(children: children);
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: const Text("设置网络代理"),
+      // title: const Text("网络代理"),
+      title: const Text("Network Proxy"),
     );
     return getScaffold(
       context,

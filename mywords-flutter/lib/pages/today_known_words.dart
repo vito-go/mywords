@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mywords/common/prefs/prefs.dart';
-import 'package:mywords/libso/handler.dart';
+
 import 'package:mywords/pages/statistic_chart.dart';
+import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_list.dart';
 
 import 'package:mywords/util/get_scaffold.dart';
@@ -17,8 +17,6 @@ class ToadyKnownWords extends StatefulWidget {
 }
 
 class _State extends State<ToadyKnownWords> {
-  int showLevel = prefs.showWordLevel;
-
   @override
   void initState() {
     super.initState();
@@ -42,14 +40,18 @@ class _State extends State<ToadyKnownWords> {
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+     
       actions: actions(),
-      title: const Text("今日学习单词"),
+      // title: const Text("今日学习单词"),
+      title: const Text("Today's Learning"),
     );
-
-    final body = WordList(
-        showLevel: showLevel, getLevelWordsMap: handler.todayKnownWordMap);
-
+    //  today  format: 20060102
+    final now = DateTime.now();
+    final today =
+        "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
+    final int todayInt = int.parse(today);
+    final body = WordList(createDay: todayInt);
+    myPrint("todayInt: $todayInt");
     return getScaffold(
       context,
       appBar: appBar,

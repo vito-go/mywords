@@ -2,7 +2,9 @@ package artical
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/sha1"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/antchfx/xpath"
@@ -21,26 +23,57 @@ import (
 )
 
 type Article struct {
-	Version      string     `json:"version"`
-	LastModified int64      `json:"lastModified"`
-	Title        string     `json:"title"`
-	SourceUrl    string     `json:"sourceUrl"`
-	HTMLContent  string     `json:"htmlContent"`
-	MinLen       int        `json:"minLen"`
-	TotalCount   int        `json:"totalCount"`
-	NetCount     int        `json:"netCount"`
+	Version     string `json:"version"`
+	Title       string `json:"title"`
+	SourceUrl   string `json:"sourceUrl"`
+	HTMLContent string `json:"htmlContent"`
+	MinLen      int    `json:"minLen"`
+	TotalCount  int    `json:"totalCount"`
+	NetCount    int    `json:"netCount"`
+	// todo 重复的句子改革
 	WordInfos    []WordInfo `json:"wordInfos"`
+	AllSentences []string   `json:"allSentences"`
 }
+
+func (art *Article) SaveToFile(path string) (int, error) {
+	//gob marshal
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(art)
+	if err != nil {
+		return 0, err
+	}
+	//save gob file
+	var bufGZ bytes.Buffer
+	gz := gzip.NewWriter(&bufGZ)
+	fileSize, err := gz.Write(buf.Bytes())
+	if err != nil {
+		return 0, err
+	}
+	err = gz.Close()
+	if err != nil {
+		return 0, err
+	}
+	err = os.WriteFile(path, bufGZ.Bytes(), 0644)
+	if err != nil {
+		return 0, err
+	}
+	return fileSize, nil
+}
+
+const gobGzFileSuffix = ".gob.gz" // file_infos.json index file
+
+func (art *Article) GenFileName() string {
+	fileName := fmt.Sprintf("%x%s", sha1.Sum([]byte(art.HTMLContent)), gobGzFileSuffix)
+	return fileName
+
+}
+
 type WordInfo struct {
-	Text     string    `json:"text"`
-	WordLink string    `json:"wordLink"` // real word
-	Count    int64     `json:"count"`
-	Sentence []*string `json:"sentence"`
-}
-
-func ParseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (*Article, error) {
-
-	return parseContent(sourceUrl, filepath.Base(sourceUrl), expr, respBody, lastModified)
+	Text        string    `json:"text"`
+	WordLink    string    `json:"wordLink"` // real word
+	Count       int64     `json:"count"`
+	SentenceIds []int     `json:"sentenceIds"`
+	sentence    []*string // internal use
 }
 
 // //div/p//text()[not(ancestor::style or ancestor::a)]
@@ -48,16 +81,15 @@ func ParseContent(sourceUrl, expr string, respBody []byte, lastModified int64) (
 const DefaultXpathExpr = `//div/p//text()[not(ancestor::style)]|//div/span/text()|//div[contains(@class,"article-paragraph")]//text()|//div/text()|//h1/text()|//h2/text()|//h3/text()`
 
 // ParseSourceUrl proxyUrl can be nil
-func ParseSourceUrl(sourceUrl string, expr string, proxyUrl *url.URL) (*Article, error) {
+func ParseSourceUrl(sourceUrl string, proxyUrl *url.URL) (*Article, error) {
 	respBody, err := getRespBody(sourceUrl, proxyUrl)
 	if err != nil {
 		return nil, err
 	}
-	art, err := parseContent(sourceUrl, filepath.Base(sourceUrl), expr, respBody, time.Now().UnixMilli())
+	art, err := parseContent(sourceUrl, respBody)
 	if err != nil {
 		return nil, err
 	}
-	art.SourceUrl = sourceUrl
 	return art, nil
 }
 
@@ -103,21 +135,25 @@ func ParseLocalFile(path string) (*Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseContent(sourceUrl, filepath.Base(path), DefaultXpathExpr, htmlBody, time.Now().UnixMilli())
+	return parseContent(sourceUrl, htmlBody)
 	// TODO: the other file format to be supported, how to preview txt file?
-	var content string
-	if strings.ToLower(ext) == ".txt" {
-		pureContentBytes, err := os.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		content = string(pureContentBytes)
-	} else {
-		return nil, errors.New("file format not supported")
-	}
-	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
-	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "
-	return articleFromContent("", time.Now().UnixMilli(), filepath.Base(path), sourceUrl, pureContent)
+	/*
+
+	   var content string
+	   	if strings.ToLower(ext) == ".txt" {
+	   		pureContentBytes, err := os.ReadFile(path)
+	   		if err != nil {
+	   			return nil, err
+	   		}
+	   		content = string(pureContentBytes)
+	   	} else {
+	   		return nil, errors.New("file format not supported")
+	   	}
+	   	pureContent := regexp.MustCompile("[\u4e00-\u9fa5，。]").ReplaceAllString(content, "")
+	   	pureContent = regexp.MustCompile(`\s+`).ReplaceAllString(pureContent, " ") + " "
+	   	return buildArticleFromContent("", filepath.Base(path), sourceUrl, pureContent)
+
+	*/
 }
 
 // shy [194 173]
@@ -125,7 +161,7 @@ func ParseLocalFile(path string) (*Article, error) {
 var shy = string([]byte{194, 173})
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.1.0"
+const ParseVersion = "0.3.0"
 
 // var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
 var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
@@ -133,24 +169,16 @@ var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
 const quote = "”"
 const minLen = 3
 
-// parseContent 从网页内容中解析出单词
-// 输入任意一个网址 获取单词，
-// 1 统计英文单词数量
-// 2.可以筛选长度
-// 3 带三个例句
-func parseContent(sourceUrl, defaultTitle, expr string, respBody []byte, lastModified int64) (*Article, error) {
-	if lastModified <= 0 {
-		lastModified = time.Now().UnixMilli()
-	}
-
-	if expr == "" {
-		expr = DefaultXpathExpr
-	}
+func ParseContent(sourceUrl string, htmlContent []byte) (*Article, error) {
+	return parseContent(sourceUrl, htmlContent)
+}
+func parseContent(sourceUrl string, htmlContent []byte) (*Article, error) {
+	expr := DefaultXpathExpr
 	_, err := xpath.Compile(expr)
 	if err != nil {
 		return nil, err
 	}
-	rootNode, err := htmlquery.Parse(bytes.NewReader(respBody))
+	rootNode, err := htmlquery.Parse(bytes.NewReader(htmlContent))
 	if err != nil {
 		return nil, err
 	}
@@ -176,14 +204,14 @@ func parseContent(sourceUrl, defaultTitle, expr string, respBody []byte, lastMod
 		title = htmlquery.InnerText(titleNode)
 	}
 	if title == "" {
-		title = defaultTitle
+		title = filepath.Base(sourceUrl)
 	}
 	//sentences := strings.SplitAfter(content, ". ")
 	// The U.S.
-	return articleFromContent(string(respBody), lastModified, title, sourceUrl, pureContent)
+	return buildArticleFromContent(string(htmlContent), title, sourceUrl, pureContent)
 }
 
-func articleFromContent(HTMLContent string, lastModified int64, title, sourceUrl, pureContent string) (*Article, error) {
+func buildArticleFromContent(HTMLContent string, title, sourceUrl, pureContent string) (*Article, error) {
 	sentences := make([]string, 0, 512)
 	ss := regSentenceSplit.FindAllStringIndex(pureContent, -1)
 	var start = 0
@@ -202,7 +230,6 @@ func articleFromContent(HTMLContent string, lastModified int64, title, sourceUrl
 		}
 	}
 	sentences = append(sentences, pureContent[start:])
-
 	var totalCount int
 	var wordsMap = make(map[string]int64, 1024)
 	var wordsSentences = make(map[string][]*string, 1024)
@@ -279,29 +306,48 @@ loopSentences:
 		}
 
 	}
-	var WordInfos []WordInfo
+	var wordInfos []WordInfo
 	for k, v := range wordsMap {
 		wordLink := dict.WordLinkMap[k]
 		if wordLink == "" {
 			wordLink = k
 		}
-		WordInfos = append(WordInfos, WordInfo{
+		wordInfos = append(wordInfos, WordInfo{
 			Text:     k,
 			WordLink: wordLink,
 			Count:    v,
-			Sentence: wordsSentences[k],
+			sentence: wordsSentences[k],
 		})
 	}
-	sort.Slice(WordInfos, func(i, j int) bool {
-		if WordInfos[i].Count > WordInfos[j].Count {
+	sort.Slice(wordInfos, func(i, j int) bool {
+		if wordInfos[i].Count > wordInfos[j].Count {
 			return true
-		} else if WordInfos[i].Count == WordInfos[j].Count {
-			return WordInfos[i].Text < WordInfos[j].Text
+		} else if wordInfos[i].Count == wordInfos[j].Count {
+			return wordInfos[i].Text < wordInfos[j].Text
 		} else {
 			return false
-
 		}
 	})
+
+	var sentencePointerMap = make(map[*string]int, len(wordInfos))
+	var sentencePointerSlice = make([]*string, 0, len(wordInfos))
+	for _, wordInfo := range wordInfos {
+		for _, pointer := range wordInfo.sentence {
+			if _, ok := sentencePointerMap[pointer]; !ok {
+				sentencePointerMap[pointer] = len(sentencePointerSlice)
+				sentencePointerSlice = append(sentencePointerSlice, pointer)
+			}
+		}
+	}
+	for i := range wordInfos {
+		for _, pointer := range wordInfos[i].sentence {
+			wordInfos[i].SentenceIds = append(wordInfos[i].SentenceIds, sentencePointerMap[pointer])
+		}
+	}
+	var allSentences = make([]string, len(sentencePointerSlice))
+	for i, pointer := range sentencePointerSlice {
+		allSentences[i] = *pointer
+	}
 	c := Article{
 		Title:        title,
 		SourceUrl:    sourceUrl,
@@ -309,9 +355,9 @@ loopSentences:
 		MinLen:       minLen,
 		TotalCount:   totalCount,
 		NetCount:     len(wordsMap),
-		WordInfos:    WordInfos,
+		WordInfos:    wordInfos,
 		Version:      ParseVersion,
-		LastModified: lastModified,
+		AllSentences: allSentences,
 	}
 	return &c, nil
 }

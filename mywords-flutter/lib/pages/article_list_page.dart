@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/pages/article_page.dart';
@@ -11,10 +10,10 @@ import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/widgets/article_list.dart';
 
-import '../libso/resp_data.dart';
+import '../libso/types.dart';
 
 class ArticleListPage extends StatefulWidget {
   const ArticleListPage({super.key});
@@ -33,18 +32,18 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
     controller.dispose();
     focus.dispose();
     valueNotifier.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
     valueNotifierChart.dispose();
   }
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.syncData && event.param == true) {
+  void eventHandler(Event event) {
+    if (event.eventType == EventType.syncData && event.param == true) {
       updateTodayCountMap();
     }
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+    if (event.eventType == EventType.updateKnownWord) {
       updateTodayCountMap();
     }
-    if (event.eventType == GlobalEventType.updateLineChart) {
+    if (event.eventType == EventType.updateLineChart) {
       updateTodayCountMap();
     }
   }
@@ -53,7 +52,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     updateTodayCountMap();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   void search() async {
@@ -66,17 +65,18 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       indexStart = controller.text.indexOf("http://");
     }
     if (indexStart == -1) {
-      myToast(context, "网址有误，请检查");
+      // myToast(context, "网址有误，请检查");
+      myToast(context, "The URL is incorrect, please check");
       return;
     }
     final String www = controller.text.substring(indexStart).trim();
     if (www != controller.text) {
       controller.text = www;
     }
-    final fileName = await handler.getFileNameBySourceUrl(www);
+    final FileInfo? fInfo = await handler.getFileInfoBySourceURL(www);
 
-    if (fileName != "") {
-      if (!mounted)return;
+    if (fInfo != null) {
+      if (!mounted) return;
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -90,7 +90,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                     TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          pushTo(context, ArticlePage(fileName: fileName));
+                          pushTo(context, ArticlePage(fileInfo: fInfo));
                         },
                         child: const Text("查看")),
                     TextButton(
@@ -118,15 +118,14 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void computeParse(String www) async {
     valueNotifier.value = true;
-    final respData =
-        await compute(computeParseAndSaveArticleFromSourceUrl, www);
+    final respData = await compute(handler.newArticleFileInfoBySourceURL, www);
     valueNotifier.value = false;
     if (respData.code != 0) {
       myToast(context, respData.message);
       return;
     }
     controller.text = "";
-    addToGlobalEvent(GlobalEvent(eventType: GlobalEventType.updateArticleList));
+    produceEvent(EventType.updateArticleList);
   }
 
   FocusNode focus = FocusNode();
@@ -137,7 +136,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       controller: controller,
       focusNode: focus,
       decoration: InputDecoration(
-          hintText: "请输入一个英语文章页面网址",
+          // hintText: "请输入一个英语文章页面网址",
+          hintText: "Please enter a web page URL",
           prefixIcon: IconButton(
               onPressed: () {
                 controller.text = '';
@@ -165,24 +165,25 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   int get count3 => todayCountMap['3'] ?? 0;
 
   Widget get todaySubtitle {
-    final style = prefs.isDark
-        ? TextStyle(color: Colors.orange.shade300, fontWeight: FontWeight.bold)
-        : TextStyle(
-            color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold);
+    final style = TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.bold,
+        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize);
+
     return RichText(
         text: TextSpan(
-            text: "1级: ",
+            text: "L1: ",
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             children: [
           TextSpan(text: '$count1', style: style),
-          const TextSpan(text: "  2级: "),
+          const TextSpan(text: "  L2: "),
           TextSpan(text: '$count2', style: style),
-          const TextSpan(text: "  3级: "),
+          const TextSpan(text: "  L3: "),
           TextSpan(text: '$count3', style: style),
         ]));
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   Widget buildBody() {
     List<Widget> colChildren = [
@@ -194,20 +195,22 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   onPressed: () {
                     pushTo(context, const ToadyKnownWords());
                   },
-                  icon: Icon(
-                    Icons.wordpress,
-                    color: Theme.of(context).primaryColor,
-                  )),
+                  icon: const Icon(Icons.wordpress)),
               title: RichText(
                 text: TextSpan(
-                    text: "今日学习单词总数: ",
+                    // text: "今日学习单词总数: ",
+                    text: "Today's learned words: ",
                     style: TextStyle(
-                        color: prefs.isDark ? Colors.white70 : Colors.black),
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
                     children: [
                       TextSpan(
                           text: "${count1 + count2 + count3}",
                           style: TextStyle(
-                              color: Theme.of(context).primaryColor,
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.fontSize,
                               fontWeight: FontWeight.bold))
                     ]),
               ),
@@ -219,7 +222,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   },
                   icon: Icon(
                     Icons.stacked_line_chart,
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).colorScheme.primary,
                   )),
             );
           }),
@@ -236,9 +239,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
             }
             return const SizedBox(height: 5);
           }),
-      Expanded(
+      const Expanded(
           child: ArticleListView(
-        getFileInfos: handler.showFileInfoList,
+        archived: false,
         toEndSlide: ToEndSlide.archive,
         leftLabel: '归档',
         leftIconData: Icons.archive,
@@ -258,7 +261,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       myToast(context, respData.message);
       return;
     }
-    todayCountMap = respData.data ?? {};
+    todayCountMap = respData.data!;
     valueNotifierChart.value = UniqueKey();
     setState(() {});
   }
@@ -271,10 +274,4 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   @override
   bool get wantKeepAlive => true;
-}
-
-Future<RespData<void>> computeParseAndSaveArticleFromSourceUrl(
-    String www) async {
-  final respData = await handler.parseAndSaveArticleFromSourceUrl(www);
-  return respData;
 }

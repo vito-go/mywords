@@ -1,68 +1,109 @@
 import 'dart:convert';
 
+
 class FileInfo {
   final String title;
-  final String fileName;
+  final String filePath;
+  final String host;
   final String sourceUrl;
+  final int id;
   final int size;
-  final int lastModified;
-  final bool isDir;
+  final bool archived;
   final int totalCount;
   final int netCount;
+  final int updateAt;
+  final int createAt;
 
   FileInfo({
     required this.sourceUrl,
     required this.title,
-    required this.fileName,
+    required this.host,
+    required this.id,
+    required this.filePath,
     required this.size,
-    required this.lastModified,
-    required this.isDir,
     required this.totalCount,
+    required this.archived,
     required this.netCount,
+    required this.updateAt,
+    required this.createAt,
   });
 
   factory FileInfo.fromRawJson(String str) =>
       FileInfo.fromJson(json.decode(str));
+
+  // copyWith方法
+  FileInfo copyWith({
+    String? sourceUrl,
+    String? title,
+    String? filePath,
+    int? size,
+    String? host,
+    int? totalCount,
+    int? netCount,
+    int? updateAt,
+    bool? archived,
+    int? createAt,
+    int? id,
+  }) {
+    return FileInfo(
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      title: title ?? this.title,
+      filePath: filePath ?? this.filePath,
+      host: host ?? this.host,
+      size: size ?? this.size,
+      totalCount: totalCount ?? this.totalCount,
+      netCount: netCount ?? this.netCount,
+      updateAt: updateAt ?? this.updateAt,
+      createAt: createAt ?? this.createAt,
+      archived: archived ?? this.archived,
+      id: id ?? this.id,
+    );
+  }
 
   String toRawJson() => json.encode(toJson());
 
   factory FileInfo.fromJson(Map<String, dynamic> json) => FileInfo(
         sourceUrl: json["sourceUrl"].toString(),
         title: json["title"].toString(),
-        fileName: json["fileName"],
+        filePath: json["filePath"],
+        host: json["host"],
         size: json["size"],
-        lastModified: json["lastModified"],
-        isDir: json["isDir"],
         totalCount: json["totalCount"],
         netCount: json["netCount"],
+        updateAt: json["updateAt"],
+        createAt: json["createAt"],
+        archived: json["archived"],
+        id: json["id"],
       );
 
   Map<String, dynamic> toJson() => {
         "sourceUrl": sourceUrl,
         "title": title,
-        "fileName": fileName,
+        "host": host,
+        "filePath": filePath,
         "size": size,
-        "lastModified": lastModified,
-        "isDir": isDir,
         "totalCount": totalCount,
         "netCount": netCount,
+        "updateAt": updateAt,
+        "createAt": createAt,
+        "archived": archived,
+        "id": id,
       };
 }
 
 class Article {
   String title;
-  int lastModified;
   String version;
   String sourceUrl;
   String htmlContent;
   int minLen;
   int totalCount;
   int netCount;
+  List<String> allSentences;
   List<WordInfo> wordInfos;
 
   Article({
     required this.version,
-    required this.lastModified,
     required this.title,
     required this.sourceUrl,
     required this.htmlContent,
@@ -70,6 +111,7 @@ class Article {
     required this.totalCount,
     required this.netCount,
     required this.wordInfos,
+    required this.allSentences,
   });
 
   factory Article.fromRawJson(String str) => Article.fromJson(json.decode(str));
@@ -78,9 +120,9 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) {
     final List<dynamic> ws = json["wordInfos"] ?? [];
+    final List<dynamic> allSentences = json["allSentences"] ?? [];
     return Article(
       title: json["title"].toString(),
-      lastModified: json["lastModified"] ?? 0,
       version: json["version"].toString(),
       sourceUrl: json["sourceUrl"].toString(),
       htmlContent: json["htmlContent"],
@@ -91,33 +133,35 @@ class Article {
       //     json["wordInfos"]??[].map((x) => WordInfo.fromJson(x))),
       wordInfos: List<WordInfo>.generate(
           ws.length, (index) => WordInfo.fromJson(ws[index])),
+      allSentences: List<String>.generate(
+          allSentences.length, (index) => allSentences[index]),
     );
   }
 
   Map<String, dynamic> toJson() => {
         "title": title,
-        "lastModified": lastModified,
         "version": version,
         "sourceUrl": sourceUrl,
         "htmlContent": htmlContent,
         "minLen": minLen,
         "totalCount": totalCount,
         "netCount": netCount,
+        "allSentences": allSentences,
         "wordInfos": List<dynamic>.from(wordInfos.map((x) => x.toJson())),
       };
 }
 
 class WordInfo {
-  String text;
+  String text; //就是word
   String wordLink;
   int count;
-  List<String> sentence;
+  List<int> sentenceIds;
 
   WordInfo({
     required this.text,
     required this.wordLink,
     required this.count,
-    required this.sentence,
+    required this.sentenceIds,
   });
 
   factory WordInfo.fromRawJson(String str) =>
@@ -129,14 +173,15 @@ class WordInfo {
         text: json["text"] ?? "",
         wordLink: json["wordLink"] ?? "",
         count: json["count"] ?? 0,
-        sentence: List<String>.from((json["sentence"] ?? []).map((x) => x)),
+        sentenceIds:
+            List<int>.from((json["sentenceIds"] ?? []).map((x) => x as int)),
       );
 
   Map<String, dynamic> toJson() => {
         "text": text,
         "wordLink": wordLink,
         "count": count,
-        "sentence": List<dynamic>.from(sentence.map((x) => x)),
+        "sentenceIds": sentenceIds,
       };
 }
 
@@ -159,4 +204,55 @@ class ShareInfo {
         code: json["code"] ?? 0,
         open: json["open"] ?? false,
       );
+}
+
+//// DictInfo 单词字典信息
+// // name ,path, createAt, updateAt, size
+// type DictInfo struct {
+// 	ID       int64  `json:"id"`
+// 	Name     string `json:"name"`
+// 	Path     string `json:"path"`
+// 	CreateAt int64  `json:"createAt"`
+// 	UpdateAt int64  `json:"updateAt"`
+// 	Size     int64  `json:"size"`
+// }
+class DictInfo {
+  final int id;
+  final String name;
+  final String path;
+  final int createAt;
+  final int updateAt;
+  final int size;
+
+  DictInfo({
+    required this.id,
+    required this.name,
+    required this.path,
+    required this.createAt,
+    required this.updateAt,
+    required this.size,
+  });
+
+  factory DictInfo.fromRawJson(String str) =>
+      DictInfo.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory DictInfo.fromJson(Map<String, dynamic> json) => DictInfo(
+        id: json["id"],
+        name: json["name"],
+        path: json["path"],
+        createAt: json["createAt"],
+        updateAt: json["updateAt"],
+        size: json["size"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "path": path,
+        "createAt": createAt,
+        "updateAt": updateAt,
+        "size": size,
+      };
 }

@@ -12,14 +12,14 @@ import 'package:mywords/libso/types.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
 
 enum ToEndSlide { archive, unarchive }
 
 class ArticleListView extends StatefulWidget {
   const ArticleListView({
     super.key,
-    required this.getFileInfos,
+    required this.archived,
     required this.toEndSlide,
     required this.leftLabel,
     required this.leftIconData,
@@ -29,9 +29,8 @@ class ArticleListView extends StatefulWidget {
   final String leftLabel;
   final IconData leftIconData;
   final ToEndSlide toEndSlide;
+  final bool archived;
   final int pageNo; // 页码，用来做监听事件区分，1, 2, 3
-
-  final FutureOr<RespData<List<FileInfo>>> Function() getFileInfos;
 
   @override
   State<ArticleListView> createState() => _State();
@@ -39,6 +38,7 @@ class ArticleListView extends StatefulWidget {
 
 class _State extends State<ArticleListView> {
   List<FileInfo> fileInfos = [];
+  late final archived = widget.archived;
 
   List<FileInfo> get fileInfosFilter {
     if (kw == "") return fileInfos;
@@ -55,23 +55,22 @@ class _State extends State<ArticleListView> {
   @override
   void dispose() {
     super.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
     controller.dispose();
     controllerSearch.dispose();
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
 
   void slideToUnArchive(FileInfo item) {
-    final fileName = item.fileName;
+    final itemNew = item.copyWith(archived: false);
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final respData = await handler.unArchiveGobFile(fileName);
+      final respData = await handler.updateFileInfo(itemNew);
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -88,9 +87,9 @@ class _State extends State<ArticleListView> {
   }
 
   void slideToArchive(FileInfo item) {
-    final fileName = item.fileName;
+    final itemNew = item.copyWith(archived: true);
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final RespData respData = await handler.archiveGobFile(fileName);
+      final RespData respData = await handler.updateFileInfo(itemNew);
       if (respData.code != 0) {
         if (!mounted) {
           return;
@@ -98,8 +97,7 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -116,16 +114,15 @@ class _State extends State<ArticleListView> {
   }
 
   void slideToDelete(FileInfo item) {
-    final fileName = item.fileName;
+    final id = item.id;
     final t = Timer(const Duration(milliseconds: 3500), () async {
-      final RespData respData = await handler.deleteGobFile(fileName);
+      final RespData respData = await handler.deleteGobFile(id);
       if (respData.code != 0) {
         if (!mounted) return;
         myToast(context, respData.message);
         return;
       }
-      addToGlobalEvent(
-          GlobalEvent(eventType: GlobalEventType.updateArticleList));
+      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -160,14 +157,15 @@ class _State extends State<ArticleListView> {
                   maxLines: 2, overflow: TextOverflow.ellipsis),
               trailing: trailing,
               onTap: () {
-                pushTo(context, ArticlePage(fileName: item.fileName));
+                pushTo(context, ArticlePage(fileInfo: item));
               },
               minLeadingWidth: 0,
               leading: Text("[${index + 1}]",
                   style: TextStyle(
-                      fontSize: 14, color: Theme.of(context).primaryColor)),
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.primary)),
               subtitle: Text(
-                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.lastModified))}  total:${item.totalCount} net:${item.netCount}",
+                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updateAt))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis));
           return Dismissible(
@@ -202,8 +200,7 @@ class _State extends State<ArticleListView> {
         child: listView,
         // triggerMode : RefreshIndicatorTriggerMode.anywhere,
         onRefresh: () async {
-          addToGlobalEvent(
-              GlobalEvent(eventType: GlobalEventType.updateLineChart));
+          produceEvent(EventType.updateLineChart);
           await initFileInfos();
           if (!mounted) return;
           myToast(context, "Successfully!");
@@ -211,7 +208,7 @@ class _State extends State<ArticleListView> {
   }
 
   Future<void> initFileInfos() async {
-    final respData = await widget.getFileInfos();
+    final respData = await handler.getFileInfoListByArchived(archived);
     if (respData.code != 0) {
       if (!mounted) return;
       myToast(context, respData.message);
@@ -231,40 +228,47 @@ class _State extends State<ArticleListView> {
         builder: (BuildContext context) {
           return AlertDialog(
               title: const Text("提示"),
-              content: const Text("向左滑动删除文章, 向右滑动归档文章"),
+              // content: const Text("向左滑动删除文章, 向右滑动归档文章"),
+              content: const Text("Swipe left to delete the article, swipe right to archive the article"),
               actions: [
-                ElevatedButton(
+                TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text("确认")),
-                ElevatedButton(
+                    // child: const Text("确认")),
+                    child: const Text("OK")),
+                TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                       prefs.toastSlideToDelete = true;
                     },
-                    child: const Text("不再提示")),
+                    // child: const Text("不再提示")),
+                    child: const Text("Don't show again")),
               ]);
         });
   }
 
-  void globalEventHandler(GlobalEvent event) {
+  void eventHandler(Event event) {
     switch (event.eventType) {
-      case GlobalEventType.updateArticleList:
+      case EventType.updateArticleList:
         initFileInfos();
         break;
-      case GlobalEventType.syncData:
+      case EventType.syncData:
         initFileInfos();
         break;
-      case GlobalEventType.updateKnownWord:
+      case EventType.updateKnownWord:
         break;
-      case GlobalEventType.articleListScrollToTop:
+      case EventType.articleListScrollToTop:
         if (widget.pageNo == event.param && fileInfos.isNotEmpty) {
           controller.animateTo(0,
               duration: const Duration(milliseconds: 150),
               curve: Curves.linear);
         }
-      case GlobalEventType.updateLineChart:
+      case EventType.updateLineChart:
+      // TODO: Handle this case.
+      case EventType.updateTheme:
+      // TODO: Handle this case.
+      case EventType.updateDict:
       // TODO: Handle this case.
     }
   }
@@ -274,7 +278,7 @@ class _State extends State<ArticleListView> {
     super.initState();
     initFileInfos().then((value) {
       ifShowDialogGuide();
-      globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+      eventConsumer = consume(eventHandler);
     });
   }
 
@@ -314,8 +318,10 @@ class _State extends State<ArticleListView> {
         style: const TextStyle(fontSize: 14),
       ),
       title: CupertinoSearchTextField(
-        placeholder: "请输入文章标题关键词",
+        // placeholder: "请输入文章标题关键词",
+        placeholder: "keyword of the title",
         controller: controllerSearch,
+        style: Theme.of(context).textTheme.bodyLarge,
         onChanged: (String v) {
           kw = v;
           setState(() {});
@@ -326,7 +332,7 @@ class _State extends State<ArticleListView> {
 
   @override
   Widget build(BuildContext context) {
-    final infos=fileInfosFilter;
+    final infos = fileInfosFilter;
     return Column(
       children: [
         // ListTile(title: CupertinoSearchTextField(),),

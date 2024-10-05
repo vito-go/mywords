@@ -9,13 +9,13 @@ clean:
 	rm -rf android/app/jniLibs/*
 
 build-la:build-apk build-linux
-
+FLUTTER_VERSION=$(shell flutter --version)
 build-apk:
 	- mkdir bin
-	flutter build apk  --target-platform android-arm64
+	flutter build apk  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)" --target-platform android-arm64
 	mv build/app/outputs/flutter-apk/app-release.apk ./bin/mywords-arm64-v8a-release.apk
 build-linux:
-	flutter build linux -v
+	flutter build linux -v  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)"
 	- mkdir -p linux-deb/opt/mywords/libs
 	cp -r build/linux/x64/release/bundle/* linux-deb/opt/mywords/
 	cp  libs/*.so linux-deb/opt/mywords/libs/
@@ -23,7 +23,7 @@ build-linux:
 	- mkdir bin
 	dpkg -b linux-deb/ bin/mywords.deb
 build-windows:
-	flutter build windows -v
+	flutter build windows -v  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)"
 	- mkdir  build/windows/x64/runner/Release/libs/
 	cp  libs/*.so  build/windows/x64/runner/Release/libs/
 	- mkdir bin
@@ -32,4 +32,4 @@ build-windows:
 build-web:
 	 # flutter clean
 	rm -rf build/web
-	flutter build web
+	flutter build web  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)"

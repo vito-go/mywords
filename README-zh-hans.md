@@ -1,7 +1,5 @@
 ## [English Version](README.md) | [中文版](README-zh-hans.md)
 
-## 重要提示：新版本正在等待，使用sqlite重构，敬请关注！
-
 ## 项目概览
 
 本项目提供一个英语单词学习工具，专为英语学习者设计，通过阅读英文或双语文章来扩充词汇库。用户能够自动提取学习文章中的单词、统计词频、筛选过滤，同时跟踪和记录单词掌握程度。
@@ -11,7 +9,15 @@
 ## 日志更新
 
 - 20040324: **重要**: v2.0.0 增加web版本，支持本地部署或云端部署。
-
+### v3.0.0
+  - 对底层代码进行了完全重构，使其更加清晰。使用`sqlite`存储数据，使项目更加稳定和易于维护。
+  - 移动/桌面客户端版本直接集成Web，多设备之间的无缝学习。在客户端版本中称为`Web Online`。
+  - 全新的设计和用户体验；默认使用英语。
+  - 支持暗黑模式和亮色模式。
+  - Web支持上传超大（>2GB）词典文件。客户端版本也支持上传大文件。
+  - 支持编辑词典的名称。
+  - 设备之间的数据共享和同步更加简单和快速。
+  - **重要提示**: 从v3.0.0版本开始，计划不再提供单独编译Linux、Windows、MacOS客户端版本，请使用桌面Web版本或者移动集成Web版本进行学习。使得安装和使用更加简单和方便。
 ## 功能特点
 
 - **单词提取与记录**：输入一个网址，工具自动检索网页文章并提取里面的**所有单词**和它们的语境**句子**。同时，会计算并展示文章的**词汇量**。
@@ -20,7 +26,7 @@
 - **筛选浏览功能**：过滤出特定认知等级的单词，例如选定标记“0”能显示所有你尚不了解的单词。
 - **同步和平台兼容性**： 基于`Go`和`Flutter`开发的跨平台应用，支持在 Android、Linux 和 Windows 使用，支持设备间数据同步，便捷学习不受限制。
 - **web版本支持**：支持本地部署或云端部署，可以在浏览器打开web应用，使用体验与桌面应用和移动应用一致。
-- **本地数据存储**：无需依赖后台服务器，确保所有数据均在本地安全存储，支持本地备份、本地恢复。
+- **本地数据存储**：无需依赖后台服务器，确保所有数据均在本地安全存储。
 
 ## 开发与技术支持
 该工具的开发考虑到跨平台兼容性和用户方便性，不仅采用了性能优良的`go`语言实核心逻辑，同时以`flutter`保证了良好的用户界面体验和跨平台的一致性。用户无论在何种设备上学习，都能确保学习进展无缝同步。
@@ -75,8 +81,10 @@
     - 对于**Linux用户**：在终端执行 `make build-linux`。
     - 对于**Windows用户**：在终端执行 `make build-windows`。
 
+
 - **安装包位置**：
   编译完成后，相应的安装包文件将会位于项目的"bin"文件夹内。按照标准流程安装到你的设备上后即可开始使用。
+
 
 ### 2. web版本使用指南 (支持Linux、Windows、MacOS)
 
@@ -93,6 +101,7 @@
     - 在MacOS下执行`./bin/mywords-web-macos`
 - 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960`或者你指定的其他端口号。
 
+- 已在移动版本中集成web版本，多设备间无缝学习。
 
 ## 项目结构
 
@@ -109,109 +118,15 @@
 <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/mywords.jpg">
 
 ## 添加词典指南
-
-为了充分利用本工具的单词学习和查阅功能，你可能需要添加具有详细单词释义的词典库。由于词典数据库文件可能会很大，请按照以下步骤添加：
-
-1. **下载词典数据库**：
-  - 访问提供的非永久下载链接 `http://vitogo.tpddns.cn:9081/_download/dict-ox10-v3.zip` ，请复制该链接到浏览器中下载词典数据文件。
-
-2. **联系和支持**：
-- 如果你在使用本工具或添加词典时遇到了问题，或者想要与我们分享你的学习经验和进度，请通过以下方式联系我们：
-    - WeChat：`vitogo-chat`
-    - Email：`liushihao888@gmail.com`
-- 你还可以加入我们的微信学习分享交流群，与其他学员一起分享英语学习心得，共同学习进步。扫描下面的二维码即可加入微信群：
-    - <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/wechat-group.png" style="width: 256px">
-
-3. **词典库格式说明**：
-  - 词典库应当是一个zip压缩文件，该文件包含以下内容：
-
-    ![词典数据示例](https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/zip-dict.png)
-
-  - 结构说明：
-    - `data/`: 文件夹，存放字典资源文件，如图片、声音等。
-    - `html/`: 文件夹，存放单词释义的html页面文件，文件名应包含`.html`后缀。
-    - `*.css`, `*.js`: 静态资源文件，可以在压缩包根目录,也可以放在data文件夹下
-    - `word_html_map.json`: json文件，存放单词和html文件名的映射关系，格式为键值对json（key为单词，value为html文件名，不含`.html`后缀）。
-
-4. **自制词典数据**：
-  - 你可以下载mdx/mdd格式的词典文件，例如[牛津高阶英汉双解词典（第10版）V3](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E8%AF%8D%E5%85%B8%EF%BC%88%E7%AC%AC10%E7%89%88%EF%BC%89V3/)
-  - 获取并使用相关的Python代码进行mdx/mdd资源的提取和转换：
-    - 资源转换代码链接：[https://bitbucket.org/xwang/mdict-analysis/src/master/](https://bitbucket.org/xwang/mdict-analysis/src/master/)
-
-## 制作词典数据库文件
-
-在下载mdx/mdd格式词典文件以及提取词典资源代码文件后，你需要按照以下步骤制作词典数据库文件：
-1. **提取制作html文件及`word_html_map.json`**:
-    ```python
-    # coding: utf-8
-    import json
-    import os
-    from readmdict import MDX
-    import os
-    import sys
-    
-     
-    def makeHtml(mdxPath):
-        mdx = MDX(mdxPath)
-        base_dir=os.path.dirname(mdxPath)
-        all_words_path=os.path.join(base_dir,"word_html_map.json")
-        html_dir=os.path.join(base_dir,"html")
-        print("html directory is: "+html_dir)
-        print("all words json file path: "+all_words_path)
-        os.makedirs(html_dir,exist_ok=True)
-        i=1
-        allWordsMap={}
-        items=mdx.items()
-        for key,value in items:
-            word=key.decode(encoding='utf-8')
-            # ### 修复部分字典html文件中图片标签错误,图片放在span标签内. 如果没有此类问题可以注释掉下面的替换逻辑
-            htmlContent=value.decode().strip()
-            if htmlContent.startswith("<span id=")and htmlContent.endswith("</span>") and 'src="data:image/' in htmlContent:
-                htmlContent=htmlContent.replace("<span id=","<img id=")
-                htmlContent=htmlContent.replace("</span>","</img>")
-                htmlContent=htmlContent.replace('style="display:none"','style="max-width: 100%"')
-            value=htmlContent.encode()
-            # ##############
-            work_html_name = str(i)
-            allWordsMap[word]=work_html_name
-            html_path=os.path.join(html_dir,work_html_name+".html")
-            df = open(html_path, 'wb')
-            df.write(value)
-            df.close()
-            i+=1
-        b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
-        f2 = open(all_words_path, 'w')
-        f2.write(b)
-        f2.close()
-        print(i,"exit with 0")
-    
-    if __name__ == '__main__':
-        # python extract_html.py <mdx_path>
-        mdx_path=sys.argv[1]
-        makeHtml(mdx_path)
-    ```
-         
-
-- 2. **提取图片、声音资源文件(data 文件夹)**:
-  ```shell
-     python readmdict.py -x <.mdd文件>
-  ```
-- 3. **制作zip词典数据库压缩文件**:
-  ```shell
-     zip -q -r -9 mydict.zip data/ html/ *.css *.js word_html_map.json
-  ```
-  - 如果压缩文件中包含其他文件，如.ini文件等，可以在zip命令中添加相应的文件名。
-- 4. **将以上词典数据库文件添加设置为词典数据库文件**
-  - > 加载本地词典数据库文件--开始解析 
-  - > <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/add-dict.png" style="width: 256px">
-
-请按照上述步骤确保词典数据正确添加至你的学习工具中，以便在学习过程中查阅单词和词组的详细释义，从而更有效地提升你的语言能力。
+[添加词典指南](ADD_DICTIONARY_GUIDE_zh-hans.md)
 
 ## TODO
-- [ ] 暗黑主题色
-- [ ] IOS、MacOS平台支持
-- [x] web版本支持(已完成)，支持本地部署及云端部署
+- [x] 暗黑主题色
+- [x] 桌面web版本支持，支持本地部署及云端部署. 并支持在android设备Termux中运行.
+- [x] 在移动版本中集成web版本，多设备间无缝学习.
 - [x] README.md of English version
+- [ ] 代理设置支持配置用户名和密码
+- [ ] Web版本支持配置用户名和密码
 
 ---
 

@@ -1,6 +1,5 @@
 ## [English Version](README.md) | [中文版](README-zh-hans.md)
 
-## Important: Waiting for the new version, refactored using sqlite, stay tuned!
 ## Project Overview
 This project provides a tool for learning English vocabulary, designed specifically for English learners, by expanding their vocabulary through reading English or bilingual articles. Users can automatically extract words from the learning articles, analyze word frequency, filter words, and track and record their mastery level.
 
@@ -9,8 +8,17 @@ This project provides a tool for learning English vocabulary, designed specifica
 
 
 ## Changelog
-- 20040324: Important: v2.0.0 adds the web version, supporting local deployment or cloud deployment.
+- 20240324: Important: v2.0.0 adds the web version, supporting local deployment or cloud deployment.
 
+### v3.0.0
+- The underlying code has been refactored totally to make it clearer. Using `sqlite` to store data, making the project more stable and easier to maintain.
+- Mobile/desktop client version directly integrates Web, seamless learning between multiple devices. It called `Web Online` in the client version.
+- Totally new design and user experience; Using English as the default language.
+- Support for dark mode and light mode.
+- Web support uploading super large (>2GB) dictionary files. Client version also supports uploading large files.
+- Support for edit the name of the dictionary.
+- Sharing  and Syncing data between devices is easier and faster.
+- **Important**: Starting from version v3.0.0, we plan to no longer provide separately compiled Linux, Windows, and MacOS client versions. Please use the desktop Web version or the mobile integrated Web version for learning. This makes installation and usage simpler and more convenient.
 
 ## Key Features
 - **Word Extraction and Recording**: Enter a URL, and the tool automatically retrieves and extracts all words and their contextual sentences from the web article. Additionally, it calculates and displays the vocabulary size of the article.
@@ -19,7 +27,7 @@ This project provides a tool for learning English vocabulary, designed specifica
 - **Filtered Browsing Functionality**: Filter out words of specific cognitive levels, for example, selecting the "0" tag displays all the words you are yet to understand.
 - **Synchronization and Platform Compatibility**: Developed using Go and Flutter for cross-platform applications, supports usage on Android, Linux, and Windows, with data synchronization between devices, enabling convenient learning without constraints.
 - **Web Version Support**: Supports local or cloud deployment, enabling access to the web application via a browser, offering a consistent user experience with desktop and mobile applications.
-- **Local Data Storage**: No reliance on backend servers, ensuring all data is securely stored locally, with support for local backups and restoration.
+- **Local Data Storage**: No reliance on backend servers, ensuring all data is securely stored locally.
 
 ## Development and Technical Support
 - This tool is developed with a focus on cross-platform compatibility and user convenience. It not only utilizes the high-performance Go language for core logic but also employs Flutter to ensure a smooth user interface experience and consistency across platforms. Whether users are learning on any device, they can ensure seamless synchronization of their learning progress.
@@ -81,6 +89,7 @@ Please choose the correct compilation command according to your platform for com
   After compilation, the corresponding installation package files will be located in the "bin" folder of the project. Follow the standard installation process on your device to start using.
 
 
+
 ### 2. Web Version Usage Guide (Supports Linux, Windows, MacOS)
 
 
@@ -96,9 +105,7 @@ Please choose the correct compilation command according to your platform for com
     - Execute `./bin/mywords-web-windows.exe` on Windows.
     - Execute `./bin/mywords-web-macos` on MacOS.
 - After execution, the browser will automatically open and access http://127.0.0.1:18960 or the specified port number.
-
-
-
+- Already integrated the web version in the mobile version, seamless learning between multiple devices.
 
 ## Project Structure
 
@@ -106,122 +113,24 @@ Please choose the correct compilation command according to your platform for com
 ├── bin                   # Directory for compiled project files, .apk for Android, .deb for Linux, .zip for Windows, binary files for Web version (e.g., mywords-web-linux, mywords-web-windows.exe, mywords-web-macos)
 ├── mywords-go            # Directory for Go core logic source code used to compile .so library
 ├── mywords-flutter       # Directory for Flutter source code used to compile installation packages
-├── makefile              # Makefile for the project
-├── readme.md             # Project documentation
+├── Makefile              # Makefile for the project
+├── README.md             # Project documentation
 ```
 
 ## Screenshots
 <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/mywords.jpg">
 
 ## Adding Dictionary Guide
-
-To fully utilize the word learning and lookup features of this tool, you may need to add dictionary libraries with detailed word definitions. As dictionary database files can be large, please follow these steps to add them:
-
-
-1. **Download Dictionary Database**：
-  - Visit the provided non-permanent download link  `http://vitogo.tpddns.cn:9081/_download/dict-ox10-v3.zip` and copy the link to your browser to download the dictionary data file.。
-
-2. **Contact and Support**：
-- If you encounter any issues while using this tool or adding dictionaries, or if you want to share your learning experiences and progress with us, please contact us via:
-    - WeChat：`vitogo-chat`
-    - Email：`liushihao888@gmail.com`
-- You can also join our WeChat study and sharing group to exchange English learning experiences with other students and progress together. Scan the QR code below to join the WeChat group:
-    - <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/wechat-group.png" style="width: 256px">
-
-3. **Dictionary Library Format Description**:
-  - The dictionary library should be a zip compressed file containing the following contents:
-
-    ![zip-dict.png](https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/zip-dict.png)
-
-  - Structure Description:
-    - `data/`: Folder containing dictionary resource files such as images, sounds, etc.
-    - `html/`: Folder containing html page files for word definitions, with filenames including the `.html` suffix.
-    - `*.css`, `*.js`:  Static resource files, can be placed in the root directory of the zip file or in the data folder.
-    - `word_html_map.json`: JSON file containing the mapping between words and html filenames, in key-value pairs ("key" is the word, "value" is the html filename without the `.html` suffix).
-
-4. **Creating Custom Dictionary Data**:
-  - You can download mdx/mdd format dictionary files, for example, [牛津高阶英汉双解词典（第10版）V3](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E8%AF%8D%E5%85%B8%EF%BC%88%E7%AC%AC10%E7%89%88%EF%BC%89V3/)
-  - Obtain and use related Python code for extracting and converting mdx/mdd resources:
-    - Resource conversion code link: [https://bitbucket.org/xwang/mdict-analysis/src/master/](https://bitbucket.org/xwang/mdict-analysis/src/master/)
-
-## Creating Dictionary Database Files
-
-
-After downloading the MDX/MDD format dictionary files and extracting the code files for dictionary resources, you need to follow these steps to create the dictionary database file:
-1. **Extract and create HTML files and `word_html_map.json`:**:
-    ```python
-    # coding: utf-8
-    import json
-    import os
-    from readmdict import MDX
-    import os
-    import sys
-    
-     
-    def makeHtml(mdxPath):
-        mdx = MDX(mdxPath)
-        base_dir=os.path.dirname(mdxPath)
-        all_words_path=os.path.join(base_dir,"word_html_map.json")
-        html_dir=os.path.join(base_dir,"html")
-        print("html directory is: "+html_dir)
-        print("all words json file path: "+all_words_path)
-        os.makedirs(html_dir,exist_ok=True)
-        i=1
-        allWordsMap={}
-        items=mdx.items()
-        for key,value in items:
-            word=key.decode(encoding='utf-8')
-            # ### Fix the issue where some image tags are incorrectly placed within span tags in certain dictionary HTML files. If there are no such issues, you can comment out the replacement logic below.
-            htmlContent=value.decode().strip()
-            if htmlContent.startswith("<span id=")and htmlContent.endswith("</span>") and 'src="data:image/' in htmlContent:
-                htmlContent=htmlContent.replace("<span id=","<img id=")
-                htmlContent=htmlContent.replace("</span>","</img>")
-                htmlContent=htmlContent.replace('style="display:none"','style="max-width: 100%"')
-            value=htmlContent.encode()
-            # ##############
-            work_html_name = str(i)
-            allWordsMap[word]=work_html_name
-            html_path=os.path.join(html_dir,work_html_name+".html")
-            df = open(html_path, 'wb')
-            df.write(value)
-            df.close()
-            i+=1
-        b = json.dumps(allWordsMap,sort_keys=True,separators=None,indent="  ",ensure_ascii=False,)
-        f2 = open(all_words_path, 'w')
-        f2.write(b)
-        f2.close()
-        print(i,"exit with 0")
-    
-    if __name__ == '__main__':
-        # python extract_html.py <mdx_path>
-        mdx_path=sys.argv[1]
-        makeHtml(mdx_path)
-    ```
-         
-
-- 2. **Extract image and sound resource files (data folder)**:
-  ```shell
-     python readmdict.py -x <.mdd file>
-  ```
-- 3. **Create a zip dictionary database compression file**:
-  ```shell
-     zip -q -r -9 mydict.zip data/ html/ *.css *.js word_html_map.json
-  ```
-  - If the compression file contains other files, such as .ini files, you can add the corresponding file names in the zip command.
-- 4. **Set the above dictionary database files as the dictionary database files**
-  - > Load local dictionary database file -- start parsing
-  - > <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/add-dict.png" style="width: 256px">
-
-Please follow the above steps to ensure that the dictionary data is correctly added to your learning tool, so that you can refer to detailed definitions of words and phrases during your learning process, thereby effectively improving your language skills.
-
+[Adding Dictionary Guide](ADD_DICTIONARY_GUIDE.md)
 
 
 ## TODO
-- [ ] Dark theme color
-- [ ] Support for IOS and MacOS platforms
-- [x] Web version support, supporting local deployment and cloud deployment
+- [x] Dark theme color
+- [x] Web version support, supporting local deployment and cloud deployment. Support for running in Termux on Android devices.
+- [x] On mobile versions, integrate the web version for seamless learning between multiple devices. 
 - [x] README.md of English version
-
+- [ ] Net Proxy support configuration of username and password 
+- [ ] Web version supports configuring usernames and passwords
 ---
 
 ## Acknowledgements

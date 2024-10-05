@@ -8,7 +8,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mywords/libso/handler.dart';
 
-import 'package:mywords/common/global_event.dart';
+import 'package:mywords/common/queue.dart';
+
+import '../common/prefs/prefs.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
@@ -23,13 +25,12 @@ class WordWebView extends StatefulWidget {
 
 class _State extends State<WordWebView> {
   String word = '';
-  int realLevel = 0;
 
   @override
   void dispose() {
     super.dispose();
     player.dispose();
-    globalEventSubscription?.cancel();
+    eventConsumer?.cancel();
   }
 
   final player = AudioPlayer();
@@ -41,20 +42,17 @@ class _State extends State<WordWebView> {
     if (ss.isEmpty) return;
     final w = Uri.decodeComponent(ss[0]);
     word = w;
-    realLevel = await handler.queryWordLevel(word);
     setState(() {});
     _loadHtmlStringByWord(word);
     return;
   }
 
-  void globalEventHandler(GlobalEvent event) {
-    if (event.eventType == GlobalEventType.updateKnownWord) {
+  void eventHandler(Event event) {
+    if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
       if (event.param is Map) {
         if (event.param["word"] != null && event.param["level"] != null) {
           if (word == event.param["word"].toString()) {
-            final level = event.param["level"] as int;
-            realLevel = level;
             setState(() {});
           }
         }
@@ -62,7 +60,7 @@ class _State extends State<WordWebView> {
     }
   }
 
-  StreamSubscription<GlobalEvent>? globalEventSubscription;
+  StreamSubscription<Event>? eventConsumer;
   bool loading = false;
 
   Widget get buildWordHeaderRow {
@@ -72,13 +70,13 @@ class _State extends State<WordWebView> {
     ];
     if (!word.contains("_") && !word.contains(" ") && !word.contains(",")) {
       children.addAll([
-        buildInkWell(context, word, 0, realLevel),
+        buildInkWell(context, word, 0),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 1, realLevel),
+        buildInkWell(context, word, 1),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 2, realLevel),
+        buildInkWell(context, word, 2),
         const SizedBox(width: 5),
-        buildInkWell(context, word, 3, realLevel),
+        buildInkWell(context, word, 3),
       ]);
     }
     return Row(children: children);
@@ -120,15 +118,19 @@ class _State extends State<WordWebView> {
   }
 
   void _loadHtmlStringByWord(String word) async {
-    final htmlContent =
+    var htmlContent =
         (await handler.getHTMLRenderContentByWord(word)).data ?? '';
     if (htmlContent == "") return;
+    final isDark = prefs.isDark;
+    if (isDark) {
+      htmlContent =
+          "<style>body{background-color: #FFE0B2FF;}</style>$htmlContent";
+    }
     controller.loadHtmlString(htmlContent, baseUrl: word);
   }
 
   void initOpenWithHtmlFilePath() async {
     word = widget.word;
-    realLevel = await handler.queryWordLevel(word);
     setState(() {});
     initControllerSet();
     _loadHtmlStringByWord(word);
@@ -138,7 +140,7 @@ class _State extends State<WordWebView> {
   void initState() {
     super.initState();
     initOpenWithHtmlFilePath();
-    globalEventSubscription = subscriptGlobalEvent(globalEventHandler);
+    eventConsumer = consume(eventHandler);
   }
 
   final controller = WebViewController();

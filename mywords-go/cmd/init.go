@@ -2,9 +2,10 @@ package main
 
 import "C"
 import (
-	"mywords/dict"
-	"mywords/server"
-	"sync"
+	"mywords/client"
+	"mywords/pkg/log"
+	"net/http"
+	"sync/atomic"
 	"time"
 )
 
@@ -13,25 +14,36 @@ func init() {
 	time.Local = time.FixedZone("CST", 8*3600)
 }
 
-var once sync.Once
+var initialized atomic.Bool
 
 //export Init
 func Init(rootDataDirC *C.char) {
-	once.Do(func() {
-		rootDataDir := C.GoString(rootDataDirC)
-		// 非web版本
-		killOldPidAndGenNewPid(rootDataDir)
-		initGlobal(rootDataDir, 0)
-	})
+	rootDataDir := C.GoString(rootDataDirC)
+	// 非web版本
+	// 非web版本 dictRunPort 传 -1, 表示不启动 web dict 服务
+	inited := initGlobal(rootDataDir, 0)
+	if !inited {
+		return
+	}
+	// if 18960 start error with 18960, it will use a random port
+	go func() {
+		//fs := http.Dir(filepath.ToSlash(filepath.Join(rootDataDir, webDir)))
+		fs := http.FS(webEmbed)
+		err := serverGlobal.StartWebOnline(18960, fs, serverHTTPCallFunc)
+		if err != nil {
+			log.Ctx(ctx).Error(err.Error())
+		}
+	}()
 }
-func initGlobal(rootDataDir string, dictRunPort int) {
+
+func initGlobal(rootDataDir string, dictRunPort int) bool {
+	if initialized.Swap(true) {
+		return false
+	}
 	var err error
-	serverGlobal, err = server.NewServer(rootDataDir)
+	serverGlobal, err = client.NewClient(rootDataDir, dictRunPort)
 	if err != nil {
 		panic(err)
 	}
-	multiDictGlobal, err = dict.NewMultiDictZip(rootDataDir, dictRunPort)
-	if err != nil {
-		panic(err)
-	}
+	return true
 }

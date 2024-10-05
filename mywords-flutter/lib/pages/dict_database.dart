@@ -1,22 +1,20 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/queue.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
-import 'package:mywords/util/local_cache.dart';
+import 'package:mywords/util/navigator.dart';
+
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 
-class _DictDirName {
-  String basePath = '';
-  String title = '';
-
-  _DictDirName(this.basePath, this.title);
-}
+import '../libso/types.dart';
 
 class DictDatabase extends StatefulWidget {
   const DictDatabase({super.key});
@@ -63,122 +61,150 @@ Future<void> blockShowDialog(BuildContext context, Future<void> future) {
 }
 
 class _State extends State<DictDatabase> {
-  List<_DictDirName> dictDirNames = [];
+  List<DictInfo> dictInfos = [];
 
-  String defaultDictBasePath = '';
-
-  _addDict(String basePath) {
+  setDefaultDict(int id) async {
     blockShowDialog(context, () async {
-      final respData = await compute(computeSetDefaultDict, basePath);
+      final respData = await compute(handler.setDefaultDict, id);
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
       }
-      initDictDirNames();
-      defaultDictBasePath = basePath;
+      initDictInfos();
+      produceEvent(EventType.updateDict, id);
       setState(() {});
     }());
     return;
   }
 
-  Widget buildDictDirNames() {
-    return ListView.separated(
-        itemBuilder: (context, index) {
-          final s = dictDirNames[index];
-          final basePath = s.basePath;
-          bool isDefault = s.basePath == defaultDictBasePath;
-          return ListTile(
-            title: Text(
-              isDefault ? "${s.title} (默认)" : s.title,
-              style: isDefault
-                  ? TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor)
-                  : null,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-            ),
-            onTap: isDefault
-                ? null
-                : () {
-                    _addDict(basePath);
-                  },
-            trailing: IconButton(
-                onPressed: () {
-                  setState(() {
-                    dictDirNames.removeAt(index);
-                  });
-                  final t = Timer(const Duration(milliseconds: 3500), () async {
-                    final respData = await handler.delDict(s.basePath);
-                    if (respData.code != 0) {
-                      myToast(context, respData.message);
-                      return;
-                    }
-                  });
-                  // Then show a snackbar.
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('字典已删除: ${s.title}',
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    action: SnackBarAction(
-                        label: "撤销",
-                        onPressed: () {
-                          t.cancel();
-                          initDictDirNames();
-                          setState(() {});
-                          return;
-                        }),
-                  ));
-                },
-                icon: const Icon(Icons.delete, color: Colors.red)),
-          );
-        },
-        separatorBuilder: (context, index) {
-          return const Divider();
-        },
-        itemCount: dictDirNames.length);
+  final controllerEdit = TextEditingController();
+
+  Widget buildDictInfo(DictInfo dictInfo) {
+    final id = dictInfo.id;
+    final name = dictInfo.name;
+    final sub =
+        "${formatSize(dictInfo.size)} ${formatTime(DateTime.fromMillisecondsSinceEpoch(dictInfo.updateAt))}";
+    return ListTile(
+      title: Text(
+        dictInfo.name,
+        maxLines: 4,
+        overflow: TextOverflow.ellipsis,
+      ),
+      minLeadingWidth: 0,
+      subtitle: Text(sub, style: const TextStyle(fontSize: 12)),
+      leading: Radio(
+          value: id,
+          groupValue: defaultDictId,
+          onChanged: (int? i) {
+            if (i == null) return;
+            setDefaultDict(id);
+          }),
+      onLongPress: () {
+        controllerEdit.text = name;
+        // shouDialog updateDictName
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("修改词典名称"),
+                content: TextField(
+                  controller: controllerEdit,
+                  decoration: const InputDecoration(
+                    hintText: "请输入新名称",
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("取消"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final newName = controllerEdit.text;
+                      if (newName.isEmpty) {
+                        myToast(context, "名称不能为空");
+                        return;
+                      }
+                      final respData =
+                          await handler.updateDictName(id, newName);
+                      if (respData.code != 0) {
+                        myToast(context, respData.message);
+                        return;
+                      }
+                      initDictInfos();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("确定"),
+                  ),
+                ],
+              );
+            });
+      },
+      trailing: IconButton(
+          onPressed: () {
+            setState(() {
+              dictInfos.removeWhere((element) => element.id == id);
+            });
+            final t = Timer(const Duration(milliseconds: 3500), () async {
+              final respData = await handler.delDict(id);
+              if (respData.code != 0) {
+                myToast(context, respData.message);
+                return;
+              }
+            });
+            // Then show a snackbar.
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('字典已删除: $name',
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              action: SnackBarAction(
+                  label: "撤销",
+                  onPressed: () {
+                    t.cancel();
+                    initDictInfos();
+                    return;
+                  }),
+            ));
+          },
+          icon: const Icon(Icons.delete, color: Colors.red)),
+    );
   }
 
-  void initDictDirNames() async {
+  Widget buildDictInfos() {
+    return ListView.builder(
+      itemBuilder: (context, index) {
+        final d = dictInfos[index];
+        return buildDictInfo(d);
+      },
+      itemCount: dictInfos.length,
+    );
+  }
+
+  int defaultDictId = 0;
+
+  void initDictInfos() async {
     final respData = await handler.dictList();
     final data = respData.data ?? [];
-    dictDirNames.clear();
-    for (Map<String, dynamic> ele in data) {
-      dictDirNames.add(_DictDirName(ele['basePath'], ele['title']));
-    }
-  }
-
-  void initDefaultDictBasePath() async {
-    defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
+    dictInfos = data;
+    defaultDictId = await handler.getDefaultDictId();
     setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    initDictDirNames();
-    initDefaultDictBasePath();
+    initDictInfos();
   }
 
   @override
   void dispose() {
     super.dispose();
+    controllerEdit.dispose();
   }
 
   bool isSyncing = false;
   bool selectZipFileDone = false;
-
-  Widget get systemDictButton {
-    return ElevatedButton.icon(
-      onPressed: defaultDictBasePath == ""
-          ? null
-          : () async {
-              await handler.setDefaultDict("");
-              initDefaultDictBasePath();
-            },
-      icon: const Icon(Icons.settings),
-      label: const Text("设置默认"),
-    );
-  }
 
   void selectZipFilePath() async {
     setState(() {
@@ -201,7 +227,7 @@ class _State extends State<DictDatabase> {
     if (files.isEmpty) {
       return;
     }
-    final file = files[0];
+    final PlatformFile file = files[0];
     if (kIsWeb) {
       myPrint(
           "字典数据库文件: ${file.name}: file.readStream==null: ${file.readStream == null} file.size: ${file.size} 文件大小: ${file.bytes?.length}");
@@ -221,10 +247,23 @@ class _State extends State<DictDatabase> {
     });
     final RespData<void> respData;
     if (kIsWeb) {
-      respData = await compute(computeAddDictWithFile,
-          {"bytes": file.readStream!, "name": file.name});
+      // todo sha1
+      respData = await compute(computeAddDictWithFile, {
+        "bytes": file.readStream!,
+        "name": file.name,
+        "fileSize": file.size
+      });
+      // respData = await sendStream(file.name, file.size,file.readStream!);
     } else {
-      respData = await compute(computeAddDict, file.path!);
+      final targetExist = await handler.checkDictZipTargetPathExist(file.path!);
+      if (targetExist) {
+        setState(() {
+          isSyncing = false;
+        });
+        myToast(context, "文件已存在");
+        return;
+      }
+      respData = await compute(handler.addDict, file.path!);
     }
     setState(() {
       isSyncing = false;
@@ -234,10 +273,8 @@ class _State extends State<DictDatabase> {
       return;
     }
     myToast(context, "解析成功");
-    initDictDirNames();
+    initDictInfos();
     zipFilePath = '';
-    defaultDictBasePath = (await handler.getDefaultDict()).data ?? "";
-    LocalCache.defaultDictBasePath = null;
     setState(() {});
   }
 
@@ -247,42 +284,55 @@ class _State extends State<DictDatabase> {
   Widget build(BuildContext context) {
     List<Widget> children = [
       ListTile(
-        title: const Text("加载本地词典数据库zip文件"),
-        leading: const Tooltip(
-          message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info),
-        ),
+        // title: const Text("加载本地词典数据库zip文件"),
+        title: const Text("Load local dictionary database zip file"),
+        leading: const Padding(
+            padding: EdgeInsets.all(12),
+            child: Tooltip(
+              // message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
+              message: "Select a zip file from the local, after parsing, you can clear the application cache and delete the original file",
+              showDuration: Duration(seconds: 5),
+              triggerMode: TooltipTriggerMode.tap,
+              child: Icon(Icons.info),
+            )),
         onTap: isSyncing ? null : selectZipFilePath,
         subtitle: selectZipFileDone
             ? const LinearProgressIndicator()
             : Text(zipFilePath),
         trailing: isSyncing
             ? const Icon(Icons.access_time_rounded)
-            : Icon(Icons.file_open, color: Theme.of(context).primaryColor),
+            : IconButton(
+                onPressed: isSyncing ? null : selectZipFilePath,
+                icon: Icon(Icons.add_circle,
+                    color: Theme.of(context).colorScheme.primary)),
       ),
       SizedBox(
         height: 5,
         child: isSyncing ? const LinearProgressIndicator() : const Text(""),
       ),
       ListTile(
-        trailing: systemDictButton,
-        title: const Text("内置词典(精简版)"),
-        subtitle: Text(defaultDictBasePath == "" ? "(默认)" : ""),
-        leading: const Tooltip(
-          message: "内置词典",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(Icons.info),
-        ),
+        trailing: const IconButton(onPressed: null, icon: Icon(Icons.delete)),
+        // title: const Text("内置词典(精简版)"),
+        title: const Text("Built-in dictionary (simplified version)"),
+        leading: Radio(
+            value: 0,
+            groupValue: defaultDictId,
+            onChanged: (int? i) {
+              if (i == null) return;
+              handler.setDefaultDict(0);
+              produceEvent(EventType.updateDict, 0);
+              initDictInfos();
+            }),
       ),
-      Expanded(child: buildDictDirNames())
+      const Divider(),
+      Expanded(child: buildDictInfos())
     ];
 
     final body = Column(children: children);
 
     final appBar = AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: const Text("设置词典数据库"),
+      // title: const Text("设置词典数据库"),
+      title: const Text("Dictionary database"),
     );
     return getScaffold(
       context,
@@ -292,37 +342,49 @@ class _State extends State<DictDatabase> {
   }
 }
 
-Future<RespData<void>> computeAddDict(String dataDir) async {
-  return handler.addDict(dataDir);
-}
-
 Future<RespData<void>> computeAddDictWithFile(
     Map<String, dynamic> param) async {
   String name = param['name']!;
+  int fileSize = param['fileSize']!;
   Stream<List<int>> bytes = param['bytes']!;
   final dio = Dio();
   const www = "$debugHostOrigin/_addDictWithFile";
-
-  try {
-    final Response<String> response = await dio.post(
-      www,
-      data: bytes,
-      queryParameters: {"name": name},
-      options: Options(
-          responseType: ResponseType.plain,
-          validateStatus: (_) {
-            return true;
-          }),
-    );
-    if (response.statusCode != 200) {
-      return RespData.err(response.data ?? "");
+  // 分批发送 bytes
+  var number = 0;
+  final Queue<String> queue = Queue();
+  final String fileUniqueId =
+      "dict-$fileSize-${DateTime.now().millisecondsSinceEpoch}";
+  var accumulative = 0;
+  await for (List<int> v in bytes) {
+    accumulative += v.length;
+    number++;
+    myPrint("v: ${v.length} number: $number");
+    final seq = number;
+    try {
+      final Response<String> response = await dio.post(
+        www,
+        data: v,
+        queryParameters: {
+          "name": name,
+          "seq": seq,
+          "fileSize": fileSize,
+          "fileUniqueId": fileUniqueId,
+          "accumulative": accumulative
+        },
+        options: Options(
+            responseType: ResponseType.plain,
+            headers: {"Content-Type": "application/octet-stream"},
+            validateStatus: (_) {
+              return true;
+            }),
+      );
+      if (response.statusCode != 200) {
+        return RespData.err(response.data ?? "");
+      }
+    } catch (e) {
+      myPrint(e);
+      return RespData.err(e.toString());
     }
-    return RespData.dataOK(null);
-  } catch (e) {
-    return RespData.err(e.toString());
   }
-}
-
-Future<RespData<void>> computeSetDefaultDict(String basePath) async {
-  return handler.setDefaultDict(basePath);
+  return RespData();
 }
