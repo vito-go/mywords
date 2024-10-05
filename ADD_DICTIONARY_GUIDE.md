@@ -5,7 +5,7 @@ To fully utilize the word learning and lookup features of this tool, you may nee
 
 
 1. **Download Dictionary Database**：
-- Visit the provided non-permanent download link  `http://vitogo.tpddns.cn:9081/_download/dict-ox10-v3.zip` and copy the link to your browser to download the dictionary data file.。
+- Visit the provided non-permanent download link  `http://vitogo.tpddns.cn:19081/_download/dict-ox10-v3.zip` and copy the link to your browser to download the dictionary data file.。
 
 2. **Contact and Support**：
 - If you encounter any issues while using this tool or adding dictionaries, or if you want to share your learning experiences and progress with us, please contact us via:
