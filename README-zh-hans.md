@@ -1,5 +1,6 @@
 ## [English Version](README.md) | [中文版](README-zh-hans.md)
- 
+
+## 重要提示：新版本正在等待，使用sqlite重构，敬请关注！
 
 ## 项目概览
 
