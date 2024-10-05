@@ -12,14 +12,17 @@ import (
 	"runtime"
 )
 
+//go:generate make build-web
 func main() {
 	defaultRootDir, err := getApplicationDir()
 	if err != nil {
 		panic(err)
 	}
-	webPort := flag.Int64("port", 18960, "http client port")
-	initGlobal(defaultRootDir, 18961)
-	//fs:=&webEmbedHandler{webEmbed: webEmbed}
+	webPort := flag.Int64("runningPort", 18960, "web online port")
+	dictRunPort := flag.Int("dictPort", 18961, "word query port")
+	flag.Parse()
+	initGlobal(defaultRootDir, *dictRunPort)
+	serverGlobal.SetIsWebTrue()
 	err = serverGlobal.StartWebOnline(*webPort, http.FS(webEmbed), serverHTTPCallFunc)
 	if err != nil {
 		panic(err)

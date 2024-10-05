@@ -36,8 +36,6 @@ func Init(rootDataDirC *C.char) {
 	}()
 }
 
-const webDir = "web"
-
 func initGlobal(rootDataDir string, dictRunPort int) bool {
 	if initialized.Swap(true) {
 		return false

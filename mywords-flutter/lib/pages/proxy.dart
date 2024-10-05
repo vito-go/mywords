@@ -40,6 +40,9 @@ class _State extends State<NetProxy> {
     controllerIP.text = uri.host;
     controllerPort.text = uri.port.toString();
     scheme = uri.scheme;
+    setState(() {
+
+    });
   }
 
   @override

@@ -322,7 +322,7 @@ class WebHandler implements Handler {
 
   @override
   FutureOr<RespData<Article>> reparseArticleFileInfo(int id) async {
-    final result = await call("RenewArticleFileInfo", [id]);
+    final result = await call("ReparseArticleFileInfo", [id]);
     final RespData<Article> respData =
         RespData.fromJson(jsonDecode(result), (json) => Article.fromJson(json));
     return respData;

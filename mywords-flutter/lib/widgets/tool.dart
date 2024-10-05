@@ -59,6 +59,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   void initLevelMap() async {
     final data = await handler.knownWordsCountMap();
     levelCountMap = data;
+    myPrint("levelCountMap------->: $levelCountMap: $totalCount");
     dbSize = (await handler.dbSize()).data ?? 0;
     defaultDictId = await handler.getDefaultDictId();
     webOnlineClose = await handler.getWebOnlineClose();
@@ -117,7 +118,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         launchUrlString(url);
       },
       leading: const Icon(Icons.api),
-     );
+    );
   }
 
   Widget buildListTileRestoreFromOld() {
@@ -285,7 +286,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
 
   bool webOnlineClose = false;
 
-
   Widget get webOnlineListTile {
     String message = "";
     if (ips.isNotEmpty) {
@@ -394,8 +394,9 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       ),
       // buildListTileVacuumDB(),
     ]);
-
-    children.add(webOnlineListTile);
+    if (!kIsWeb) {
+      children.add(webOnlineListTile);
+    }
     children.add(const PrivateIP());
     if (false) {
       children.add(buildListTileRestoreFromOld());

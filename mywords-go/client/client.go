@@ -80,6 +80,7 @@ type Client struct {
 	exportedFuncMap    map[string]any //map[string]any
 	webOnlinePort      int            //0 means no web online
 	webOnlineClose     *atomic.Bool
+	isWeb              bool
 	serverHTTPCallFunc func(w http.ResponseWriter, r *http.Request)
 }
 
@@ -88,12 +89,23 @@ func (c *Client) WebDictRunPort() int {
 	return c.webDict.RunPort()
 }
 
+func (c *Client) SetIsWebTrue() {
+	c.isWeb = true
+}
+
+func (c *Client) IsWeb() bool {
+	return c.isWeb
+}
+
 func (c *Client) SetWebOnlineClose(v bool) {
 	c.webOnlineClose.Store(v)
 	_ = c.allDao.KeyValueDao.UpdateOrCreateByKeyId(ctx, mtype.WebOnlineClose, strconv.FormatBool(v))
 }
 
 func (c *Client) GetWebOnlineClose() bool {
+	if c.isWeb {
+		return false
+	}
 	return c.webOnlineClose.Load()
 }
 

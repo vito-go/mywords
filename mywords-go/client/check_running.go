@@ -4,12 +4,16 @@ import (
 	"mywords/pkg/log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
 )
 
 func checkRunning(rootDir string) bool {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
+		return false
+	}
 	// kill old pid
 	pidFile := filepath.Join(rootDir, "mywords.pid")
 	defer func() {

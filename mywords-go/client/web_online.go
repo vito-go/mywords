@@ -35,14 +35,14 @@ func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, serve
 	//initGlobal(*rootDir, *dictPort)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/call/", func(writer http.ResponseWriter, request *http.Request) {
-		if c.webOnlineClose.Load() {
+		if c.GetWebOnlineClose() {
 			writer.WriteHeader(http.StatusForbidden)
 			return
 		}
 		c.serverHTTPCallFunc(writer, request)
 	})
 	mux.HandleFunc("/_addDictWithFile", func(writer http.ResponseWriter, request *http.Request) {
-		if c.webOnlineClose.Load() {
+		if c.GetWebOnlineClose() {
 			writer.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -50,7 +50,7 @@ func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, serve
 	})
 	fileServer := http.FileServer(fileSystem)
 	mux.HandleFunc("/web/", func(writer http.ResponseWriter, request *http.Request) {
-		if c.webOnlineClose.Load() {
+		if c.GetWebOnlineClose() {
 			writer.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -180,11 +180,14 @@ func openBrowser(url string) {
 		err = exec.Command("cmd", "/c start "+url).Run()
 	case "darwin":
 		err = exec.Command("open", url).Run()
-	default:
+	case "android", "ios":
+	case "linux":
 		err = exec.Command("xdg-open", url).Run()
+	default:
 	}
 	if err != nil {
 		fmt.Printf("open url error: %s\n", url)
+		return
 	}
 	fmt.Printf("open %s in your browser\n", url)
 }

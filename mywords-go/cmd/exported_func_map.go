@@ -26,6 +26,7 @@ func init() {
 		"DbSize":                         DBSize,
 		"GoBuildInfoString":              GoBuildInfoString,
 		"WebDictRunPort":                 WebDictRunPort,
+		"GetWebOnlineClose":              GetWebOnlineClose,
 		"RestoreFromOldVersionData":      RestoreFromOldVersionData,
 		"GetFileInfoBySourceURL":         GetFileInfoBySourceURL,
 		"CheckDictZipTargetPathExist":    CheckDictZipTargetPathExist,
