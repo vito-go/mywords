@@ -5,16 +5,11 @@ package main
 import (
 	"embed"
 	"flag"
-	"fmt"
 	"io/fs"
-	"mywords/pkg/log"
-
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 )
 
 //go:embed web/*
@@ -25,29 +20,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	port := flag.Int("port", 18960, "http client port")
-	dictPort := flag.Int("dictPort", 18961, "dict port")
-	rootDir := flag.String("rootDir", defaultRootDir, "root dir")
-	flag.Parse()
-	killOldPidAndGenNewPid(*rootDir)
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	webPort := flag.Int64("port", 18960, "http client port")
+	initGlobal(defaultRootDir, 18961)
+	err = serverGlobal.StartWebOnline(*webPort, http.FS(&webEmbedHandler{webEmbed: webEmbed}), exportedFuncMap)
 	if err != nil {
-		panic(err)
-	}
-	initGlobal(*rootDir, *dictPort)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/call/", serverHTTPCallFunc)
-	mux.HandleFunc("/_addDictWithFile", addDictWithChunkedFile)
-	mux.HandleFunc("/_downloadBackUpdate", downloadBackUpdate)
-	mux.HandleFunc("/_webParseAndSaveArticleFromFile", webParseAndSaveArticleFromFile)
-	mux.HandleFunc("/_webRestoreFromBackUpData", webRestoreFromBackUpData)
-	mux.Handle("/", http.FileServer(http.FS(&webEmbedHandler{webEmbed: webEmbed})))
-	log.Println("client start", "port", *port, "rootDir", *rootDir)
-	go func() {
-		time.Sleep(time.Second)
-		openBrowser(fmt.Sprintf("http://localhost:%d", *port))
-	}()
-	if err = http.Serve(lis, mux); err != nil {
 		panic(err)
 	}
 }

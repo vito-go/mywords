@@ -1,7 +1,5 @@
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart';
-
 import '../libso/handler.dart';
 import '../util/util.dart';
 

@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -75,12 +76,31 @@ type Client struct {
 	//	//chartDateLevelCountMap map[string]map[WordKnownLevel]map[string]struct{} // date: {1: {"words":{}}, 2: 200, 3: 300}
 	//	chartDateLevelCountMap *MySyncMapMap[WordKnownLevel, map[string]struct{}] // date: {1: {"words":{}}, 2: 200, 3: 300}
 	//dictRunPort int64 // -1 means not to start the dictionary service, 0 means random port, >0 means specified port
-	webDict *dict.WebDict
+	webDict         *dict.WebDict
+	exportedFuncMap map[string]any //map[string]any
+	//serverHTTPCallFunc func(w http.ResponseWriter, r *http.Request)
+	webOnlinePort  int //0 means no web online
+	webOnlineClose *atomic.Bool
 }
+
+type ExportedFuncMap map[string]any
 
 // WebDictRunPort .
 func (c *Client) WebDictRunPort() int {
 	return c.webDict.RunPort()
+}
+
+func (c *Client) SetWebOnlineClose(v bool) {
+	c.webOnlineClose.Store(v)
+	_ = c.allDao.KeyValueDao.UpdateOrCreateByKeyId(ctx, mtype.WebOnlineClose, strconv.FormatBool(v))
+}
+
+func (c *Client) GetWebOnlineClose() bool {
+	return c.webOnlineClose.Load()
+}
+
+func (c *Client) WebOnlinePort() int {
+	return c.webOnlinePort
 }
 
 // NewClient rootDataDir is where to store data,
@@ -123,6 +143,13 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 		return nil, err
 	}
 	defaultDictIdAtomic := &atomic.Int64{}
+	webOnlineCloseAtomic := &atomic.Bool{}
+	defaultDictId, _ := allDao.KeyValueDao.DefaultDictId(ctx)
+	defaultDictIdAtomic.Store(defaultDictId)
+
+	webOnlineClose, _ := allDao.KeyValueDao.WebOnlineClose(ctx)
+	webOnlineCloseAtomic.Store(webOnlineClose)
+
 	client := &Client{
 		rootDataDir:     rootDataDir,
 		xpathExpr:       artical.DefaultXpathExpr,
@@ -135,11 +162,10 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 		oneDict:         onDict,
 		webDict:         webDict,
 		defaultDictId:   defaultDictIdAtomic,
+		webOnlineClose:  webOnlineCloseAtomic,
 		//dictRunPort:     atomic.Int64{},
 	}
 
-	defaultDictId, _ := allDao.KeyValueDao.DefaultDictId(ctx)
-	defaultDictIdAtomic.Store(defaultDictId)
 	if defaultDictId > 0 {
 		go func() {
 			err := client.SetDefaultDictById(ctx, defaultDictId)

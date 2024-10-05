@@ -13,21 +13,22 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../libso/types.dart';
 
-class SyncData extends StatefulWidget {
-  const SyncData({super.key});
+class WebOnline extends StatefulWidget {
+  const WebOnline({super.key});
 
   @override
   State createState() {
-    return _SyncDataState();
+    return _WebOnlineState();
   }
 }
 
-class _SyncDataState extends State<SyncData> {
+class _WebOnlineState extends State<WebOnline> {
   ShareInfo shareInfo = ShareInfo(port: 18964, code: 890604, open: false);
   TextEditingController controllerPort = TextEditingController(text: " ");
   TextEditingController controllerCode = TextEditingController(text: " ");
   TextEditingController controllerBackUpZipName =
       TextEditingController(text: "mywords-backup-data");
+
   @override
   void initState() {
     super.initState();
@@ -122,39 +123,17 @@ class _SyncDataState extends State<SyncData> {
         triggerMode: TooltipTriggerMode.tap,
         child: const Icon(Icons.info_outline),
       ),
-      title: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controllerPort,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "端口",
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(5),
-                FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
-              ],
-            ),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: TextField(
-              keyboardType: TextInputType.number,
-              controller: controllerCode,
-              decoration: const InputDecoration(
-                labelText: "Code码",
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(6),
-                FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
-              ],
-            ),
-          ),
+      title: TextField(
+        controller: controllerPort,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: "端口",
+          border: OutlineInputBorder(),
+          isDense: true,
+        ),
+        inputFormatters: [
+          LengthLimitingTextInputFormatter(5),
+          FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
         ],
       ),
       trailing: switchBuild(),

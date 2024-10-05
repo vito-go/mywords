@@ -3,12 +3,10 @@ import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:mywords/common/global.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/widgets/line_chart.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 import 'types.dart';
 import 'dart:io';
@@ -148,35 +146,6 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-// func BackUpData(targetZipPath, srcDataPath string) error
-  final _backUpData = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-      Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)>('BackUpData');
-
-// param includes zipName and dataDirPath
-  @override
-  RespData<String> backUpData(String zipName, String dataDirPath) {
-    final downloadDir = getDefaultDownloadDir();
-    if (downloadDir == null) {
-      return RespData.err("downloadDir is null");
-    }
-    final downloadPathZip = path.join(downloadDir, zipName);
-    myPrint(downloadPathZip);
-    if (File(downloadPathZip).existsSync()) {
-      return RespData.err("文件已存在，请删除或者修改备份文件名: $zipName");
-    }
-    final downloadPathC = downloadPathZip.toNativeUtf8();
-    final srcC = dataDirPath.toNativeUtf8();
-    final resultC = _backUpData(downloadPathC, srcC);
-    final RespData<String> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => '');
-    malloc.free(downloadPathC);
-    malloc.free(srcC);
-    malloc.free(resultC);
-    respData.data = downloadPathZip;
-    return respData;
-  }
-
 // func SetProxyUrl(netProxy *C.char) *C.char {
   final _setProxyUrl = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
@@ -229,25 +198,6 @@ class NativeHandler implements Handler {
       return data;
     }
     return word;
-  }
-
-// func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount bool) *C.char {
-  final _restoreFromBackUpData = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Bool, Pointer<Utf8>, Bool, Bool),
-      Pointer<Utf8> Function(
-          bool, Pointer<Utf8>, bool, bool)>('RestoreFromBackUpData');
-
-  @override
-  RespData<void> restoreFromBackUpData(bool syncKnownWords, String zipPath,
-      bool syncToadyWordCount, bool syncByRemoteArchived) {
-    final pathC = zipPath.toNativeUtf8();
-    final resultC = _restoreFromBackUpData(
-        syncKnownWords, pathC, syncToadyWordCount, syncByRemoteArchived);
-    final respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(pathC);
-    malloc.free(resultC);
-    return respData;
   }
 
 // setXpathExpr . usually for debug
@@ -307,13 +257,6 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetToadyChartDateLevelCountMap');
 
-// func RestoreFromShareServer(ipC *C.char, port int, code int64,syncKnownWords bool, tempDir *C.char) *C.char {
-  final _restoreFromShareServer = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(
-          Pointer<Utf8>, Int64, Int64, Bool, Pointer<Utf8>, Bool, Bool),
-      Pointer<Utf8> Function(Pointer<Utf8>, int, int, bool, Pointer<Utf8>, bool,
-          bool)>('RestoreFromShareServer');
-
 // func ShareClosed( ) *C.char
   final _shareClosed = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Int64, Int64),
@@ -334,27 +277,6 @@ class NativeHandler implements Handler {
     final RespData respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(resultC);
-    return respData;
-  }
-
-  @override
-  RespData<void> restoreFromShareServer(
-      String ip,
-      int port,
-      int code,
-      bool syncKnownWords,
-      String tempDir,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived) {
-    final tempDirC = tempDir.toNativeUtf8();
-    final ipC = ip.toNativeUtf8();
-    final resultC = _restoreFromShareServer(ipC, port, code, syncKnownWords,
-        tempDirC, syncToadyWordCount, syncByRemoteArchived);
-    final RespData respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
-    malloc.free(resultC);
-    malloc.free(ipC);
-    malloc.free(tempDirC);
     return respData;
   }
 
@@ -705,6 +627,28 @@ class NativeHandler implements Handler {
   final GoBuildInfoString = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(), Pointer<Utf8> Function()>('GoBuildInfoString');
 
+  // getWebOnlineClose
+  final GetWebOnlineClose = nativeAddLib
+      .lookupFunction<Bool Function(), bool Function()>('GetWebOnlineClose');
+
+  final SetWebOnlineClose =
+      nativeAddLib.lookupFunction<Void Function(Bool), void Function(bool)>(
+          'SetWebOnlineClose');
+
+  // //export WebOnlinePort
+  final WebOnlinePort = nativeAddLib
+      .lookupFunction<Int64 Function(), int Function()>('WebOnlinePort');
+
+  @override
+  void setWebOnlineClose(bool v) {
+    SetWebOnlineClose(v);
+  }
+
+  @override
+  int webOnlinePort() {
+    return WebOnlinePort();
+  }
+
 // allWordsByCreateDayAndOrder
   final AllWordsByCreateDayAndOrder = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Int64, Int64),
@@ -816,5 +760,10 @@ class NativeHandler implements Handler {
     final result = resultC.toDartString();
     malloc.free(resultC);
     return result;
+  }
+
+  @override
+  bool getWebOnlineClose() {
+    return GetWebOnlineClose();
   }
 }

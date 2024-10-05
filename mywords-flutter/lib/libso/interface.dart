@@ -44,6 +44,11 @@ abstract class Handler {
 
   FutureOr<Map<String, dynamic>> knownWordsCountMap();
 
+  FutureOr<int> webOnlinePort();
+
+  void setWebOnlineClose(bool v);
+  FutureOr<bool> getWebOnlineClose();
+
   FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
 
   FutureOr<RespData<Article>> renewArticleFileInfo(int int);
@@ -56,8 +61,6 @@ abstract class Handler {
 
   FutureOr<int> webDictRunPort();
 
-  FutureOr<RespData<String>> backUpData(String zipName, String dataDirPath);
-
   FutureOr<String> defaultWordMeaning(String word);
 
   FutureOr<String> dictWordQueryLink(String word);
@@ -65,9 +68,6 @@ abstract class Handler {
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
-
-  FutureOr<RespData<void>> restoreFromBackUpData(bool syncKnownWords,
-      String zipPath, bool syncToadyWordCount, bool syncByRemoteArchived);
 
   FutureOr<String> parseVersion();
 
@@ -82,15 +82,6 @@ abstract class Handler {
   // 1 sync known words, 2 sync file infos
   FutureOr<RespData<void>> syncData(
       String ip, int port, int code, int syncKind);
-
-  FutureOr<RespData<void>> restoreFromShareServer(
-      String ip,
-      int port,
-      int code,
-      bool syncKnownWords,
-      String tempDir,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived);
 
   FutureOr<RespData<ChartLineData>> getChartData();
 
@@ -110,7 +101,6 @@ abstract class Handler {
   FutureOr<RespData<void>> updateKnownWordLevel(String word, int level);
 
   FutureOr<List<String>?> getIPv4s(); // null mean error
-
 
   FutureOr<ShareInfo> getShareInfo();
 

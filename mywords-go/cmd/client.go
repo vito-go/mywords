@@ -9,7 +9,6 @@ import (
 	"mywords/dict"
 	"mywords/model"
 	"mywords/model/mtype"
-	"mywords/pkg/util"
 	"net"
 	"sort"
 	"strings"
@@ -109,25 +108,6 @@ func ReparseArticleFileInfo(id int64) *C.char {
 		return CharErr(err.Error())
 	}
 	return CharOk(art)
-}
-
-//export RestoreFromBackUpData
-func RestoreFromBackUpData(syncKnownWords bool, zipFile *C.char, syncToadyWordCount, syncByRemoteArchived bool) *C.char {
-	err := serverGlobal.RestoreFromBackUpData(syncKnownWords, C.GoString(zipFile), syncToadyWordCount, syncByRemoteArchived)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharSuccess()
-}
-
-//export BackUpData
-func BackUpData(targetZipPathC *C.char, srcDataPathC *C.char) *C.char {
-	targetZipPath, srcDataPath := C.GoString(targetZipPathC), C.GoString(srcDataPathC)
-	err := util.Zip(targetZipPath, srcDataPath)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharSuccess()
 }
 
 //export DefaultWordMeaning
@@ -250,15 +230,6 @@ func SetXpathExpr(expr *C.char) *C.char {
 	}
 	return CharSuccess()
 
-}
-
-//export RestoreFromShareServer
-func RestoreFromShareServer(ipC *C.char, port int, code int64, syncKnownWords bool, tempDir *C.char, syncToadyWordCount, syncByRemoteArchived bool) *C.char {
-	err := serverGlobal.RestoreFromShareServer(C.GoString(ipC), port, code, syncKnownWords, C.GoString(tempDir), syncToadyWordCount, syncByRemoteArchived)
-	if err != nil {
-		return CharErr(err.Error())
-	}
-	return CharSuccess()
 }
 
 //export AllKnownWordsMap
@@ -408,6 +379,21 @@ func DeleteOldVersionFile() *C.char {
 //export WebDictRunPort
 func WebDictRunPort() int {
 	return serverGlobal.WebDictRunPort()
+}
+
+//export SetWebOnlineClose
+func SetWebOnlineClose(v bool) {
+	serverGlobal.SetWebOnlineClose(v)
+}
+
+//export GetWebOnlineClose
+func GetWebOnlineClose() bool {
+	return serverGlobal.GetWebOnlineClose()
+}
+
+//export WebOnlinePort
+func WebOnlinePort() int {
+	return serverGlobal.WebOnlinePort()
 }
 
 //export SyncData

@@ -1,19 +1,15 @@
-package main
+package client
 
 import (
 	"mywords/pkg/log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
-	"time"
+	"syscall"
 )
 
-// killOldPidAndGenNewPid kill old pid and generate new pid.
-// It is used to ensure that only one instance of the program is running.
-func killOldPidAndGenNewPid(rootDir string) {
-	return
+func checkRunning(rootDir string) bool {
 	// kill old pid
 	pidFile := filepath.Join(rootDir, "mywords.pid")
 	defer func() {
@@ -28,27 +24,20 @@ func killOldPidAndGenNewPid(rootDir string) {
 	}()
 	data, err := os.ReadFile(pidFile)
 	if err != nil {
-		return
+		return false
 	}
 	pidStr := strings.TrimSpace(string(data))
 	pid, err := strconv.Atoi(pidStr)
 	if err != nil {
-		return
+		return false
 	}
 	process, err := os.FindProcess(pid)
 	if err != nil {
-		return
+		return false
 	}
-	err = process.Kill()
+	err = process.Signal(syscall.Signal(0))
 	if err != nil {
-		return
+		return false
 	}
-	switch runtime.GOOS {
-	case "darwin", "linux", "windows", "freebsd", "openbsd", "netbsd", "dragonfly":
-		time.Sleep(time.Millisecond * 250)
-		// wait for old process to exit
-	}
-	// kill log
-	log.Println("kill old pid", "pid", pid)
-	return
+	return true
 }

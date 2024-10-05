@@ -59,6 +59,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     levelCountMap = data;
     dbSize = (await handler.dbSize()).data ?? 0;
     defaultDictId = await handler.getDefaultDictId();
+    webOnlineClose = await handler.getWebOnlineClose();
     setState(() {});
   }
 
@@ -106,13 +107,13 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   Widget buildListTileWebDictPort() {
     final url = "http://127.0.0.1:${Global.webDictRunPort}/_query?word=hello";
     return ListTile(
-      title: const Text('WebDict'),
+      title: const Text('WebDict API'),
       subtitle: Text(url),
       // trailing: vacuums the database
       onTap: () {
         launchUrlString(url);
       },
-      leading: const Icon(Icons.http),
+      leading: const Icon(Icons.api),
     );
   }
 
@@ -289,6 +290,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  bool webOnlineClose = false;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -356,10 +359,31 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       ),
       buildListTileVacuumDB(),
     ]);
+
+    children.add(ListTile(
+      title: const Text("Web在线"),
+      leading: const Icon(Icons.http),
+      subtitle: webOnlineClose
+          ? const Text("")
+          : Text("http://127.0.0.1:${Global.webOnlinePort}"),
+      onTap: () {
+        if (webOnlineClose) {
+          return;
+        }
+        launchUrlString("http://127.0.0.1:${Global.webOnlinePort}");
+      },
+      trailing: Switch(
+          value: !webOnlineClose,
+          onChanged: (v) {
+            webOnlineClose = !webOnlineClose;
+            myPrint(webOnlineClose);
+            handler.setWebOnlineClose(webOnlineClose);
+            setState(() {});
+          }),
+    ));
     if (false) {
       children.add(buildListTileRestoreFromOld());
     }
-
     if (defaultDictId > 0) {
       children.add(buildListTileWebDictPort());
     }

@@ -5,6 +5,7 @@ class Global {
   static Map<String, int> allKnownWordsMap = {}; //TODO: 本地缓存 梳理下都有哪些地方会更新这个数据
   static String parseVersion = '';
    static int webDictRunPort = 0;
+   static int webOnlinePort = 0;
   static const version = "3.0.0";
   static String goBuildInfoString = "";
 
@@ -26,6 +27,7 @@ class Global {
       throw Exception("allKnownWordsMap error: ${respData.message}");
     }
     webDictRunPort = await handler.webDictRunPort();
+    webOnlinePort = await handler.webOnlinePort();
     allKnownWordsMap = respData.data ?? {};
   }
 }

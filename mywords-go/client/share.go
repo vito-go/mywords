@@ -3,7 +3,6 @@ package client
 import "C"
 import (
 	"archive/zip"
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -103,83 +102,10 @@ func ZipToWriterWithFilter(writer io.Writer, zipDir string, param *ShareFilePara
 	return nil
 }
 
-// RestoreFromShareServer . restore from a zip file,tempDir can be empty
-func (c *Client) RestoreFromShareServer(ip string, port int, code int64, syncKnownWords bool, tempDir string, syncToadyWordCount, syncByRemoteArchived bool) error {
-	httpUrl := fmt.Sprintf("http://%s:%d/%d", ip, port, code)
-	// save to temp dir
-	tempZipPath := filepath.Join(tempDir, fmt.Sprintf("mywors-%d.zip", time.Now().UnixMilli()))
-	// defer delete temp file
-	defer func() {
-		_ = os.Remove(tempZipPath)
-	}()
-	size, err := c.download(httpUrl, syncKnownWords, tempZipPath, syncToadyWordCount)
-	if err != nil {
-		return err
-	}
-	if size <= 0 {
-		return nil
-	}
-	err = c.restoreFromBackUpData(syncKnownWords, tempZipPath, syncToadyWordCount, syncByRemoteArchived)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 type ShareFileParam struct {
 	AllExistGobGzFileMap map[string]bool `json:"allExistGobGzFileMap"`
 	SyncToadyWordCount   bool            `json:"syncToadyWordCount"`
 	SyncKnownWords       bool            `json:"syncKnownWords"`
-}
-
-func (c *Client) download(httpUrl string, syncKnownWords bool, tempZipPath string, syncToadyWordCount bool) (size int64, err error) {
-	allFilePaths, err := c.allDao.FileInfoDao.AllFilePaths(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var allFileNames []string
-	for _, path := range allFilePaths {
-		allFileNames = append(allFileNames, filepath.Base(path))
-	}
-	allExistGobGzFileMap := make(map[string]bool, len(allFileNames))
-	for _, name := range allFileNames {
-		allExistGobGzFileMap[name] = true
-	}
-	param := ShareFileParam{AllExistGobGzFileMap: allExistGobGzFileMap, SyncToadyWordCount: syncToadyWordCount, SyncKnownWords: syncKnownWords}
-	fileInfoBytes, _ := json.Marshal(param)
-	cli := http.Client{}
-	defer cli.CloseIdleConnections()
-	// 使用 http.Post 会默认使用http.DefaultClient, 会导致连接不释放.如果服务器关闭,客户端仍然保持连接
-	//
-	// // Serve a new connection.
-	//	func (c *conn) serve(ctx context.Context) {
-	resp, err := cli.Post(httpUrl, "application/json", bytes.NewBuffer(fileInfoBytes))
-	//resp, err := http.Get(httpUrl)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNoContent {
-		log.Println("nothing new to download", "httpUrl", httpUrl, "statusCode", resp.StatusCode)
-		return 0, nil
-	}
-	if resp.StatusCode != http.StatusOK {
-		log.Println("download error", "httpUrl", httpUrl, "statusCode", resp.StatusCode)
-		return 0, fmt.Errorf("http status code %d", resp.StatusCode)
-	}
-
-	f, err := os.Create(tempZipPath)
-	if err != nil {
-		return 0, err
-	}
-	defer func() {
-		err = f.Close()
-	}()
-	n, err := io.Copy(f, resp.Body)
-	if err != nil {
-		return 0, err
-	}
-	return n, nil
 }
 
 type shareServerHandler struct {
@@ -454,10 +380,11 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 		item := result[i]
 		item.ID = 0
 		// 开启事务期间不支持查询? 为什么sqlite3不支持
-		_, err = c.allDao.FileInfoDao.ItemBySourceUrl(ctx, item.SourceUrl)
-		if err == nil {
-			log.Println("ignore", item.SourceUrl)
-			continue
+		if fInfo, err := c.allDao.FileInfoDao.ItemBySourceUrl(ctx, item.SourceUrl); err == nil {
+			if _, err = os.Stat(fInfo.FilePath); err == nil {
+				log.Println("ignore", item.SourceUrl)
+				continue
+			}
 		}
 		item.FilePath = filepath.ToSlash(filepath.Join(c.gobPathByFileName(filepath.Base(item.FilePath))))
 		//download file

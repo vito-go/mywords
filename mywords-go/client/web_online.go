@@ -1,4 +1,4 @@
-package main
+package client
 
 //#include <stdlib.h>
 import "C"
@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"io"
 	"mywords/pkg/log"
-	"reflect"
-
-	"mywords/pkg/util"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -21,79 +20,59 @@ import (
 	"unsafe"
 )
 
-func webRestoreFromBackUpData(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
-		return
-	}
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	defer r.Body.Close()
-	syncKnownWords := r.URL.Query().Get("syncKnownWords") == "true"
-	syncToadyWordCount := r.URL.Query().Get("syncToadyWordCount") == "true"
-	syncByRemoteArchived := r.URL.Query().Get("syncByRemoteArchived") == "true"
-	name := "mywords-backupdate.zip"
-	tempFile := filepath.Join(os.TempDir(), name)
-	f, err := os.Create(tempFile)
+func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, m ExportedFuncMap) error {
+	c.exportedFuncMap = m
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", webPort))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", 0))
+		if err != nil {
+			return err
+		}
 	}
-	size, err := io.Copy(f, r.Body)
-	_ = size
+	log.Println("online web dict running: %s", lis.Addr().String())
+	rootDir := c.rootDataDir
+	if checkRunning(rootDir) {
+		log.Println("WARNING: the process %d already exists, please kill it first and running one instance at the same time")
+	}
+	//initGlobal(*rootDir, *dictPort)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/call/", func(writer http.ResponseWriter, request *http.Request) {
+		if c.webOnlineClose.Load() {
+			writer.WriteHeader(http.StatusForbidden)
+			return
+		}
+		c.serverHTTPCallFunc(writer, request)
+	})
+	mux.HandleFunc("/_addDictWithFile", func(writer http.ResponseWriter, request *http.Request) {
+		if c.webOnlineClose.Load() {
+			writer.WriteHeader(http.StatusForbidden)
+			return
+		}
+		c.addDictWithChunkedFile(writer, request)
+	})
+	fileServer := http.FileServer(fileSystem)
+	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		if c.webOnlineClose.Load() {
+			writer.WriteHeader(http.StatusForbidden)
+			return
+		}
+		fileServer.ServeHTTP(writer, request)
+	})
+	tcpAddr, err := net.ResolveTCPAddr("tcp", lis.Addr().String())
 	if err != nil {
-		_ = f.Close()
-		_ = os.Remove(tempFile)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
-	// 保存文件
-	f.Close()
-	// delete file
-	defer os.Remove(tempFile)
-	err = serverGlobal.RestoreFromBackUpData(syncKnownWords, tempFile, syncToadyWordCount, syncByRemoteArchived)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	webOnlinePort := tcpAddr.Port
+	c.webOnlinePort = webOnlinePort
+	log.Ctx(ctx).Info(os.Getwd())
+	go func() {
+		openBrowser(fmt.Sprintf("http://127.0.0.1:%d", webOnlinePort))
+	}()
+	if err = http.Serve(lis, mux); err != nil {
+		log.Println(err)
+		return err
 	}
-}
-func webParseAndSaveArticleFromFile(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
-		return
-	}
-	if r.Method != http.MethodPost {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-	defer r.Body.Close()
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		http.Error(w, "Please send a name", http.StatusBadRequest)
-		return
-
-	}
-	tempFile := filepath.Join(os.TempDir(), name)
-	f, err := os.Create(tempFile)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	_, err = io.Copy(f, r.Body)
-	if err != nil {
-		_ = f.Close()
-		_ = os.Remove(tempFile)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	f.Close()
-	// delete file
-	defer os.Remove(tempFile)
-	_, err = serverGlobal.ParseAndSaveArticleFromFile(tempFile)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	return nil
 }
 
 //          "name": name,
@@ -101,7 +80,7 @@ func webParseAndSaveArticleFromFile(w http.ResponseWriter, r *http.Request) {
 //          "fileSize": fileSize,
 //          "fileUniqueId": fileUniqueId
 
-func addDictWithChunkedFile(w http.ResponseWriter, r *http.Request) {
+func (c *Client) addDictWithChunkedFile(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
@@ -160,7 +139,7 @@ func addDictWithChunkedFile(w http.ResponseWriter, r *http.Request) {
 
 	if accumulativeSize >= fileSize {
 		log.Println("merge----------------------")
-		err = mergeChunkedToDict(tempPath, name)
+		err = c.mergeChunkedToDict(tempPath, name)
 		if err != nil {
 			log.Ctx(ctx).Errorf("mergeChunkedToDict   error: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -168,7 +147,7 @@ func addDictWithChunkedFile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-func mergeChunkedToDict(tempPath string, name string) error {
+func (c *Client) mergeChunkedToDict(tempPath string, name string) error {
 	defer os.RemoveAll(tempPath)
 	zipPath := filepath.Join(tempPath, fmt.Sprintf("%d.zip", time.Now().UnixNano()))
 	fw, err := os.Create(zipPath)
@@ -193,7 +172,7 @@ func mergeChunkedToDict(tempPath string, name string) error {
 	if err = fw.Close(); err != nil {
 		return err
 	}
-	err = serverGlobal.AddDictWithName(ctx, zipPath, name)
+	err = c.AddDictWithName(ctx, zipPath, name)
 	if err != nil {
 		log.Ctx(ctx).Errorf("add dict error: %v", err)
 		return err
@@ -201,46 +180,19 @@ func mergeChunkedToDict(tempPath string, name string) error {
 	return nil
 }
 
-// cors 通用的跨域处理
-func cors(w http.ResponseWriter, r *http.Request) bool {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+func cors(w http.ResponseWriter, r *http.Request) (aborted bool) {
+	origin := r.Header.Get("origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST,GET")
 	if r.Method == http.MethodOptions {
-		w.Header().Set("Access-Control-Max-Age", strconv.FormatInt(int64(time.Second*60*60*24*3), 10))
+		w.WriteHeader(http.StatusNoContent)
 		return true
 	}
 	return false
 }
 
-func downloadBackUpdate(w http.ResponseWriter, r *http.Request) {
-	if cors(w, r) {
-		return
-	}
-	// 通过反射调用flutter的API post 请求 /call/functionName= body: []interface{}
-	if r.Method != http.MethodGet {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-	fileName := r.URL.Query().Get("name") // e.g. "backupdate.zip"
-	// can not include ".." and "/"
-	if strings.Contains(fileName, "..") || strings.Contains(fileName, "/") {
-		http.Error(w, "Invalid file name", http.StatusBadRequest)
-		return
-	}
-	srcDataPath := serverGlobal.DataDir()
-	// download header
-	w.Header().Set("Content-Type", "application/zip")
-	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
-	// zip
-	err := util.ZipToWriter(w, srcDataPath)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
+func (c *Client) serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
@@ -258,7 +210,7 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
-	fn, ok := exportedFuncMap[funcName]
+	fn, ok := c.exportedFuncMap[funcName]
 	if !ok {
 		http.Error(w, "Function not found: "+funcName, http.StatusNotFound)
 		return

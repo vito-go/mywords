@@ -9,6 +9,7 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/navigator.dart';
 
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
@@ -26,7 +27,6 @@ class DictDatabase extends StatefulWidget {
 
 /// blockShowDialog 阻塞 试验
 Future<void> blockShowDialog(BuildContext context, Future<void> future) {
-
   return showDialog(
       context: context,
       builder: (BuildContext context) {

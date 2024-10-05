@@ -105,28 +105,6 @@ func (c *Client) restoreFromBackUpDataFileInfoFile(f *zip.File) (map[string]mode
 	return fileInfoMap, nil
 }
 
-func (c *Client) RestoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
-	return c.restoreFromBackUpData(syncKnownWords, backUpDataZipPath, syncToadyWordCount, syncByRemoteArchived)
-}
-func (c *Client) restoreFromBackUpData(syncKnownWords bool, backUpDataZipPath string, syncToadyWordCount bool, syncByRemoteArchived bool) error {
-	r, err := zip.OpenReader(backUpDataZipPath)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-	var fileMap = make(map[string]*zip.File)
-	for _, f := range r.File {
-		fileMap[f.Name] = f
-	}
-
-	if syncKnownWords {
-
-		// TODO
-	}
-	// todo
-	return nil
-}
-
 // FixMyKnownWords .
 func (c *Client) FixMyKnownWords() error {
 	return nil
@@ -317,10 +295,6 @@ func (c *Client) deleteGobFile(id int64) error {
 }
 func (c *Client) gobPathByFileName(fileName string) string {
 	return filepath.Join(c.rootDataDir, dataDir, gobFileDir, fileName)
-}
-
-func (c *Client) ParseAndSaveArticleFromFile(filePath string) (*artical.Article, error) {
-	return nil, errors.New("not implemented")
 }
 
 var debug = atomic.Bool{}

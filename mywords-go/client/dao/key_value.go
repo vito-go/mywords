@@ -119,6 +119,18 @@ func (m *keyValueDao) DefaultDictId(ctx context.Context) (int64, error) {
 	return result, nil
 }
 
+func (m *keyValueDao) WebOnlineClose(ctx context.Context) (bool, error) {
+	item, err := m.ItemByKeyId(ctx, mtype.WebOnlineClose)
+	if err != nil {
+		return false, err
+	}
+	result, err := strconv.ParseBool(item.Value)
+	if err != nil {
+		return false, err
+	}
+	return result, nil
+}
+
 func (m *keyValueDao) QueryShareInfo(ctx context.Context) (*mtype.ShareInfo, error) {
 	item, err := m.ItemByKeyId(ctx, mtype.KeyIdShareInfo)
 	if err != nil {

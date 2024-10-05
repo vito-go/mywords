@@ -10,9 +10,6 @@ import 'package:mywords/widgets/line_chart.dart';
 
 import 'package:mywords/environment.dart';
 
-import 'package:url_launcher/url_launcher_string.dart';
-
-
 final Handler handlerImplement = WebHandler();
 
 class WebHandler implements Handler {
@@ -47,14 +44,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<String>> backUpData(
-      String zipName, String dataDirPath) async {
-    final www = "$debugHostOrigin/_downloadBackUpdate?name=$zipName";
-    launchUrlString(www);
-    return RespData.dataOK("");
-  }
-
-  @override
   Future<RespData<Article>> articleFromFileInfo(FileInfo fileInfo) async {
     final result = await call("ArticleFromFileInfo", [fileInfo]);
 
@@ -65,7 +54,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> delDict(int id) async {
-     final result = await call("DelDict", [id]);
+    final result = await call("DelDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
@@ -177,45 +166,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<void>> restoreFromBackUpData(
-      bool syncKnownWords,
-      String zipPath,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived) async {
-    final result = await call("RestoreFromBackUpData",
-        [zipPath, syncToadyWordCount, syncByRemoteArchived]);
-
-    final respData = RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
-
-  @override
-  Future<RespData<void>> restoreFromShareServer(
-      String ip,
-      int port,
-      int code,
-      bool syncKnownWords,
-      String tempDir,
-      bool syncToadyWordCount,
-      bool syncByRemoteArchived) async {
-    final result = await call("RestoreFromShareServer", [
-      ip,
-      port,
-      code,
-      syncKnownWords,
-      tempDir,
-      syncToadyWordCount,
-      syncByRemoteArchived
-    ]);
-
-    final RespData respData =
-        RespData.fromJson(jsonDecode(result), (json) => null);
-
-    return respData;
-  }
-
-  @override
   Future<RespData<List<String>>> searchByKeyWord(String word) async {
     final result = await call("SearchByKeyWord", [word]);
     final RespData<List<String>> respData = RespData.fromJson(
@@ -225,7 +175,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> setDefaultDict(int id) async {
-     final result = await call("SetDefaultDict", [id]);
+    final result = await call("SetDefaultDict", [id]);
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;
@@ -461,6 +411,23 @@ class WebHandler implements Handler {
   Future<String> goBuildInfoString() async {
     final result = await call("GoBuildInfoString", []);
     return result;
+  }
+
+  @override
+  void setWebOnlineClose(bool v) {
+    call("SetWebOnlineClose", [v]);
+  }
+
+  @override
+  FutureOr<int> webOnlinePort() async {
+    final result = await call("WebOnlinePort", []);
+    return int.parse(result);
+  }
+
+  @override
+  FutureOr<bool> getWebOnlineClose()async {
+    final result = await call("GetWebOnlineClose", []);
+    return bool.parse(result);
   }
 }
 
