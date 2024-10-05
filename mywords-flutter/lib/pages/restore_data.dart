@@ -83,8 +83,9 @@ class _RestoreDataState extends State<RestoreData> {
       keyboardType: TextInputType.number,
       controller: controllerCode,
       decoration: const InputDecoration(
-        labelText: "Code码",
-        isDense: true,
+        // labelText: "Code码",
+        labelText: "Auth Code",
+          isDense: true,
       ),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
@@ -98,7 +99,8 @@ class _RestoreDataState extends State<RestoreData> {
       controller: controllerPort,
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
-        labelText: "端口",
+        // labelText: "端口",
+        labelText: "Port",
         isDense: true,
       ),
       inputFormatters: [
@@ -113,7 +115,8 @@ class _RestoreDataState extends State<RestoreData> {
       controller: controllerIP,
       keyboardType: TextInputType.url,
       decoration: const InputDecoration(
-        labelText: "IP/域名",
+        // labelText: "IP/域名",
+        labelText: "IP/domain name",
         // border: OutlineInputBorder(),
         isDense: true,
       ),
@@ -138,7 +141,7 @@ class _RestoreDataState extends State<RestoreData> {
 
     children.addAll([
       ListTile(
-        title: const Text("我的单词库"),
+        title: const Text("Known Words"),
         leading: const Tooltip(
           message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
           triggerMode: TooltipTriggerMode.tap,
@@ -186,9 +189,11 @@ class _RestoreDataState extends State<RestoreData> {
             : const Text(""),
       ),
       ListTile(
-        title: const Text("同步文章信息"),
+        // title: const Text("同步文章信息"),
+        title: const Text("Sync Articles"),
         leading: const Tooltip(
-          message: "同步数据后，本地数据将与远程数据进行合并",
+          // message: "同步数据后，本地数据将与远程数据进行合并",
+          message: "After syncing data, local data will be merged with remote data",
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info_outline),
         ),
@@ -236,7 +241,8 @@ class _RestoreDataState extends State<RestoreData> {
     final col = ListView(children: children);
 
     final appBar = AppBar(
-      title: const Text("同步数据"),
+      // title: const Text("同步数据"),
+      title: const Text("Sync Data"),
     );
     return getScaffold(
       context,

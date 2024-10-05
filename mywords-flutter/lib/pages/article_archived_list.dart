@@ -20,7 +20,7 @@ class _State extends State<ArticleArchivedPage> {
   Widget build(BuildContext context) {
     return getScaffold(context,
         appBar: AppBar(
-          title: const Text("已归档文章"),
+          title: const Text("Archived Articles"),
           actions: [
             IconButton(
                 onPressed: () {
@@ -33,7 +33,8 @@ class _State extends State<ArticleArchivedPage> {
         body: const ArticleListView(
           archived: true,
           toEndSlide: ToEndSlide.unarchive,
-          leftLabel: '恢复',
+          // leftLabel: '恢复',
+          leftLabel: 'Restore',
           leftIconData: Icons.restore,
           pageNo: 2,
         ));

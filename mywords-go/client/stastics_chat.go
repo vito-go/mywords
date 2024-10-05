@@ -96,10 +96,10 @@ func (c *Client) chartDateLevelCountMap() map[string]map[mtype.WordKnownLevel]ma
 func (c *Client) GetChartData() (*ChartData, error) {
 
 	var chartData = &ChartData{
-		Title:       "每日单词掌握情况分级统计",
+		//Title:       "每日单词掌握情况分级统计",
 		SubTitle:    "",
-		XName:       "日期",
-		YName:       "单词数量",
+		XName:       "date",
+		YName:       "count",
 		DotDataShow: true,
 		XTitleMap:   make(map[int]string),
 		LineValues:  make([]lineValue, 0),
@@ -160,17 +160,18 @@ func (c *Client) GetChartData() (*ChartData, error) {
 func (c *Client) GetChartDataAccumulate() (*ChartData, error) {
 
 	var chartData = &ChartData{
-		Title:       "累计单词掌握情况统计",
-		SubTitle:    "",
-		XName:       "日期",
-		YName:       "累计数量",
+		//Title:       "累计单词掌握情况统计",
+		SubTitle: "",
+		XName:    "date",
+		//YName:       "累计数量",
 		DotDataShow: true,
 		XTitleMap:   make(map[int]string),
 		LineValues:  make([]lineValue, 0),
 		BaselineY:   0,
 		MinY:        0,
 	}
-	const allTitle = "累计"
+	//const allTitle = "累计"
+	const allTitle = "Accumulative Count"
 	chartData.LineValues = []lineValue{
 		{Tip: allTitle, BarWidth: 2.0},
 	}

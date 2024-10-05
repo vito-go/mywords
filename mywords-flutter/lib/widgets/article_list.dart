@@ -228,19 +228,22 @@ class _State extends State<ArticleListView> {
         builder: (BuildContext context) {
           return AlertDialog(
               title: const Text("提示"),
-              content: const Text("向左滑动删除文章, 向右滑动归档文章"),
+              // content: const Text("向左滑动删除文章, 向右滑动归档文章"),
+              content: const Text("Swipe left to delete the article, swipe right to archive the article"),
               actions: [
                 TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text("确认")),
+                    // child: const Text("确认")),
+                    child: const Text("OK")),
                 TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                       prefs.toastSlideToDelete = true;
                     },
-                    child: const Text("不再提示")),
+                    // child: const Text("不再提示")),
+                    child: const Text("Don't show again")),
               ]);
         });
   }
@@ -315,7 +318,8 @@ class _State extends State<ArticleListView> {
         style: const TextStyle(fontSize: 14),
       ),
       title: CupertinoSearchTextField(
-        placeholder: "请输入文章标题关键词",
+        // placeholder: "请输入文章标题关键词",
+        placeholder: "keyword of the title",
         controller: controllerSearch,
         style: Theme.of(context).textTheme.bodyLarge,
         onChanged: (String v) {

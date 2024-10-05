@@ -53,6 +53,7 @@ void queryWordInDict(BuildContext context, String word) async {
   }
   // Desktop;
   // FIXME 后续版本计划不再支持桌面客户端版本, 请使用桌面网页版
+  // Deprecated: subsequent versions plan to no longer support desktop client versions, please use the desktop web version
   final url = "http://127.0.0.1:${Global.webDictRunPort}/_query?word=$word";
   launchUrlString(url);
   // throw "Unsupported platform, please use web version";

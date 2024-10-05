@@ -42,7 +42,8 @@ class _State extends State<ToadyKnownWords> {
     final appBar = AppBar(
      
       actions: actions(),
-      title: const Text("今日学习单词"),
+      // title: const Text("今日学习单词"),
+      title: const Text("Today's Learning"),
     );
     //  today  format: 20060102
     final now = DateTime.now();

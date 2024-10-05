@@ -45,13 +45,14 @@ class _State extends State<WordList> {
           text: "",
           children: [
             const TextSpan(
-                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                // text: "词汇分级 (0:陌生, L1:认识, 2:了解, 3:熟悉)\n", //
+              text: "word level (0:unknown, 1:known, 2:understand, 3:familiar)\n",
                 style: TextStyle(color: Colors.blueGrey)),
-            TextSpan(text: "1级: ", style: normalStyle),
+            TextSpan(text: "L1: ", style: normalStyle),
             TextSpan(text: "$count1", style: levelStyle),
-            TextSpan(text: "  2级: ", style: normalStyle),
+            TextSpan(text: "  L2: ", style: normalStyle),
             TextSpan(text: "$count2", style: levelStyle),
-            TextSpan(text: "  3级: ", style: normalStyle),
+            TextSpan(text: "  L3: ", style: normalStyle),
             TextSpan(text: "$count3", style: levelStyle),
           ]),
     );
@@ -148,7 +149,7 @@ class _State extends State<WordList> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              const Text("分级筛选"),
+               const Text("Level Filter"),
               buildShowLevel(0, label: "all", onTap: () {
                 showLevel = 0;
                 prefs.showWordLevel = 0;

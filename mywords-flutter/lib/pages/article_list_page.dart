@@ -65,7 +65,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       indexStart = controller.text.indexOf("http://");
     }
     if (indexStart == -1) {
-      myToast(context, "网址有误，请检查");
+      // myToast(context, "网址有误，请检查");
+      myToast(context, "The URL is incorrect, please check");
       return;
     }
     final String www = controller.text.substring(indexStart).trim();
@@ -135,7 +136,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       controller: controller,
       focusNode: focus,
       decoration: InputDecoration(
-          hintText: "请输入一个英语文章页面网址",
+          // hintText: "请输入一个英语文章页面网址",
+          hintText: "Please enter a web page URL",
           prefixIcon: IconButton(
               onPressed: () {
                 controller.text = '';
@@ -170,13 +172,13 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
     return RichText(
         text: TextSpan(
-            text: "1级: ",
+            text: "L1: ",
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             children: [
           TextSpan(text: '$count1', style: style),
-          const TextSpan(text: "  2级: "),
+          const TextSpan(text: "  L2: "),
           TextSpan(text: '$count2', style: style),
-          const TextSpan(text: "  3级: "),
+          const TextSpan(text: "  L3: "),
           TextSpan(text: '$count3', style: style),
         ]));
   }
@@ -196,7 +198,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   icon: const Icon(Icons.wordpress)),
               title: RichText(
                 text: TextSpan(
-                    text: "今日学习单词总数: ",
+                    // text: "今日学习单词总数: ",
+                    text: "Today's learned words: ",
                     style: TextStyle(
                         color: Theme.of(context).textTheme.bodyMedium?.color),
                     children: [

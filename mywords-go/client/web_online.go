@@ -49,7 +49,7 @@ func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, serve
 		c.addDictWithChunkedFile(writer, request)
 	})
 	fileServer := http.FileServer(fileSystem)
-	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("/web/", func(writer http.ResponseWriter, request *http.Request) {
 		if c.webOnlineClose.Load() {
 			writer.WriteHeader(http.StatusForbidden)
 			return
@@ -64,7 +64,7 @@ func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, serve
 	c.webOnlinePort = webOnlinePort
 	log.Ctx(ctx).Info(os.Getwd())
 	go func() {
-		openBrowser(fmt.Sprintf("http://127.0.0.1:%d", webOnlinePort))
+		openBrowser(fmt.Sprintf("http://127.0.0.1:%d/web/", webOnlinePort))
 	}()
 	if err = http.Serve(lis, mux); err != nil {
 		log.Println(err)

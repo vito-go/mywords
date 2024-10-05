@@ -28,6 +28,7 @@ class _SyncDataState extends State<SyncData> {
   TextEditingController controllerCode = TextEditingController(text: " ");
   TextEditingController controllerBackUpZipName =
       TextEditingController(text: "mywords-backup-data");
+
   @override
   void initState() {
     super.initState();
@@ -78,11 +79,13 @@ class _SyncDataState extends State<SyncData> {
 
   Future<void> doShareOpen() async {
     if (controllerPort.text.trim() == "") {
-      myToast(context, "端口号不能为空");
+      // myToast(context, "端口号不能为空");
+      myToast(context, "Port number cannot be empty");
       return;
     }
     if (controllerCode.text.trim() == "") {
-      myToast(context, "Code码不能为空");
+      // myToast(context, "Code码不能为空");
+      myToast(context, "Auth Code cannot be empty");
       return;
     }
     final port = int.parse(controllerPort.text.trim());
@@ -129,7 +132,8 @@ class _SyncDataState extends State<SyncData> {
               controller: controllerPort,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: "端口",
+                // labelText: "端口",
+                labelText: "Port",
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -145,7 +149,8 @@ class _SyncDataState extends State<SyncData> {
               keyboardType: TextInputType.number,
               controller: controllerCode,
               decoration: const InputDecoration(
-                labelText: "Code码",
+                // labelText: "Code码",// auth
+                labelText: "Auth Code",
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -178,7 +183,7 @@ class _SyncDataState extends State<SyncData> {
           "http://127.0.0.1:${shareInfo.port}/share/shareKnownWords?code=${shareInfo.code}";
       children.add(ListTile(
         leading: const Icon(Icons.http),
-        title: const Text("我的单词库"),
+        title: const Text("Known Words"),
         subtitle: Text(shareKnownWordsURL),
         trailing: IconButton(
             onPressed: () {
@@ -189,7 +194,7 @@ class _SyncDataState extends State<SyncData> {
     }
     final body = Column(children: children);
     final appBar = AppBar(
-      title: const Text("分享/备份数据"),
+      title: const Text("Share Data"),
     );
     return getScaffold(
       context,

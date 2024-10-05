@@ -227,18 +227,19 @@ class ArticlePageState extends State<ArticlePage> {
           text: "",
           children: [
             const TextSpan(
-                text: "词汇分级 (0:陌生, 1级:认识, 2:了解, 3:熟悉)\n",
+                // text: "词汇分级 (0:陌生, L1:认识, 2:了解, 3:熟悉)\n",
+                text: "Word Level (0:Unknown, L1:Known, 2:Understand, 3:Familiar)\n",
                 style: TextStyle(color: Colors.blueGrey)),
-            TextSpan(text: "0级: ", style: TextStyle(color: color)),
+            TextSpan(text: "L0: ", style: TextStyle(color: color)),
             TextSpan(
                 text: "$count0 ($count0VsNet)",
                 style: const TextStyle(
                     color: Colors.red, fontWeight: FontWeight.bold)),
-            TextSpan(text: "  1级: ", style: TextStyle(color: color)),
+            TextSpan(text: "  L1: ", style: TextStyle(color: color)),
             TextSpan(text: "$count1", style: levelStyle),
-            TextSpan(text: "  2级: ", style: TextStyle(color: color)),
+            TextSpan(text: "  L2: ", style: TextStyle(color: color)),
             TextSpan(text: "$count2", style: levelStyle),
-            TextSpan(text: "  3级: ", style: TextStyle(color: color)),
+            TextSpan(text: "  L3: ", style: TextStyle(color: color)),
             TextSpan(text: "$count3", style: levelStyle),
           ]),
     );
@@ -254,7 +255,7 @@ class ArticlePageState extends State<ArticlePage> {
             triggerMode: TooltipTriggerMode.tap,
             child: const Icon(Icons.info),
           ),
-          const Text("分级筛选"),
+          const Text("Level Filter"),
           buildShowLevel(0, label: "0", onTap: () {
             showLevel = 0;
             setState(() {});
@@ -285,17 +286,20 @@ class ArticlePageState extends State<ArticlePage> {
     final color = Theme.of(context).textTheme.bodyMedium?.color;
     return RichText(
         text: TextSpan(
-            text: "词汇量统计: 总数: ",
+            // text: "词汇量统计: 总数: ",
+            text: "Word Count: Total: ",
             style: Theme.of(context).textTheme.titleMedium,
             children: [
           TextSpan(
               text: "$totalCount",
               style: TextStyle(fontWeight: FontWeight.bold, color: color)),
-          const TextSpan(text: ", 去重后: "),
+          // const TextSpan(text: ", 去重后: "),
+          const TextSpan(text: ", Net: "),
           TextSpan(
               text: "$netCount",
               style: TextStyle(fontWeight: FontWeight.bold, color: color)),
-          const TextSpan(text: ", 比率: "),
+          // const TextSpan(text: ", 比率: "),
+          const TextSpan(text: ", Rate: "),
           TextSpan(
               text: (netCount / totalCount).toStringAsFixed(2),
               style: TextStyle(fontWeight: FontWeight.bold, color: color)),

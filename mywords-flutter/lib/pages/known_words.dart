@@ -34,7 +34,7 @@ class _State extends State<KnownWords> {
   Widget build(BuildContext context) {
     final appBar = AppBar(
        actions: actions(),
-      title: const Text("我的单词库"),
+      title: const Text("Known Words"),
     );
 
     const body = WordList(createDay: 0);

@@ -194,6 +194,7 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 		}
 
 	})
+	go client.VacuumDB(ctx)
 	return client, nil
 }
 

@@ -284,11 +284,14 @@ class _State extends State<DictDatabase> {
   Widget build(BuildContext context) {
     List<Widget> children = [
       ListTile(
-        title: const Text("加载本地词典数据库zip文件"),
+        // title: const Text("加载本地词典数据库zip文件"),
+        title: const Text("Load local dictionary database zip file"),
         leading: const Padding(
             padding: EdgeInsets.all(12),
             child: Tooltip(
-              message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
+              // message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
+              message: "Select a zip file from the local, after parsing, you can clear the application cache and delete the original file",
+              showDuration: Duration(seconds: 5),
               triggerMode: TooltipTriggerMode.tap,
               child: Icon(Icons.info),
             )),
@@ -309,7 +312,8 @@ class _State extends State<DictDatabase> {
       ),
       ListTile(
         trailing: const IconButton(onPressed: null, icon: Icon(Icons.delete)),
-        title: const Text("内置词典(精简版)"),
+        // title: const Text("内置词典(精简版)"),
+        title: const Text("Built-in dictionary (simplified version)"),
         leading: Radio(
             value: 0,
             groupValue: defaultDictId,
@@ -327,7 +331,8 @@ class _State extends State<DictDatabase> {
     final body = Column(children: children);
 
     final appBar = AppBar(
-      title: const Text("设置词典数据库"),
+      // title: const Text("设置词典数据库"),
+      title: const Text("Dictionary database"),
     );
     return getScaffold(
       context,

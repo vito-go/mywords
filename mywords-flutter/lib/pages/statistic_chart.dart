@@ -20,11 +20,13 @@ class StatisticChart extends StatefulWidget {
 class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   List<Widget> get myTabs => [
         const Tab(
-          text: "每日统计",
+          // text: "每日统计",
+          text: "Daily",
           icon: Icon(Icons.today),
         ),
         const Tab(
-          text: "累计统计",
+          // text: "累计统计",
+          text: "Accumulative",
           icon: Icon(Icons.view_day),
         ),
       ];
@@ -68,7 +70,8 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
     final count3 = todayCountMap['3'] ?? 0;
     final total = count1 + count2 + count3;
     return Tooltip(
-      message: "今日学习单词数量: $total\n1级:$count1 2级:$count2 3级:$count3",
+      // message: "今日学习单词数量: $total\nL1:$count1 L2:$count2 L3:$count3",
+      message: "Today's word count: $total\nL1:$count1 L2:$count2 L3:$count3",
       triggerMode: TooltipTriggerMode.tap,
       showDuration: const Duration(seconds: 30),
       child: const Icon(Icons.info),
@@ -78,7 +81,9 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   Widget get toolTipAccumulate {
     return const Tooltip(
       showDuration: Duration(seconds: 30),
-      message: "请注意：每日学习的单词可能与往日学习的存在重复，因此您累计学习的数量可能与已知单词总数不一致。",
+      // message: "请注意：每日学习的单词可能与往日学习的存在重复，因此您累计学习的数量可能与已知单词总数不一致。",
+      message:
+          "Please note: The words you learn daily may overlap with those you learned in the past, so the total number of words you learn may not match the total number of known words.",
       triggerMode: TooltipTriggerMode.tap,
       child: Icon(Icons.help),
     );
@@ -94,7 +99,8 @@ class _State extends State<StatisticChart> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
-      title: const Text("学习统计"),
+      // title: const Text("学习统计"),
+      title: const Text("Learning Statistics"),
       bottom: TabBar(
         tabs: myTabs,
         labelStyle: TextStyle(

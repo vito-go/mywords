@@ -41,12 +41,29 @@ class _State extends State<Home> {
     const MyTool()
   ];
   final List<BottomNavigationBarItem> bottomBarItems = [
-    const BottomNavigationBarItem(label: ("文章"), icon: Icon(Icons.article)),
-    const BottomNavigationBarItem(
-        label: ("词典"), icon: Icon(Icons.find_in_page_outlined)),
-    const BottomNavigationBarItem(label: ("工具"), icon: Icon(Icons.settings)),
+    const BottomNavigationBarItem(label: ("Article"), icon: Icon(Icons.article)),
+    // const BottomNavigationBarItem(
+    //     label: ("词典"), icon: Icon(Icons.find_in_page_outlined)),
+    const BottomNavigationBarItem(label: ("Dictionary"), icon: Icon(Icons.find_in_page_outlined)),
+    // const BottomNavigationBarItem(label: ("工具"), icon: Icon(Icons.settings)),
+    const BottomNavigationBarItem(label: ("Tool"), icon: Icon(Icons.settings)),
   ];
-
+  Widget themeIconButton() {
+    return IconButton(
+        onPressed: () {
+          if (prefs.themeMode == ThemeMode.light) {
+            prefs.themeMode = ThemeMode.dark;
+            produceEvent(EventType.updateTheme, ThemeMode.dark);
+          } else {
+            prefs.themeMode = ThemeMode.light;
+            produceEvent(EventType.updateTheme, ThemeMode.light);
+          }
+          setState(() {});
+        },
+        icon: prefs.themeMode == ThemeMode.light
+            ? const Icon(Icons.nightlight_round)
+            : const Icon(Icons.sunny));
+  }
   void aboutOnTap() async {
     const applicationName = "mywords";
     if (!context.mounted) return;
@@ -80,7 +97,7 @@ class _State extends State<Home> {
           },
           icon: const Icon(Icons.refresh)),
       IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
-      // IconButton(onPressed: changeTheme, icon: const Icon(Icons.sunny)),
+      themeIconButton(),
     ];
   }
 

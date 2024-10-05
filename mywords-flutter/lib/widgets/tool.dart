@@ -12,6 +12,7 @@ import 'package:mywords/pages/known_words.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
+import 'package:mywords/widgets/private_ip.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../pages/dict_database.dart';
@@ -49,7 +50,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   int get count3 => levelCountMap['3'] ?? 0;
 
   String get levelText {
-    return "1级: $count1  2级: $count2  3级: $count3";
+    // return "L1: $count1  L2: $count2  L3: $count3";
+    return "L1: $count1  L2: $count2  L3: $count3";
   }
 
   StreamSubscription<Event>? eventConsumer;
@@ -60,6 +62,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     dbSize = (await handler.dbSize()).data ?? 0;
     defaultDictId = await handler.getDefaultDictId();
     webOnlineClose = await handler.getWebOnlineClose();
+    ips = (await handler.getIPv4s()) ?? [];
     setState(() {});
   }
 
@@ -114,7 +117,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         launchUrlString(url);
       },
       leading: const Icon(Icons.api),
-    );
+     );
   }
 
   Widget buildListTileRestoreFromOld() {
@@ -244,26 +247,16 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     myPrint("dispose mytool");
   }
 
+  List<String> ips = [];
+
   Widget get header => ListTile(
-        title: Text("已知单词总数量: $totalCount"),
-        subtitle: Text(levelText),
-        trailing: IconButton(
-            onPressed: () {
-              // changeTheme();
-              // return;
-              if (prefs.themeMode == ThemeMode.light) {
-                prefs.themeMode = ThemeMode.dark;
-                produceEvent(EventType.updateTheme, ThemeMode.dark);
-              } else {
-                prefs.themeMode = ThemeMode.light;
-                produceEvent(EventType.updateTheme, ThemeMode.light);
-              }
-              setState(() {});
-            },
-            icon: prefs.themeMode == ThemeMode.light
-                ? const Icon(Icons.nightlight_round)
-                : const Icon(Icons.sunny)),
-      );
+      // title: Text("已知单词总数量: $totalCount"), 英语化
+      title: Text("Known Words: $totalCount"),
+      subtitle: Text(levelText),
+      onTap: () {
+        pushTo(context, const KnownWords());
+      },
+      trailing: const Icon(Icons.navigate_next));
 
   Widget buildInfo() {
     final Widget buildInfoLeading;
@@ -292,85 +285,39 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
 
   bool webOnlineClose = false;
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    myPrint("build MyTool");
-    final List<Widget> children = [];
-    // children.add(buildInfo());
-    children.addAll([
-      header,
-      const Divider(),
-      ListTile(
-        title: const Text("我的单词库"),
-        leading: const Icon(Icons.wordpress),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const KnownWords());
-        },
-      ),
-      ListTile(
-        title: const Text("学习统计"),
-        leading: const Icon(Icons.stacked_line_chart),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const StatisticChart());
-        },
-      ),
-      ListTile(
-        title: const Text("已归档文章"),
-        leading: const Icon(Icons.archive),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const ArticleArchivedPage());
-        },
-      ),
-      ListTile(
-        title: const Text("设置网络代理"),
-        leading: const Icon(Icons.network_ping),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const NetProxy());
-        },
-      ),
-      ListTile(
-        title: const Text("分享/备份数据"),
-        leading: const Icon(Icons.share),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const SyncData());
-        },
-      ),
-      ListTile(
-        title: const Text("同步数据"),
-        leading: const Icon(Icons.sync),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const RestoreData());
-        },
-      ),
-      ListTile(
-        title: const Text("设置词典数据库"),
-        leading: const Icon(Icons.settings_suggest_outlined),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const DictDatabase());
-        },
-      ),
-      buildListTileVacuumDB(),
-    ]);
 
-    children.add(ListTile(
-      title: const Text("Web在线"),
-      leading: const Icon(Icons.http),
+  Widget get webOnlineListTile {
+    String message = "";
+    if (ips.isNotEmpty) {
+      String url = "\n";
+      for (var ip in ips) {
+        url += "http://$ip:${Global.webOnlinePort}/web/\n";
+      }
+
+      // message = "you can open the url ${url}in browser with other devices"; // add following
+      message =
+          "you can open one of the urls ${url}in browser with other devices";
+    } else {
+      message =
+          "you can open the url http://127.0.0.1:${Global.webOnlinePort}/web/ in browser with your device";
+    }
+    final toolTip = Tooltip(
+      message: message,
+      showDuration: const Duration(seconds: 8),
+      triggerMode: TooltipTriggerMode.tap,
+      child: const Icon(Icons.info),
+    );
+    return ListTile(
+      title: const Text("Web Online"),
+      leading: webOnlineClose ? const Icon(Icons.http) : toolTip,
       subtitle: webOnlineClose
-          ? const Text("")
-          : Text("http://127.0.0.1:${Global.webOnlinePort}"),
+          ? const Text("Web Online is closed")
+          : Text("http://127.0.0.1:${Global.webOnlinePort}/web/"),
       onTap: () {
         if (webOnlineClose) {
           return;
         }
-        launchUrlString("http://127.0.0.1:${Global.webOnlinePort}");
+        launchUrlString("http://127.0.0.1:${Global.webOnlinePort}/web/");
       },
       trailing: Switch(
           value: !webOnlineClose,
@@ -380,7 +327,76 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
             handler.setWebOnlineClose(webOnlineClose);
             setState(() {});
           }),
-    ));
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    myPrint("build MyTool");
+    final List<Widget> children = [];
+    // children.add(buildInfo());
+    children.addAll([
+      header,
+      const Divider(),
+
+      ListTile(
+        // title: const Text("学习统计"),
+        title: const Text("Learning Statistics"),
+        leading: const Icon(Icons.stacked_line_chart),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const StatisticChart());
+        },
+      ),
+      ListTile(
+        // title: const Text("已归档文章"),
+        title: const Text("Archived Articles"),
+        leading: const Icon(Icons.archive),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const ArticleArchivedPage());
+        },
+      ),
+      ListTile(
+        // title: const Text("设置网络代理"),
+        title: const Text("Network Proxy"),
+        leading: const Icon(Icons.network_ping),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const NetProxy());
+        },
+      ),
+      ListTile(
+        title: const Text("Share Data"),
+        leading: const Icon(Icons.share),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const SyncData());
+        },
+      ),
+      ListTile(
+        title: const Text("Sync Data"),
+        leading: const Icon(Icons.sync),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const RestoreData());
+        },
+      ),
+      ListTile(
+        // title: const Text("Dict Database"),
+        title: const Text("Dictionary Database"),
+        leading: const Icon(Icons.settings_suggest_outlined),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const DictDatabase());
+        },
+      ),
+      // buildListTileVacuumDB(),
+    ]);
+
+    children.add(webOnlineListTile);
+    children.add(const PrivateIP());
     if (false) {
       children.add(buildListTileRestoreFromOld());
     }
