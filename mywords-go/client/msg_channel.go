@@ -56,7 +56,11 @@ func (c *Client) SendCodeContent(code int64, content any) {
 		}
 	}
 	// don't print log, it will cause deadlock, because the log may call this function with hook
-	c.codeContentChan <- CodeContent{Code: code, Content: content}
+	// must use select to avoid block in case of the channel is full
+	select {
+	case c.codeContentChan <- CodeContent{Code: code, Content: content}:
+	default:
+	}
 }
 
 // ReadMessage returns a channel of messages, blocking until a message is available.
