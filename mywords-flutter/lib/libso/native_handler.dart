@@ -64,8 +64,8 @@ class NativeHandler implements Handler {
 
 //func UpdateKnownWords(level int, c *C.char) *C.char
   final UpdateKnownWordLevel = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Int64),
-      Pointer<Utf8> Function(Pointer<Utf8>, int)>('UpdateKnownWordLevel');
+      Pointer<Utf8> Function(Int64, Pointer<Utf8>, Int64),
+      Pointer<Utf8> Function(int, Pointer<Utf8>, int)>('UpdateKnownWordLevel');
 
 //func UpdateKnownWords(level int, c *C.char) *C.char
   final NewArticleFileInfoBySourceURL = nativeAddLib.lookupFunction<
@@ -244,8 +244,6 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetChartDataAccumulate');
 
-
-
 // func GetToadyChartDateLevelCountMap() *C.char
   final _getToadyChartDateLevelCountMap = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(),
@@ -305,12 +303,11 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-
-
   @override
   RespData<void> updateKnownWordLevel(String word, int level) {
     final wordC = word.toNativeUtf8();
-    final resultC = UpdateKnownWordLevel(wordC, level);
+    // 0 for client version, 1 for web version
+    final resultC = UpdateKnownWordLevel(0,wordC, level);
     final respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(wordC);

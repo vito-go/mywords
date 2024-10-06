@@ -17,10 +17,10 @@ import (
 // 1 Message
 
 const (
-	CodeError        = 0
-	CodeMessage      = 1
-	CodeMessageError = 2
-	CodeMessageWarn  = 3
+	CodeError           = 0
+	CodeUpdateKnowWords = 1
+	CodeMessageError    = 2
+	CodeMessageWarn     = 3
 
 	CodeWsConnectStatus = 20 // data is int , 0 ready, 1 connecting, 2 connected, 3 failed , 4 closed
 	CodeReadFromDB      = 30 //

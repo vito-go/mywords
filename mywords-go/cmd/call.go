@@ -129,8 +129,13 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	var args []interface{}
-	err := json.NewDecoder(r.Body).Decode(&args)
+	err = json.Unmarshal(body, &args)
 	// When the method is GET, the body is empty, so the error is io.EOF
 	if err != nil && err != io.EOF {
 		http.Error(w, err.Error(), http.StatusBadRequest)

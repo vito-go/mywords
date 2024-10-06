@@ -4,6 +4,7 @@ import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/widgets/tool.dart';
 import '../common/global.dart';
+import '../libso/handler.dart';
 import '../util/util.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
@@ -106,16 +107,24 @@ class _State extends State<Home> {
     );
   }
 
+  Widget get refreshAllButton => IconButton(
+      onPressed: () async {
+        produceEvent(EventType.updateLineChart);
+        produceEvent(EventType.updateArticleList);
+        produceEvent(EventType.articleListScrollToTop, 1);
+        produceEvent(EventType.updateKnownWord); // notify
+        final respData = await handler.allKnownWordsMap();
+        if (respData.code != 0) {
+          throw Exception("allKnownWordsMap error: ${respData.message}");
+        }
+        Global.allKnownWordsMap = respData.data ?? {};
+        myToast(context, "Successfully!");
+      },
+      icon: const Icon(Icons.refresh));
+
   List<Widget> get actions {
     return [
-      IconButton(
-          onPressed: () {
-            produceEvent(EventType.updateLineChart);
-            produceEvent(EventType.updateArticleList);
-            produceEvent(EventType.articleListScrollToTop, 1);
-            myToast(context, "Successfully!");
-          },
-          icon: const Icon(Icons.refresh)),
+      refreshAllButton,
       IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
       themeIconButton(),
     ];

@@ -18,8 +18,6 @@ class WebHandler implements Handler {
     throw "not support add dict on web platform in this way";
   }
 
-
-
   @override
   Future<RespData<void>> updateFileInfo(FileInfo item) async {
     final result = await call("ArchiveGobFile", [item.toRawJson()]);
@@ -183,8 +181,6 @@ class WebHandler implements Handler {
     return respData;
   }
 
-
-
   @override
   Future<RespData<void>> updateDictName(int id, String name) async {
     final result = await call("UpdateDictName", [id, name]);
@@ -199,6 +195,7 @@ class WebHandler implements Handler {
     int level,
   ) async {
     final result = await call("UpdateKnownWordLevel", [
+      1,
       word,
       level,
     ]);
@@ -393,7 +390,7 @@ class WebHandler implements Handler {
   }
 
   @override
-  FutureOr<bool> getWebOnlineClose()async {
+  FutureOr<bool> getWebOnlineClose() async {
     final result = await call("GetWebOnlineClose", []);
     return bool.parse(result);
   }

@@ -242,6 +242,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       case EventType.syncData:
         break;
       case EventType.updateKnownWord:
+        levelCountMap = await handler.knownWordsCountMap();
+        setState(() {});
         break;
       case EventType.articleListScrollToTop:
       case EventType.updateLineChart:
@@ -250,7 +252,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         break;
       case EventType.updateDict:
         defaultDictId = await handler.getDefaultDictId();
-
         setState(() {});
         break;
     }
