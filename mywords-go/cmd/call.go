@@ -129,16 +129,20 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+	funcName := strings.TrimPrefix(r.URL.Path, "/call/")
+	if funcName == "" {
+		http.Error(w, "Please send a functionName", http.StatusBadRequest)
+		return
+	}
+	if err := serverHTTPCallFuncLocalCheck(funcName, r); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	var args []interface{}
 	err := json.NewDecoder(r.Body).Decode(&args)
 	// When the method is GET, the body is empty, so the error is io.EOF
 	if err != nil && err != io.EOF {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	funcName := strings.TrimPrefix(r.URL.Path, "/call/")
-	if funcName == "" {
-		http.Error(w, "Please send a functionName", http.StatusBadRequest)
 		return
 	}
 	log.Println("call function", "funcName", funcName, "remoteAddr", r.RemoteAddr, "method", r.Method)
@@ -188,4 +192,16 @@ func serverHTTPCallFunc(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, fmt.Sprintf("Function return type not support: %T, value: %+v", v, v), http.StatusInternalServerError)
 	}
+}
+
+// 敏感操作只允许本地调用
+func serverHTTPCallFuncLocalCheck(funcName string, r *http.Request) error {
+	if !sensitiveFunMap[funcName] {
+		return nil
+	}
+	//[::1]:55518
+	if !strings.HasPrefix(r.RemoteAddr, "[::1]") && !strings.HasPrefix(r.RemoteAddr, "127.0.0.1") && !strings.HasPrefix(r.RemoteAddr, "localhost") {
+		return fmt.Errorf("sensitive function only allow local call")
+	}
+	return nil
 }

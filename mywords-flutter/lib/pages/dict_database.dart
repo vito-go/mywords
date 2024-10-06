@@ -153,6 +153,7 @@ class _State extends State<DictDatabase> {
             });
             final t = Timer(const Duration(milliseconds: 3500), () async {
               final respData = await handler.delDict(id);
+              initDictInfos();
               if (respData.code != 0) {
                 myToast(context, respData.message);
                 return;
@@ -163,7 +164,7 @@ class _State extends State<DictDatabase> {
               content: Text('字典已删除: $name',
                   maxLines: 1, overflow: TextOverflow.ellipsis),
               action: SnackBarAction(
-                  label: "撤销",
+                  label: "Revoke",
                   onPressed: () {
                     t.cancel();
                     initDictInfos();

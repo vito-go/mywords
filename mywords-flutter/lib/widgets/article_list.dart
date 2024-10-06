@@ -66,11 +66,11 @@ class _State extends State<ArticleListView> {
     final itemNew = item.copyWith(archived: false);
     final t = Timer(const Duration(milliseconds: 3500), () async {
       final respData = await handler.updateFileInfo(itemNew);
+      produceEvent(EventType.updateArticleList);
       if (respData.code != 0) {
         myToast(context, respData.message);
         return;
       }
-      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -78,7 +78,7 @@ class _State extends State<ArticleListView> {
       content: Text('Article has been unarchived: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
-          label: "撤销",
+          label: "Revoke",
           onPressed: () {
             t.cancel();
             initFileInfos();
@@ -91,6 +91,8 @@ class _State extends State<ArticleListView> {
     final itemNew = item.copyWith(archived: true);
     final t = Timer(const Duration(milliseconds: 3500), () async {
       final RespData respData = await handler.updateFileInfo(itemNew);
+      produceEvent(EventType.updateArticleList);
+
       if (respData.code != 0) {
         if (!mounted) {
           return;
@@ -98,14 +100,13 @@ class _State extends State<ArticleListView> {
         myToast(context, respData.message);
         return;
       }
-      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('文章已归档: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
-          label: "撤销",
+          label: "Revoke",
           onPressed: () {
             t.cancel();
             initFileInfos();
@@ -118,19 +119,19 @@ class _State extends State<ArticleListView> {
     final id = item.id;
     final t = Timer(const Duration(milliseconds: 3500), () async {
       final RespData respData = await handler.deleteGobFile(id);
+      produceEvent(EventType.updateArticleList);
       if (respData.code != 0) {
         if (!mounted) return;
         myToast(context, respData.message);
         return;
       }
-      produceEvent(EventType.updateArticleList);
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('文章已删除: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
-          label: "撤销",
+          label: "Revoke",
           onPressed: () {
             t.cancel();
             initFileInfos();

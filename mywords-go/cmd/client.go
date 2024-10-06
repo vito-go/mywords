@@ -403,6 +403,11 @@ func WebOnlinePort() int {
 	return serverGlobal.WebOnlinePort()
 }
 
+//export QuickAddDictFromTemp
+func QuickAddDictFromTemp() {
+	serverGlobal.QuickAddDictFromTemp()
+}
+
 //export SyncData
 func SyncData(host *C.char, port int, code int64, syncKind int) *C.char {
 	err := serverGlobal.SyncData(C.GoString(host), port, code, syncKind)
