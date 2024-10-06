@@ -19,7 +19,6 @@ func init() {
 		"AddDict":                        AddDict,
 		"WebOnlinePort":                  WebOnlinePort,
 		"SetWebOnlineClose":              SetWebOnlineClose,
-		"AllKnownWordMap":                AllKnownWordMap,
 		"AllWordsByCreateDayAndOrder":    AllWordsByCreateDayAndOrder,
 		"UpdateFileInfo":                 UpdateFileInfo,
 		"SyncData":                       SyncData,
