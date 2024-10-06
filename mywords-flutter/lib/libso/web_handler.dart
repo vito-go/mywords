@@ -20,7 +20,7 @@ class WebHandler implements Handler {
 
   @override
   Future<RespData<void>> updateFileInfo(FileInfo item) async {
-    final result = await call("ArchiveGobFile", [item.toRawJson()]);
+    final result = await call("UpdateFileInfo", [item.toRawJson()]);
     final RespData respData =
         RespData.fromJson(jsonDecode(result), (json) => null);
     return respData;
