@@ -60,7 +60,7 @@ build-termux-cli:
 	@mv $(GO_DIR)/bin/* ./bin/
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-all: build-web build-android build-linux build-web-platform
+build-all: build-web build-android build-linux build-web-platform build-termux-cli
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
