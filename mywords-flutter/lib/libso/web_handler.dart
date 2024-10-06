@@ -18,22 +18,7 @@ class WebHandler implements Handler {
     throw "not support add dict on web platform in this way";
   }
 
-  @override
-  Future<RespData<Map<int, List<String>>>> allKnownWordMap() async {
-    final result = await call("AllKnownWordMap", []);
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(result), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-    return respData;
-  }
+
 
   @override
   Future<RespData<void>> updateFileInfo(FileInfo item) async {
@@ -198,24 +183,7 @@ class WebHandler implements Handler {
     return respData;
   }
 
-  @override
-  Future<RespData<Map<int, List<String>>>> todayKnownWordMap() async {
-    final result = await call("TodayKnownWordMap", []);
 
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(result), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-
-    return respData;
-  }
 
   @override
   Future<RespData<void>> updateDictName(int id, String name) async {

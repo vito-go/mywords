@@ -27,10 +27,13 @@ bin:
 clean:
 	cd $(FLUTTER_DIR) && make clean
 	cd $(GO_DIR) && make clean
+	rm -rf bin/*
 	@echo "clean done"
+build-web:
+#- build-web is a must of all build
+	cd $(GO_DIR) && make build-web
 
 build-linux:bin
-	cd $(GO_DIR) && make build-web
 	cd $(GO_DIR) && make build-so-linux
 	cd $(FLUTTER_DIR) && make build-linux
 	mv $(FLUTTER_DIR)/bin/* ./bin/
@@ -38,7 +41,6 @@ build-linux:bin
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
 build-windows:bin
-	cd $(GO_DIR) && make build-web
 	cd $(GO_DIR) && make build-so-windows
 	cd $(FLUTTER_DIR) && make build-windows
 	mv $(FLUTTER_DIR)/bin/* ./bin/
@@ -47,20 +49,21 @@ build-windows:bin
 	@ls -lha bin
 
 build-android:bin
-	cd $(GO_DIR) && make build-web
 	cd $(GO_DIR) && make build-so-android
 	cd $(FLUTTER_DIR) && make build-apk
 	mv $(FLUTTER_DIR)/bin/* ./bin/
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-android-cli:
-	cd $(GO_DIR) && make build-web
-	cd $(GO_DIR) && make build-android-cli
+build-termux-cli:
+	cd $(GO_DIR) && make build-termux-cli
 	@mv $(GO_DIR)/bin/* ./bin/
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-la: build-android build-linux
+build-all: build-web build-android build-linux build-web-platform
+	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
+	@echo "--------$$ ls -lha bin --------"
+	@ls -lha bin
 
 build-web-platform:bin
 	cd $(GO_DIR) && make build-web-platform

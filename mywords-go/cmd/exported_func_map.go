@@ -62,7 +62,6 @@ func init() {
 		"ShareClosed":                    ShareClosed,
 		"ShareOpen":                      ShareOpen,
 		"GetShareInfo":                   GetShareInfo,
-		"TodayKnownWordMap":              TodayKnownWordMap,
 		"UpdateDictName":                 UpdateDictName,
 		"UpdateKnownWordLevel":           UpdateKnownWordLevel,
 		"GetIPv4s":                       GetIPv4s,

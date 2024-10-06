@@ -244,13 +244,7 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetChartDataAccumulate');
 
-// func AllKnownWordMap() *C.char
-  final _allKnownWordMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('AllKnownWordMap');
 
-// func AllKnownWordMap() *C.char
-  final _todayKnownWordMap = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('TodayKnownWordMap');
 
 // func GetToadyChartDateLevelCountMap() *C.char
   final _getToadyChartDateLevelCountMap = nativeAddLib.lookupFunction<
@@ -311,42 +305,7 @@ class NativeHandler implements Handler {
     return respData;
   }
 
-  @override
-  RespData<Map<int, List<String>>> allKnownWordMap() {
-    final resultC = _allKnownWordMap();
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-    malloc.free(resultC);
-    return respData;
-  }
 
-  @override
-  RespData<Map<int, List<String>>> todayKnownWordMap() {
-    final resultC = _todayKnownWordMap();
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-    malloc.free(resultC);
-
-    return respData;
-  }
 
   @override
   RespData<void> updateKnownWordLevel(String word, int level) {
