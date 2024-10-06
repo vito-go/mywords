@@ -64,8 +64,8 @@ class NativeHandler implements Handler {
 
 //func UpdateKnownWords(level int, c *C.char) *C.char
   final UpdateKnownWordLevel = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(Pointer<Utf8>, Int64),
-      Pointer<Utf8> Function(Pointer<Utf8>, int)>('UpdateKnownWordLevel');
+      Pointer<Utf8> Function(Int64, Pointer<Utf8>, Int64),
+      Pointer<Utf8> Function(int, Pointer<Utf8>, int)>('UpdateKnownWordLevel');
 
 //func UpdateKnownWords(level int, c *C.char) *C.char
   final NewArticleFileInfoBySourceURL = nativeAddLib.lookupFunction<
@@ -244,14 +244,6 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('GetChartDataAccumulate');
 
-// func AllKnownWordMap() *C.char
-  final _allKnownWordMap = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
-      Pointer<Utf8> Function()>('AllKnownWordMap');
-
-// func AllKnownWordMap() *C.char
-  final _todayKnownWordMap = nativeAddLib.lookupFunction<
-      Pointer<Utf8> Function(), Pointer<Utf8> Function()>('TodayKnownWordMap');
-
 // func GetToadyChartDateLevelCountMap() *C.char
   final _getToadyChartDateLevelCountMap = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(),
@@ -312,46 +304,10 @@ class NativeHandler implements Handler {
   }
 
   @override
-  RespData<Map<int, List<String>>> allKnownWordMap() {
-    final resultC = _allKnownWordMap();
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-    malloc.free(resultC);
-    return respData;
-  }
-
-  @override
-  RespData<Map<int, List<String>>> todayKnownWordMap() {
-    final resultC = _todayKnownWordMap();
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(resultC.toDartString()), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-    malloc.free(resultC);
-
-    return respData;
-  }
-
-  @override
   RespData<void> updateKnownWordLevel(String word, int level) {
     final wordC = word.toNativeUtf8();
-    final resultC = UpdateKnownWordLevel(wordC, level);
+    // 0 for client version, 1 for web version
+    final resultC = UpdateKnownWordLevel(0,wordC, level);
     final respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(wordC);
@@ -606,7 +562,7 @@ class NativeHandler implements Handler {
   @override
   String getHostName() {
     // default value is localhost
-    return "";
+    return "127.0.0.1";
   }
 
   final _getShareInfo = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),

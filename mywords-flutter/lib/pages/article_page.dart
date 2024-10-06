@@ -79,14 +79,7 @@ class ArticlePageState extends State<ArticlePage> {
   void eventHandler(Event event) {
     if (event.eventType == EventType.updateKnownWord) {
       FocusManager.instance.primaryFocus?.unfocus();
-      if (event.param is Map) {
-        if (event.param["word"] != null && event.param["level"] != null) {
-          final word = event.param["word"].toString();
-          final level = event.param["level"] as int;
-          Global.allKnownWordsMap[word] = level;
-          setState(() {});
-        }
-      }
+      setState(() {});
     }
   }
 

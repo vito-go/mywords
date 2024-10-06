@@ -47,6 +47,7 @@ abstract class Handler {
   FutureOr<int> webOnlinePort();
 
   void setWebOnlineClose(bool v);
+
   FutureOr<bool> getWebOnlineClose();
 
   FutureOr<RespData<Article>> articleFromFileInfo(FileInfo fileInfo);
@@ -91,12 +92,9 @@ abstract class Handler {
 
   FutureOr<RespData<Map<String, int>>> allKnownWordsMap();
 
-  FutureOr<RespData<Map<int, List<String>>>> allKnownWordMap();
 
 //  1: id desc, 2: id asc ,3 words desc, 4 words asc  ,createDay 0 mean all
   FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order);
-
-  FutureOr<RespData<Map<int, List<String>>>> todayKnownWordMap();
 
   FutureOr<RespData<void>> updateKnownWordLevel(String word, int level);
 

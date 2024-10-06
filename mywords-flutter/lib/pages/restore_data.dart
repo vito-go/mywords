@@ -143,7 +143,8 @@ class _RestoreDataState extends State<RestoreData> {
       ListTile(
         title: const Text("Known Words"),
         leading: const Tooltip(
-          message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
+          // message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
+          message: "After syncing my word library, the learning statistics will also be synchronized and merged with the local data",
           triggerMode: TooltipTriggerMode.tap,
           showDuration: Duration(seconds: 15),
           child: Icon(Icons.info_outline),
@@ -180,7 +181,8 @@ class _RestoreDataState extends State<RestoreData> {
                       myToast(context, respData.message);
                       return;
                     }
-                    myToast(context, "同步我的单词库成功");
+                    // myToast(context, "同步我的单词库成功");
+                    myToast(context, "Sync my word library successfully");
                     produceEvent(EventType.updateKnownWord);
                   },
             icon: const Icon(Icons.sync)),
@@ -231,7 +233,8 @@ class _RestoreDataState extends State<RestoreData> {
                       myToast(context, respData.message);
                       return;
                     }
-                    myToast(context, "同步文章信息成功");
+                    // myToast(context, "同步文章成功");
+                    myToast(context, "Sync articles successfully");
                     produceEvent(EventType.updateArticleList);
                   },
             icon: const Icon(Icons.sync)),

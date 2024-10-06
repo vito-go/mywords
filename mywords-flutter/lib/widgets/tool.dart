@@ -54,6 +54,26 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     return "L1: $count1  L2: $count2  L3: $count3";
   }
 
+  Widget wordLevelRichText() {
+    final normalStyle = Theme.of(context).textTheme.bodyMedium;
+    final TextStyle levelStyle = TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.normal);
+    return RichText(
+      text: TextSpan(
+          style: const TextStyle(color: Colors.black),
+          text: "",
+          children: [
+            TextSpan(text: "L1: ", style: normalStyle),
+            TextSpan(text: "$count1", style: levelStyle),
+            TextSpan(text: "  L2: ", style: normalStyle),
+            TextSpan(text: "$count2", style: levelStyle),
+            TextSpan(text: "  L3: ", style: normalStyle),
+            TextSpan(text: "$count3", style: levelStyle),
+          ]),
+    );
+  }
+
   StreamSubscription<Event>? eventConsumer;
 
   void initLevelMap() async {
@@ -109,7 +129,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   }
 
   Widget buildListTileWebDictPort() {
-    final url = "http://127.0.0.1:${Global.webDictRunPort}/_query?word=hello";
+    String hostName = handler.getHostName();
+    final url = "http://$hostName:${Global.webDictRunPort}/_query?word=hello";
     return ListTile(
       title: const Text('WebDict API'),
       subtitle: Text(url),
@@ -221,6 +242,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       case EventType.syncData:
         break;
       case EventType.updateKnownWord:
+        levelCountMap = await handler.knownWordsCountMap();
+        setState(() {});
         break;
       case EventType.articleListScrollToTop:
       case EventType.updateLineChart:
@@ -229,7 +252,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         break;
       case EventType.updateDict:
         defaultDictId = await handler.getDefaultDictId();
-
         setState(() {});
         break;
     }
@@ -252,8 +274,25 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
 
   Widget get header => ListTile(
       // title: Text("已知单词总数量: $totalCount"), 英语化
-      title: Text("Known Words: $totalCount"),
-      subtitle: Text(levelText),
+      // title: Text("Known Words: $totalCount"),
+      title: RichText(
+        text: TextSpan(
+            text: "My Words Library: ",
+            style: TextStyle(
+                color: Theme.of(context).textTheme.titleMedium?.color,
+                fontSize: Theme.of(context).textTheme.titleMedium?.fontSize),
+            children: [
+              TextSpan(
+                  text: "${count1 + count2 + count3}",
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize:
+                          Theme.of(context).textTheme.titleMedium?.fontSize,
+                      fontWeight: FontWeight.bold))
+            ]),
+      ),
+      // subtitle: Text(levelText),
+      subtitle: wordLevelRichText(),
       onTap: () {
         pushTo(context, const KnownWords());
       },
@@ -293,13 +332,11 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       for (var ip in ips) {
         url += "http://$ip:${Global.webOnlinePort}/web/\n";
       }
-
-      // message = "you can open the url ${url}in browser with other devices"; // add following
       message =
-          "you can open one of the urls ${url}in browser with other devices";
+          "You can open one of the urls ${url}in browser with other devices";
     } else {
       message =
-          "you can open the url http://127.0.0.1:${Global.webOnlinePort}/web/ in browser with your device";
+          "You can open the url http://127.0.0.1:${Global.webOnlinePort}/web/ in browser with your device";
     }
     final toolTip = Tooltip(
       message: message,

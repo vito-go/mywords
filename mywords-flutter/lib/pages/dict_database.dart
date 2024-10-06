@@ -106,11 +106,13 @@ class _State extends State<DictDatabase> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text("修改词典名称"),
+                // title: const Text("修改词典名称"),
+                title: const Text("Modify dictionary name"),
                 content: TextField(
                   controller: controllerEdit,
                   decoration: const InputDecoration(
-                    hintText: "请输入新名称",
+                    // hintText: "请输入新名称",
+                    hintText: "Please enter a new name",
                   ),
                 ),
                 actions: <Widget>[
@@ -118,13 +120,15 @@ class _State extends State<DictDatabase> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text("取消"),
+                    // child: const Text("取消"),
+                    child: const Text("Cancel"),
                   ),
                   TextButton(
                     onPressed: () async {
                       final newName = controllerEdit.text;
                       if (newName.isEmpty) {
-                        myToast(context, "名称不能为空");
+                        // myToast(context, "名称不能为空");
+                        myToast(context, "Name cannot be empty");
                         return;
                       }
                       final respData =
@@ -272,7 +276,8 @@ class _State extends State<DictDatabase> {
       myToast(context, "解析失败! ${respData.message}");
       return;
     }
-    myToast(context, "解析成功");
+    // myToast(context, "解析成功");
+    myToast(context, "Parsing successful");
     initDictInfos();
     zipFilePath = '';
     setState(() {});
@@ -280,17 +285,15 @@ class _State extends State<DictDatabase> {
 
   String zipFilePath = "";
 
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> children = [
-      ListTile(
+  Widget get addDictListTile => ListTile(
         // title: const Text("加载本地词典数据库zip文件"),
-        title: const Text("Load local dictionary database zip file"),
+        title: const Text("Add dictionary database zip file"),
         leading: const Padding(
             padding: EdgeInsets.all(12),
             child: Tooltip(
               // message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
-              message: "Select a zip file from the local, after parsing, you can clear the application cache and delete the original file",
+              message:
+                  "Select a zip file from the local, after parsing, you can clear the application cache and delete the original file",
               showDuration: Duration(seconds: 5),
               triggerMode: TooltipTriggerMode.tap,
               child: Icon(Icons.info),
@@ -305,12 +308,9 @@ class _State extends State<DictDatabase> {
                 onPressed: isSyncing ? null : selectZipFilePath,
                 icon: Icon(Icons.add_circle,
                     color: Theme.of(context).colorScheme.primary)),
-      ),
-      SizedBox(
-        height: 5,
-        child: isSyncing ? const LinearProgressIndicator() : const Text(""),
-      ),
-      ListTile(
+      );
+
+  Widget get delDictListTile => ListTile(
         trailing: const IconButton(onPressed: null, icon: Icon(Icons.delete)),
         // title: const Text("内置词典(精简版)"),
         title: const Text("Built-in dictionary (simplified version)"),
@@ -323,7 +323,17 @@ class _State extends State<DictDatabase> {
               produceEvent(EventType.updateDict, 0);
               initDictInfos();
             }),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> children = [
+      addDictListTile,
+      SizedBox(
+        height: 5,
+        child: isSyncing ? const LinearProgressIndicator() : const Text(""),
       ),
+      delDictListTile,
       const Divider(),
       Expanded(child: buildDictInfos())
     ];

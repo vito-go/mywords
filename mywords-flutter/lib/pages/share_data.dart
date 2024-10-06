@@ -120,9 +120,11 @@ class _SyncDataState extends State<SyncData> {
 
     children.add(ListTile(
       leading: Tooltip(
+        // message:            "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${shareInfo.port}/${shareInfo.port}",
         message:
-            "开启后将允许其他设备访问进行同步本机数据，也可以在浏览器中进行下载 http://ip:port/code,\n例如 http://$localExampleIP:${shareInfo.port}/${shareInfo.port}",
+            "After opening, other devices will be allowed to access and synchronize local data, and you can also download it in the browser http://ip:port/code,\nfor example http://$localExampleIP:${shareInfo.port}/${shareInfo.port}",
         triggerMode: TooltipTriggerMode.tap,
+        showDuration: const Duration(seconds: 30),
         child: const Icon(Icons.info_outline),
       ),
       title: Row(

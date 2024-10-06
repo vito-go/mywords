@@ -75,7 +75,8 @@ copyToClipBoard(BuildContext context, String content) {
   Clipboard.setData(ClipboardData(text: content));
   if (!platFormIsMobile()) {
     myPrint(content);
-    myToast(context, "复制成功");
+    // myToast(context, "复制成功");
+    myToast(context, "Copy successfully");
   }
 }
 

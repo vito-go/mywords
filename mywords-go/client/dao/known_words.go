@@ -134,7 +134,10 @@ func (m *knownWordsDao) AllWordsByIdDesc(ctx context.Context) ([]string, error) 
 func (m *knownWordsDao) AllWordsByCreateDayWithIdDesc(ctx context.Context, createDay int64) ([]string, error) {
 	var msgs []string
 	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Select("word")
-	if createDay > 0 {
+	if createDay == 1 {
+		today, _ := strconv.ParseInt(time.Now().Format("20060102"), 10, 64)
+		tx = tx.Where("create_day = ?", today)
+	} else if createDay > 0 {
 		tx = tx.Where("create_day = ?", createDay)
 	}
 	err := tx.Order("id DESC").Find(&msgs).Error
