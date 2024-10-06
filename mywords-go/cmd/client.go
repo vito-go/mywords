@@ -14,14 +14,32 @@ import (
 	"strings"
 )
 
+// you must be assured the order of the arguments, be same as the order of the arguments in the Go function
+func sendCodeContent(code int64, args ...any) {
+	b, _ := json.Marshal(args)
+	serverGlobal.SendCodeContent(code, string(b))
+}
+
 var serverGlobal *client.Client
 
+const (
+	sourceClient = 0
+	sourceWeb    = 1
+)
+
 //export UpdateKnownWordLevel
-func UpdateKnownWordLevel(c *C.char, level int) *C.char {
+func UpdateKnownWordLevel(source int, c *C.char, level int) *C.char {
 	word := C.GoString(c)
 	err := serverGlobal.AllDao().KnownWordsDao.UpdateOrCreate(ctx, word, mtype.WordKnownLevel(level))
 	if err != nil {
 		return CharErr(err.Error())
+	}
+	if source == sourceWeb {
+		sendCodeContent(client.CodeUpdateKnowWords, word, level)
+	}
+	if source == sourceClient {
+		// TODO Notify the web client
+		//sendCodeContent(client.CodeUpdateKnowWords, word, level)
 	}
 	return CharSuccess()
 }
@@ -56,18 +74,6 @@ func GetChartDataAccumulate() *C.char {
 	if err != nil {
 		return CharErr(err.Error())
 	}
-	return CharOk(data)
-}
-
-//export AllKnownWordMap
-func AllKnownWordMap() *C.char {
-	data := serverGlobal.AllKnownWordMap()
-	return CharOk(data)
-}
-
-//export TodayKnownWordMap
-func TodayKnownWordMap() *C.char {
-	data := serverGlobal.TodayKnownWordMap()
 	return CharOk(data)
 }
 
@@ -335,6 +341,7 @@ func DBSize() *C.char {
 
 //export AllWordsByCreateDayAndOrder
 func AllWordsByCreateDayAndOrder(createDay, order int64) *C.char {
+	//createDay 0 all, 1 today, the other is createDay
 	var items []string
 	var err error
 	if order == 1 {

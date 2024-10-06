@@ -17,10 +17,10 @@ import (
 // 1 Message
 
 const (
-	CodeError        = 0
-	CodeMessage      = 1
-	CodeMessageError = 2
-	CodeMessageWarn  = 3
+	CodeError           = 0
+	CodeUpdateKnowWords = 1
+	CodeMessageError    = 2
+	CodeMessageWarn     = 3
 
 	CodeWsConnectStatus = 20 // data is int , 0 ready, 1 connecting, 2 connected, 3 failed , 4 closed
 	CodeReadFromDB      = 30 //
@@ -56,7 +56,11 @@ func (c *Client) SendCodeContent(code int64, content any) {
 		}
 	}
 	// don't print log, it will cause deadlock, because the log may call this function with hook
-	c.codeContentChan <- CodeContent{Code: code, Content: content}
+	// must use select to avoid block in case of the channel is full
+	select {
+	case c.codeContentChan <- CodeContent{Code: code, Content: content}:
+	default:
+	}
 }
 
 // ReadMessage returns a channel of messages, blocking until a message is available.

@@ -74,7 +74,8 @@ class _State extends State<ArticleListView> {
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('文章已取消归档: ${item.title}',
+      // content: Text('文章已取消归档: ${item.title}',
+      content: Text('Article has been unarchived: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "撤销",
@@ -165,7 +166,7 @@ class _State extends State<ArticleListView> {
                       fontSize: 14,
                       color: Theme.of(context).colorScheme.primary)),
               subtitle: Text(
-                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.updateAt))}  total:${item.totalCount} net:${item.netCount}",
+                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.createAt))}  total:${item.totalCount} net:${item.netCount}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis));
           return Dismissible(
@@ -227,9 +228,11 @@ class _State extends State<ArticleListView> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              title: const Text("提示"),
+              // title: const Text("提示"),
+              title: const Text("Tips"),
               // content: const Text("向左滑动删除文章, 向右滑动归档文章"),
-              content: const Text("Swipe left to delete the article, swipe right to archive the article"),
+              content: const Text(
+                  "Swipe left to delete the article, swipe right to archive the article"),
               actions: [
                 TextButton(
                     onPressed: () {

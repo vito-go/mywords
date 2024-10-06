@@ -19,23 +19,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<Map<int, List<String>>>> allKnownWordMap() async {
-    final result = await call("AllKnownWordMap", []);
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(result), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-    return respData;
-  }
-
-  @override
   Future<RespData<void>> updateFileInfo(FileInfo item) async {
     final result = await call("ArchiveGobFile", [item.toRawJson()]);
     final RespData respData =
@@ -199,25 +182,6 @@ class WebHandler implements Handler {
   }
 
   @override
-  Future<RespData<Map<int, List<String>>>> todayKnownWordMap() async {
-    final result = await call("TodayKnownWordMap", []);
-
-    final RespData<Map<int, List<String>>> respData =
-        RespData.fromJson(jsonDecode(result), (json) {
-      Map<int, List<String>> result = {};
-      final data = json as Map<String, dynamic>;
-      for (var entry in data.entries) {
-        final List<dynamic> words = entry.value;
-        result[int.parse(entry.key)] = List<String>.generate(
-            words.length, (index) => (words[index].toString()));
-      }
-      return result;
-    });
-
-    return respData;
-  }
-
-  @override
   Future<RespData<void>> updateDictName(int id, String name) async {
     final result = await call("UpdateDictName", [id, name]);
     final RespData<void> respData =
@@ -231,6 +195,7 @@ class WebHandler implements Handler {
     int level,
   ) async {
     final result = await call("UpdateKnownWordLevel", [
+      1,
       word,
       level,
     ]);
@@ -425,7 +390,7 @@ class WebHandler implements Handler {
   }
 
   @override
-  FutureOr<bool> getWebOnlineClose()async {
+  FutureOr<bool> getWebOnlineClose() async {
     final result = await call("GetWebOnlineClose", []);
     return bool.parse(result);
   }

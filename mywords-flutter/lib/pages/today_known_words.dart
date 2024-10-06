@@ -40,18 +40,18 @@ class _State extends State<ToadyKnownWords> {
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
-     
       actions: actions(),
       // title: const Text("今日学习单词"),
       title: const Text("Today's Learning"),
     );
     //  today  format: 20060102
-    final now = DateTime.now();
-    final today =
-        "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
-    final int todayInt = int.parse(today);
-    final body = WordList(createDay: todayInt);
-    myPrint("todayInt: $todayInt");
+    // final now = DateTime.now();
+    // final today =
+    //     "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
+    // final int todayInt = int.parse(today);
+    // due to the time difference between the underlying library and flutter, todayInt here is inaccurate, use the time of the underlying library, pass 1 to represent today
+    final body = WordList(createDay: 1);
+    // myPrint("todayInt: $todayInt");
     return getScaffold(
       context,
       appBar: appBar,

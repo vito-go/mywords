@@ -4,6 +4,7 @@ import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/widgets/tool.dart';
 import '../common/global.dart';
+import '../libso/handler.dart';
 import '../util/util.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
@@ -14,8 +15,6 @@ class Home extends StatefulWidget {
   @override
   State<Home> createState() => _State();
 }
-
-const appVersion = "3.0.0";
 
 class _State extends State<Home> {
   final PageController _pageController =
@@ -41,13 +40,16 @@ class _State extends State<Home> {
     const MyTool()
   ];
   final List<BottomNavigationBarItem> bottomBarItems = [
-    const BottomNavigationBarItem(label: ("Article"), icon: Icon(Icons.article)),
+    const BottomNavigationBarItem(
+        label: ("Article"), icon: Icon(Icons.article)),
     // const BottomNavigationBarItem(
     //     label: ("词典"), icon: Icon(Icons.find_in_page_outlined)),
-    const BottomNavigationBarItem(label: ("Dictionary"), icon: Icon(Icons.find_in_page_outlined)),
+    const BottomNavigationBarItem(
+        label: ("Dictionary"), icon: Icon(Icons.find_in_page_outlined)),
     // const BottomNavigationBarItem(label: ("工具"), icon: Icon(Icons.settings)),
     const BottomNavigationBarItem(label: ("Tool"), icon: Icon(Icons.settings)),
   ];
+
   Widget themeIconButton() {
     return IconButton(
         onPressed: () {
@@ -64,8 +66,11 @@ class _State extends State<Home> {
             ? const Icon(Icons.nightlight_round)
             : const Icon(Icons.sunny));
   }
+
   void aboutOnTap() async {
     const applicationName = "mywords";
+    final buildInfo =
+        '${Global.goBuildInfoString}\n${const String.fromEnvironment("FLUTTER_VERSION", defaultValue: "")}';
     if (!context.mounted) return;
     showAboutDialog(
       context: context,
@@ -74,28 +79,52 @@ class _State extends State<Home> {
         child: CircleAvatar(child: Image.asset("logo.png")),
         onTap: () async {},
       ),
-      applicationVersion: "version: $appVersion",
+      applicationVersion: "version: ${Global.version}",
       applicationLegalese: '© All rights reserved',
       children: [
         const SizedBox(height: 5),
-        const Text("author: liushihao888@gmail.com"),
-        const SizedBox(height: 2),
-        Text(
-            "version: ${Global.version}\n\n${Global.goBuildInfoString}\n${const String.fromEnvironment("FLUTTER_VERSION", defaultValue: "")}"),
+        Row(
+          children: [
+            const Text("author: "),
+            Flexible(
+                child: InkWell(
+                    child: const Text("liushihao888@gmail.com",
+                        style: TextStyle(color: Colors.blue)),
+                    onTap: () {
+                      copyToClipBoard(context, "liushihao888@gmail.com");
+                    })),
+          ],
+        ),
+        const Text("address: California, USA"),
+        const SizedBox(height: 10),
+        InkWell(
+          child: Text(buildInfo),
+          onTap: () {
+            copyToClipBoard(context, buildInfo);
+          },
+        )
       ],
     );
   }
 
+  Widget get refreshAllButton => IconButton(
+      onPressed: () async {
+        produceEvent(EventType.updateLineChart);
+        produceEvent(EventType.updateArticleList);
+        produceEvent(EventType.articleListScrollToTop, 1);
+        produceEvent(EventType.updateKnownWord); // notify
+        final respData = await handler.allKnownWordsMap();
+        if (respData.code != 0) {
+          throw Exception("allKnownWordsMap error: ${respData.message}");
+        }
+        Global.allKnownWordsMap = respData.data ?? {};
+        myToast(context, "Successfully!");
+      },
+      icon: const Icon(Icons.refresh));
+
   List<Widget> get actions {
     return [
-      IconButton(
-          onPressed: () {
-            produceEvent( EventType.updateLineChart);
-            produceEvent(EventType.updateArticleList);
-            produceEvent(EventType.articleListScrollToTop, 1);
-            myToast(context, "Successfully!");
-          },
-          icon: const Icon(Icons.refresh)),
+      refreshAllButton,
       IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
       themeIconButton(),
     ];

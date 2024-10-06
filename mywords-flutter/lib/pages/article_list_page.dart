@@ -81,7 +81,9 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text("提示"),
+              // title: const Text("提示"),
+              title: const Text("Tips"),
+
               content: const Text('您已经解析过该网址，是否重新解析？'),
               actions: [
                 Row(
@@ -98,12 +100,14 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                           Navigator.of(context).pop();
                           computeParse(www);
                         },
-                        child: const Text("重新解析")),
+                        // child: const Text("重新解析")),
+                        child: const Text("Reparse")),
                     TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: const Text("取消")),
+                        // child: const Text("取消")),
+                        child: const Text("Cancel")),
                   ],
                 )
               ],

@@ -32,6 +32,14 @@ CC=aarch64-linux-android33-clang
 ldflags="-s -w  -X 'main.buildTime=$$(date '+%Y-%m-%d %H:%M:%S')'  -X 'main.gitCommit=$$(git rev-parse --short HEAD)'"
 
 FLUTTER_DIR="../mywords-flutter"
+
+build-web:
+# this is a must of all build
+	@echo "build web for $(PLATFORM) platform"
+	cd $(FLUTTER_DIR) && make build-web
+	rm -rf cmd/web/
+	mv $(FLUTTER_DIR)/build/web ./cmd/
+
 build-so: build-web build-so-linux build-so-android
 	@echo "build .so for all platform successfully"
 build-so-linux:
@@ -57,12 +65,8 @@ build-web-platform: build-web
 	@echo "run the binary file '$(WEB_BIN_NAME)' to start the web server"
 	@echo "$$ cd bin && ./$(WEB_BIN_NAME)"
 	@echo "Open your browser and visit 'http://localhost:18960/web/', or use the port that you have specified."
-build-web:
-	@echo "build web for $(PLATFORM) platform"
-	cd $(FLUTTER_DIR) && make build-web
-	rm -rf cmd/web/
-	mv $(FLUTTER_DIR)/build/web ./cmd/
-build-android-cli:
+
+build-termux-cli:
 	@echo "build cli for android termux platform"
 	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build -ldflags $(ldflags) -o ./bin/mywords-termux-cli ./cmd/
 	@echo "build cli for android termux platform successfully!"

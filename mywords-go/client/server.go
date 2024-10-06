@@ -16,13 +16,11 @@ import (
 	"mywords/artical"
 	"mywords/client/dao"
 	"mywords/model"
-	"mywords/model/mtype"
 	"mywords/pkg/log"
 	"net"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -225,30 +223,6 @@ func (c *Client) NewArticleFileInfoBySourceURL(sourceUrl string) (*artical.Artic
 	}
 	_, err = c.AllDao().FileInfoDao.Create(ctx, &fileInfo)
 	return art, err
-}
-
-func (c *Client) AllKnownWordMap() map[mtype.WordKnownLevel][]string {
-	items, err := c.allDao.KnownWordsDao.AllItems(ctx)
-	if err != nil {
-		return nil
-	}
-	var resultMap = make(map[mtype.WordKnownLevel][]string, 3)
-	for _, item := range items {
-		resultMap[item.Level] = append(resultMap[item.Level], item.Word)
-	}
-	return resultMap
-}
-func (c *Client) TodayKnownWordMap() map[mtype.WordKnownLevel][]string {
-	createDay, _ := strconv.ParseInt(time.Now().Format("2006-01-02"), 10, 64)
-	items, err := c.allDao.KnownWordsDao.AllItemsByCreateDay(ctx, createDay)
-	if err != nil {
-		return nil
-	}
-	var resultMap = make(map[mtype.WordKnownLevel][]string, 3)
-	for _, item := range items {
-		resultMap[item.Level] = append(resultMap[item.Level], item.Word)
-	}
-	return resultMap
 }
 
 func (c *Client) ArticleFromGobGZPath(filePath string) (*artical.Article, error) {

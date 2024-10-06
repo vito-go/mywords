@@ -77,6 +77,7 @@ Please choose the correct compilation command according to your platform for com
             - Make for Windows
                   - https://gnuwin32.sourceforge.net/packages/make.htm
                 - Complete package, except sources
+- **Build-Web"**: execute `make build-web` to compile the integrated and Web version static resource files.
 
 ### 1. Compilation Guide for Android, Linux, Windows Versions
 

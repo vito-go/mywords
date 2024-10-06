@@ -73,6 +73,7 @@
             - Make for Windows
                 - https://gnuwin32.sourceforge.net/packages/make.htm
                 - Complete package, except sources
+- **编译Web静态资源文件**: 执行 `make build-web` 编译集成以及Web版本的静态资源文件。
 
 ### 1. 安卓、Linux、Windows版本编译指南
 
@@ -99,7 +100,7 @@
     - 在Linux下执行`./bin/mywords-web-linux`
     - 在Windows下执行`./bin/mywords-web-windows.exe`
     - 在MacOS下执行`./bin/mywords-web-macos`
-- 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960`或者你指定的其他端口号。
+- 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960/web/`或者你指定的其他端口号。
 
 - 已在移动版本中集成web版本，多设备间无缝学习。
 
