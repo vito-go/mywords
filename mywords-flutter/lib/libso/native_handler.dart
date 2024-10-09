@@ -150,6 +150,9 @@ class NativeHandler implements Handler {
   final _setProxyUrl = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('SetProxyUrl');
+  // DelProxy
+  final _delProxy = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('DelProxy');
 
   @override
   RespData<void> setProxyUrl(String netProxy) {
@@ -721,5 +724,15 @@ class NativeHandler implements Handler {
   @override
   bool getWebOnlineClose() {
     return GetWebOnlineClose();
+  }
+
+  @override
+  FutureOr<RespData<void>> delProxy() {
+     final resultC = _delProxy();
+      final result = resultC.toDartString();
+      malloc.free(resultC);
+      final RespData<void> respData =
+          RespData.fromJson(jsonDecode(result), (json) {});
+      return respData;
   }
 }

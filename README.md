@@ -130,8 +130,8 @@ Please choose the correct compilation command according to your platform for com
 - [x] Web version support, supporting local deployment and cloud deployment. Support for running in Termux on Android devices.
 - [x] On mobile versions, integrate the web version for seamless learning between multiple devices. 
 - [x] README.md of English version
-- [ ] Net Proxy support configuration of username and password 
-- [ ] Web version supports configuring usernames and passwords
+- [x] Net Proxy support configuration of username and password 
+- [x] On web version, sensitive functions like `DelDict` are only allowed to be called in the local environment.
 ---
 
 ## Acknowledgements

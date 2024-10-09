@@ -107,6 +107,11 @@ func (m *keyValueDao) Proxy(ctx context.Context) (string, error) {
 	return item.Value, nil
 }
 
+// DeleteProxy .
+func (m *keyValueDao) DeleteProxy(ctx context.Context) error {
+	return m.Gdb.WithContext(ctx).Table(m.Table()).Where("key_id = ?", mtype.KeyIdProxy).Delete(&model.KeyValue{}).Error
+}
+
 func (m *keyValueDao) DefaultDictId(ctx context.Context) (int64, error) {
 	item, err := m.ItemByKeyId(ctx, mtype.KeyIdDefaultDictId)
 	if err != nil {
@@ -182,9 +187,4 @@ func (m *keyValueDao) ItemByKeyId(ctx context.Context, keyId mtype.KeyId) (*mode
 		return nil, db.DataNotFound
 	}
 	return &msg, nil
-}
-
-// DeleteById .
-func (m *keyValueDao) DeleteById(ctx context.Context, id int64) error {
-	return m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Delete(&model.KeyValue{}).Error
 }

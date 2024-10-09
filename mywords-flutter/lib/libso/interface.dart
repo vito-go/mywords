@@ -68,6 +68,7 @@ abstract class Handler {
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
+  FutureOr<RespData<void>> delProxy();
 
   FutureOr<String> parseVersion();
 
