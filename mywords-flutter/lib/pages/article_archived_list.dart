@@ -24,7 +24,6 @@ class _State extends State<ArticleArchivedPage> {
           actions: [
             IconButton(
                 onPressed: () {
-                  // 归档置顶
                   produceEvent(EventType.articleListScrollToTop, 2);
                 },
                 icon: const Icon(Icons.vertical_align_top_outlined))

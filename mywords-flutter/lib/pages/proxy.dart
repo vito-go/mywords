@@ -17,8 +17,6 @@ class _State extends State<NetProxy> {
   TextEditingController controllerPort = TextEditingController(text: " ");
   TextEditingController controllerIP = TextEditingController(text: " ");
 
-  String scheme = 'http';
-
   @override
   void initState() {
     super.initState();
@@ -40,9 +38,7 @@ class _State extends State<NetProxy> {
     controllerIP.text = uri.host;
     controllerPort.text = uri.port.toString();
     scheme = uri.scheme;
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -53,6 +49,7 @@ class _State extends State<NetProxy> {
   }
 
   final schemeList = <String>["http", "socks5"];
+  String scheme = 'socks5';
 
   Widget get dropButton {
     return DropdownButton(
@@ -102,7 +99,6 @@ class _State extends State<NetProxy> {
       // label: const Text("保存"),
       label: const Text("Save"),
     );
-
   }
 
   Widget get delProxyButton {
@@ -111,13 +107,13 @@ class _State extends State<NetProxy> {
         await handler.setProxyUrl("");
         controllerIP.text = '';
         controllerPort.text = '';
-        myToast(context, "删除代理");
+        myToast(context, "Delete proxy");
       },
       icon: const Icon(
         Icons.clear,
         color: Colors.red,
       ),
-      label: const Text("删除"),
+      label: const Text("Delete"),
     );
   }
 

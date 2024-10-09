@@ -37,7 +37,7 @@ class PrivateIPState extends State {
             copyToClipBoard(context, ips.join("\n"));
           },
           icon: const Icon(Icons.copy_all)),
-      leading: const Icon(Icons.network_check),
+      leading: const Icon(Icons.cell_wifi),
     );
   }
 

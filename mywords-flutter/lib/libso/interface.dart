@@ -10,7 +10,6 @@ abstract class Handler {
 
   FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
 
-  //readMessage 阻塞性获取消息 0 意味着不超时
   String readMessage();
 
   // hostname 可以为空，默认localhost

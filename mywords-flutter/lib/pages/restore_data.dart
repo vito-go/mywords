@@ -141,7 +141,7 @@ class _RestoreDataState extends State<RestoreData> {
 
     children.addAll([
       ListTile(
-        title: const Text("Known Words"),
+        title: const Text("Sync My Words Library"),
         leading: const Tooltip(
           // message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
           message: "After syncing my word library, the learning statistics will also be synchronized and merged with the local data",

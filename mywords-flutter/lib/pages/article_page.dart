@@ -220,7 +220,6 @@ class ArticlePageState extends State<ArticlePage> {
           text: "",
           children: [
             const TextSpan(
-                // text: "词汇分级 (0:陌生, L1:认识, 2:了解, 3:熟悉)\n",
                 text: "Word Level (0:Unknown, L1:Known, 2:Understand, 3:Familiar)\n",
                 style: TextStyle(color: Colors.blueGrey)),
             TextSpan(text: "L0: ", style: TextStyle(color: color)),
@@ -243,8 +242,8 @@ class ArticlePageState extends State<ArticlePage> {
         children: [
           Tooltip(
             showDuration: const Duration(seconds: 30),
-            message:
-                "解析器版本: ${Global.parseVersion}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第3个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
+            // message:"解析器版本: ${Global.parseVersion}\n说明: 格式为[单词序号]{单词频次}，例如: [3]{9} actor, 排序后actor为第3个单词，在文中出现的频次是9次。\n筛选功能可以按照等级过滤显示单词。",
+            message: "Parser version: ${Global.parseVersion}\nDescription: The format is [word index]{word frequency}, for example: [3]{9} actor, actor is the 3rd word after sorting, and it appears 9 times in the text.\nThe filter function can display words according to the level.",
             triggerMode: TooltipTriggerMode.tap,
             child: const Icon(Icons.info),
           ),

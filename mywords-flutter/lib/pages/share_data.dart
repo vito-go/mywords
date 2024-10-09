@@ -185,7 +185,7 @@ class _SyncDataState extends State<SyncData> {
           "http://127.0.0.1:${shareInfo.port}/share/shareKnownWords?code=${shareInfo.code}";
       children.add(ListTile(
         leading: const Icon(Icons.http),
-        title: const Text("Known Words"),
+        title: const Text("My Words Library"),
         subtitle: Text(shareKnownWordsURL),
         trailing: IconButton(
             onPressed: () {

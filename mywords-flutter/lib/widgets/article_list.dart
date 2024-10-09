@@ -74,7 +74,6 @@ class _State extends State<ArticleListView> {
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      // content: Text('文章已取消归档: ${item.title}',
       content: Text('Article has been unarchived: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
@@ -101,9 +100,9 @@ class _State extends State<ArticleListView> {
         return;
       }
     });
-    // Then show a snackbar.
+    // Then show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('文章已归档: ${item.title}',
+      content: Text('Article has been archived: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
@@ -128,7 +127,7 @@ class _State extends State<ArticleListView> {
     });
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('文章已删除: ${item.title}',
+      content: Text('Article has been deleted: ${item.title}',
           maxLines: 1, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
@@ -175,7 +174,7 @@ class _State extends State<ArticleListView> {
             background: getBackgroundWidget(
               context,
               left: getBackgroundChild(widget.leftLabel, widget.leftIconData),
-              right: getBackgroundChild("删除", Icons.delete),
+              right: getBackgroundChild("Delete", Icons.delete),
             ),
             direction: DismissDirection.horizontal,
             onDismissed: (DismissDirection direction) {
@@ -229,9 +228,7 @@ class _State extends State<ArticleListView> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              // title: const Text("提示"),
               title: const Text("Tips"),
-              // content: const Text("向左滑动删除文章, 向右滑动归档文章"),
               content: const Text(
                   "Swipe left to delete the article, swipe right to archive the article"),
               actions: [
