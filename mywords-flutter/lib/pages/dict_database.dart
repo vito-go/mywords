@@ -9,11 +9,8 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
-import 'package:mywords/util/navigator.dart';
-
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
-
 import '../libso/types.dart';
 
 class DictDatabase extends StatefulWidget {

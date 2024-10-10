@@ -10,8 +10,6 @@ import 'package:mywords/common/queue.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import 'package:webview_flutter_web/webview_flutter_web.dart';
 
-import '../common/global.dart';
-
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
 

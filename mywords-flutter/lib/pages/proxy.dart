@@ -53,22 +53,18 @@ class _State extends State<NetProxy> {
     controllerPassword.dispose();
   }
 
-  final schemeList = <String>["http", "socks5"];
+  final schemeList = <String>["socks5", "http", "https"];
   String scheme = 'socks5';
 
   Widget get dropButton {
     return DropdownButton(
         value: scheme,
-        items: const [
-          DropdownMenuItem<String>(
-            value: "http",
-            child: Text("http"),
-          ),
-          DropdownMenuItem<String>(
-            value: "socks5",
-            child: Text("socks5"),
-          ),
-        ],
+        items: schemeList.map((e) {
+          return DropdownMenuItem<String>(
+            value: e,
+            child: Text(e),
+          );
+        }).toList(),
         onChanged: (v) {
           if (v == null) return;
           scheme = v;
@@ -132,7 +128,6 @@ class _State extends State<NetProxy> {
       controller: controllerPort,
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
-        // labelText: "端口",
         labelText: "Port",
         isDense: true,
       ),
@@ -194,7 +189,6 @@ class _State extends State<NetProxy> {
 
     final body = ListView(children: children);
     final appBar = AppBar(
-      // title: const Text("网络代理"),
       title: const Text("Network Proxy"),
     );
     return getScaffold(
