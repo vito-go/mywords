@@ -28,6 +28,7 @@ func init() {
 		"AllWordsByCreateDayAndOrder":    AllWordsByCreateDayAndOrder,
 		"UpdateFileInfo":                 UpdateFileInfo,
 		"SyncData":                       SyncData,
+		"DelProxy":                       DelProxy,
 		"DbSize":                         DBSize,
 		"GoBuildInfoString":              GoBuildInfoString,
 		"WebDictRunPort":                 WebDictRunPort,
