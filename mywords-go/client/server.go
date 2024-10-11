@@ -111,7 +111,11 @@ func (c *Client) FixMyKnownWords() error {
 // SetProxyUrl .
 func (c *Client) SetProxyUrl(proxyUrl string) error {
 	return c.AllDao().KeyValueDao.SetProxyURL(ctx, proxyUrl)
+}
 
+// DeleteProxy .
+func (c *Client) DeleteProxy() error {
+	return c.AllDao().KeyValueDao.DeleteProxy(ctx)
 }
 
 // SetXpathExpr . usually for debug

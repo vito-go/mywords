@@ -210,6 +210,33 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 	return client, nil
 }
 
+// QuickAddDictFromTemp .
+func (c *Client) QuickAddDictFromTemp() {
+	tempDictDirPath := filepath.ToSlash(filepath.Join(c.rootDir, "temp", "dict"))
+	entries, err := os.ReadDir(tempDictDirPath)
+	if err != nil {
+		log.Ctx(ctx).Error(err)
+		return
+	}
+	for _, entry := range entries {
+		log.Ctx(ctx).Info(entry.Name())
+		if entry.IsDir() {
+			// remove
+			_ = os.RemoveAll(filepath.Join(tempDictDirPath, entry.Name()))
+			continue
+		}
+		if strings.HasSuffix(entry.Name(), ".zip") {
+			// copy
+			zipPath := filepath.Join(tempDictDirPath, entry.Name())
+			err = c.AddDict(ctx, zipPath)
+			if err != nil {
+				log.Ctx(ctx).Error(err)
+				continue
+			}
+		}
+	}
+}
+
 // DefaultDictId .
 func (c *Client) DefaultDictId() int64 {
 	return c.defaultDictId.Load()

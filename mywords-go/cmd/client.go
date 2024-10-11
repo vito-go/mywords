@@ -220,12 +220,21 @@ func UpdateFileInfo(fileInfoC *C.char) *C.char {
 
 //export SetProxyUrl
 func SetProxyUrl(netProxy *C.char) *C.char {
-	err := serverGlobal.SetProxyUrl(C.GoString(netProxy))
+	err := serverGlobal.AllDao().KeyValueDao.SetProxyURL(ctx, C.GoString(netProxy))
 	if err != nil {
 		return CharErr(err.Error())
 	}
 	return CharSuccess()
 
+}
+
+//export DelProxy
+func DelProxy() *C.char {
+	err := serverGlobal.AllDao().KeyValueDao.DeleteProxy(ctx)
+	if err != nil {
+		return CharErr(err.Error())
+	}
+	return CharSuccess()
 }
 
 //export SetXpathExpr
@@ -401,6 +410,11 @@ func GetWebOnlineClose() bool {
 //export WebOnlinePort
 func WebOnlinePort() int {
 	return serverGlobal.WebOnlinePort()
+}
+
+//export QuickAddDictFromTemp
+func QuickAddDictFromTemp() {
+	serverGlobal.QuickAddDictFromTemp()
 }
 
 //export SyncData

@@ -45,7 +45,6 @@ class _State extends State<WordList> {
           text: "",
           children: [
             const TextSpan(
-                // text: "词汇分级 (0:陌生, L1:认识, 2:了解, 3:熟悉)\n", //
               text: "word level (0:unknown, 1:known, 2:understand, 3:familiar)\n",
                 style: TextStyle(color: Colors.blueGrey)),
             TextSpan(text: "L1: ", style: normalStyle),

@@ -14,35 +14,34 @@ class NetProxy extends StatefulWidget {
 }
 
 class _State extends State<NetProxy> {
-  TextEditingController controllerPort = TextEditingController(text: " ");
-  TextEditingController controllerIP = TextEditingController(text: " ");
-
-  String scheme = 'http';
+  TextEditingController controllerPort = TextEditingController(text: "");
+  TextEditingController controllerIP = TextEditingController(text: "");
+  TextEditingController controllerUsername = TextEditingController(text: "");
+  TextEditingController controllerPassword = TextEditingController(text: "");
 
   @override
   void initState() {
     super.initState();
-    initController();
+    init();
   }
 
-  final defaultPort = 18964;
-  final defaultCode = 890604;
-
-  void initController() async {
+  void init() async {
     final proxyURL = await handler.proxyURL();
     if (proxyURL == '') return;
     final uri = Uri.tryParse(proxyURL);
     if (uri == null) {
-      // impossible wrong
-      await handler.setProxyUrl("");
+      // impossible to reach here
+      await handler.delProxy();
       return;
     }
     controllerIP.text = uri.host;
     controllerPort.text = uri.port.toString();
+    if (uri.userInfo.split(":").length == 2) {
+      controllerUsername.text = uri.userInfo.split(":")[0];
+      controllerPassword.text = uri.userInfo.split(":")[1];
+    }
     scheme = uri.scheme;
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -50,23 +49,22 @@ class _State extends State<NetProxy> {
     super.dispose();
     controllerPort.dispose();
     controllerIP.dispose();
+    controllerUsername.dispose();
+    controllerPassword.dispose();
   }
 
-  final schemeList = <String>["http", "socks5"];
+  final schemeList = <String>["socks5", "http", "https"];
+  String scheme = 'socks5';
 
   Widget get dropButton {
     return DropdownButton(
         value: scheme,
-        items: const [
-          DropdownMenuItem<String>(
-            value: "http",
-            child: Text("http"),
-          ),
-          DropdownMenuItem<String>(
-            value: "socks5",
-            child: Text("socks5"),
-          ),
-        ],
+        items: schemeList.map((e) {
+          return DropdownMenuItem<String>(
+            value: e,
+            child: Text(e),
+          );
+        }).toList(),
         onChanged: (v) {
           if (v == null) return;
           scheme = v;
@@ -79,45 +77,49 @@ class _State extends State<NetProxy> {
       onPressed: () async {
         final host = controllerIP.text.trim();
         if (host.isEmpty) {
-          // myToast(context, "ip/域名不能为空");
           myToast(context, "IP/domain name cannot be empty");
           return;
         }
         final port = controllerPort.text.trim();
         if (port.isEmpty) {
-          // myToast(context, "端口号不能为空");
           myToast(context, "Port number cannot be empty");
           return;
         }
-        final netProxy = "$scheme://$host:$port";
+        final username = controllerUsername.text.trim();
+        final password = controllerPassword.text.trim();
+        String netProxy = "$scheme://$username:$password@$host:$port";
+        if (username.isEmpty) {
+          netProxy = "$scheme://$host:$port";
+        }
         final respData = await handler.setProxyUrl(netProxy);
         if (respData.code != 0) {
           myToast(context, respData.message);
           return;
         }
-        // myToast(context, "设置代理成功！\n$netProxy");
+        unFocus();
         myToast(context, "Set proxy successfully!\n$netProxy");
       },
       icon: const Icon(Icons.save),
-      // label: const Text("保存"),
       label: const Text("Save"),
     );
-
   }
 
   Widget get delProxyButton {
     return ElevatedButton.icon(
       onPressed: () async {
-        await handler.setProxyUrl("");
+        await handler.delProxy();
+        unFocus();
         controllerIP.text = '';
         controllerPort.text = '';
-        myToast(context, "删除代理");
+        controllerUsername.text = '';
+        controllerPassword.text = '';
+        myToast(context, "Delete proxy successfully!");
       },
       icon: const Icon(
         Icons.clear,
         color: Colors.red,
       ),
-      label: const Text("删除"),
+      label: const Text("Delete"),
     );
   }
 
@@ -126,7 +128,6 @@ class _State extends State<NetProxy> {
       controller: controllerPort,
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
-        // labelText: "端口",
         labelText: "Port",
         isDense: true,
       ),
@@ -141,8 +142,23 @@ class _State extends State<NetProxy> {
     return TextField(
       controller: controllerIP,
       keyboardType: TextInputType.url,
-      // decoration: const InputDecoration(labelText: "IP/域名"),
       decoration: const InputDecoration(labelText: "IP/domain name"),
+    );
+  }
+
+  Widget textFieldUsername() {
+    return TextField(
+      controller: controllerUsername,
+      keyboardType: TextInputType.url,
+      decoration: const InputDecoration(labelText: "Username (optional)"),
+    );
+  }
+
+  Widget textFieldPassword() {
+    return TextField(
+      controller: controllerPassword,
+      keyboardType: TextInputType.url,
+      decoration: const InputDecoration(labelText: "Password (optional)"),
     );
   }
 
@@ -150,16 +166,16 @@ class _State extends State<NetProxy> {
   Widget build(BuildContext context) {
     List<Widget> children = [
       ListTile(
-          title: Row(
-        children: [
-          // const Text("请选择协议"),
-          const Text("Select protocol"),
-          const SizedBox(width: 20),
-          dropButton,
-        ],
-      )),
+          title: Row(children: [
+        // const Text("请选择协议"),
+        const Text("Select protocol"),
+        const SizedBox(width: 20),
+        dropButton,
+      ])),
       ListTile(title: textFieldIP()),
       ListTile(title: textFieldPort()),
+      ListTile(title: textFieldUsername()),
+      ListTile(title: textFieldPassword()),
       const SizedBox(height: 20),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -173,7 +189,6 @@ class _State extends State<NetProxy> {
 
     final body = ListView(children: children);
     final appBar = AppBar(
-      // title: const Text("网络代理"),
       title: const Text("Network Proxy"),
     );
     return getScaffold(

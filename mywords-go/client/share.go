@@ -233,6 +233,7 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, time.Millisecond*1500)
 		},
+		ResponseHeaderTimeout: time.Second * 3,
 		Proxy: func(r *http.Request) (*url.URL, error) {
 			if net.ParseIP(host).IsPrivate() {
 				return nil, nil
@@ -338,13 +339,10 @@ func (c *Client) SyncDataFileInfos(host string, port int, code int64) error {
 	httpCli := http.Client{}
 	// only set dial timeout
 	httpCli.Transport = &http.Transport{
-		// https://juejin.cn/post/6997294512053878821
-		// 重复使用了一个TCP连接，导致的问题，但是对方给的文档也没有提示，暂且猜测对方的api不支持连接保持
-		// or set req.Close=true
-		//DisableKeepAlives: true,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, time.Millisecond*1500)
 		},
+		ResponseHeaderTimeout: time.Second * 3,
 		Proxy: func(r *http.Request) (*url.URL, error) {
 			if net.ParseIP(host).IsPrivate() {
 				return nil, nil

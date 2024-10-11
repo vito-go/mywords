@@ -273,8 +273,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   List<String> ips = [];
 
   Widget get header => ListTile(
-      // title: Text("已知单词总数量: $totalCount"), 英语化
-      // title: Text("Known Words: $totalCount"),
       title: RichText(
         text: TextSpan(
             text: "My Words Library: ",
@@ -387,7 +385,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         },
       ),
       ListTile(
-        // title: const Text("已归档文章"),
         title: const Text("Archived Articles"),
         leading: const Icon(Icons.archive),
         trailing: const Icon(Icons.navigate_next),
@@ -423,7 +420,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       ListTile(
         // title: const Text("Dict Database"),
         title: const Text("Dictionary Database"),
-        leading: const Icon(Icons.settings_suggest_outlined),
+        leading: const Icon(Icons.library_books),
         trailing: const Icon(Icons.navigate_next),
         onTap: () {
           pushTo(context, const DictDatabase());

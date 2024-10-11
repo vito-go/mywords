@@ -9,11 +9,8 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/environment.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
-import 'package:mywords/util/navigator.dart';
-
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
-
 import '../libso/types.dart';
 
 class DictDatabase extends StatefulWidget {
@@ -120,7 +117,6 @@ class _State extends State<DictDatabase> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    // child: const Text("取消"),
                     child: const Text("Cancel"),
                   ),
                   TextButton(
@@ -140,7 +136,7 @@ class _State extends State<DictDatabase> {
                       initDictInfos();
                       Navigator.of(context).pop();
                     },
-                    child: const Text("确定"),
+                    child: const Text("OK"),
                   ),
                 ],
               );
@@ -153,6 +149,7 @@ class _State extends State<DictDatabase> {
             });
             final t = Timer(const Duration(milliseconds: 3500), () async {
               final respData = await handler.delDict(id);
+              initDictInfos();
               if (respData.code != 0) {
                 myToast(context, respData.message);
                 return;
@@ -160,10 +157,10 @@ class _State extends State<DictDatabase> {
             });
             // Then show a snackbar.
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('字典已删除: $name',
+              content: Text('Dictionary deleted: $name',
                   maxLines: 1, overflow: TextOverflow.ellipsis),
               action: SnackBarAction(
-                  label: "撤销",
+                  label: "Revoke",
                   onPressed: () {
                     t.cancel();
                     initDictInfos();
@@ -233,15 +230,13 @@ class _State extends State<DictDatabase> {
     }
     final PlatformFile file = files[0];
     if (kIsWeb) {
-      myPrint(
-          "字典数据库文件: ${file.name}: file.readStream==null: ${file.readStream == null} file.size: ${file.size} 文件大小: ${file.bytes?.length}");
       if (file.readStream == null) {
-        myToast(context, "读取文件失败: file bytes null");
+        myToast(context, "Failed to read file: file bytes null");
         return;
       }
     } else {
       if (file.path == null) {
-        myToast(context, "读取文件失败: file path null");
+        myToast(context, "Failed to read file: file path null");
         return;
       }
     }
@@ -286,12 +281,10 @@ class _State extends State<DictDatabase> {
   String zipFilePath = "";
 
   Widget get addDictListTile => ListTile(
-        // title: const Text("加载本地词典数据库zip文件"),
-        title: const Text("Add dictionary database zip file"),
+        title: const Text("Add dictionary"),
         leading: const Padding(
             padding: EdgeInsets.all(12),
             child: Tooltip(
-              // message: "从本地选择zip文件，解析完成后可以清除应用缓存和删除原文件",
               message:
                   "Select a zip file from the local, after parsing, you can clear the application cache and delete the original file",
               showDuration: Duration(seconds: 5),
@@ -306,14 +299,13 @@ class _State extends State<DictDatabase> {
             ? const Icon(Icons.access_time_rounded)
             : IconButton(
                 onPressed: isSyncing ? null : selectZipFilePath,
-                icon: Icon(Icons.add_circle,
+                icon: Icon(Icons.library_add,
                     color: Theme.of(context).colorScheme.primary)),
       );
 
   Widget get delDictListTile => ListTile(
-        trailing: const IconButton(onPressed: null, icon: Icon(Icons.delete)),
-        // title: const Text("内置词典(精简版)"),
-        title: const Text("Built-in dictionary (simplified version)"),
+        // trailing: const IconButton(onPressed: null, icon: Icon(Icons.delete)),
+        title: const Text("Built-in dictionary"),
         leading: Radio(
             value: 0,
             groupValue: defaultDictId,
