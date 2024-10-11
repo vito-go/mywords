@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:mywords/pages/statistic_chart.dart';
-import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/word_list.dart';
 
 import 'package:mywords/util/get_scaffold.dart';

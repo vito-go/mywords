@@ -10,7 +10,6 @@ abstract class Handler {
 
   FutureOr<RespData<void>> newArticleFileInfoBySourceURL(String www);
 
-  //readMessage 阻塞性获取消息 0 意味着不超时
   String readMessage();
 
   // hostname 可以为空，默认localhost
@@ -69,6 +68,7 @@ abstract class Handler {
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
+  FutureOr<RespData<void>> delProxy();
 
   FutureOr<String> parseVersion();
 

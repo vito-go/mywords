@@ -57,7 +57,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   void search() async {
     if (controller.text == "") {
-      myToast(context, "网址不能为空");
+      myToast(context, "URL cannot be empty");
       return;
     }
     int indexStart = controller.text.indexOf("https://");
@@ -65,7 +65,6 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       indexStart = controller.text.indexOf("http://");
     }
     if (indexStart == -1) {
-      // myToast(context, "网址有误，请检查");
       myToast(context, "The URL is incorrect, please check");
       return;
     }
@@ -84,7 +83,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
               // title: const Text("提示"),
               title: const Text("Tips"),
 
-              content: const Text('您已经解析过该网址，是否重新解析？'),
+              // content: const Text('您已经解析过该网址，是否重新解析？'),
+              content: const Text('You have already parsed this URL, do you want to reparse it?'),
               actions: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -94,19 +94,17 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                           Navigator.of(context).pop();
                           pushTo(context, ArticlePage(fileInfo: fInfo));
                         },
-                        child: const Text("查看")),
+                        child: const Text("View")),
                     TextButton(
                         onPressed: () async {
                           Navigator.of(context).pop();
                           computeParse(www);
                         },
-                        // child: const Text("重新解析")),
                         child: const Text("Reparse")),
                     TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        // child: const Text("取消")),
                         child: const Text("Cancel")),
                   ],
                 )
@@ -247,7 +245,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
           child: ArticleListView(
         archived: false,
         toEndSlide: ToEndSlide.archive,
-        leftLabel: '归档',
+        leftLabel: 'Archive',
         leftIconData: Icons.archive,
         pageNo: 1,
       )),

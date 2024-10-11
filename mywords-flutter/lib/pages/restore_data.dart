@@ -1,19 +1,13 @@
-import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mywords/common/queue.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/private_ip.dart';
-
-import 'package:mywords/environment.dart';
 
 class RestoreData extends StatefulWidget {
   const RestoreData({super.key});
@@ -71,12 +65,9 @@ class _RestoreDataState extends State<RestoreData> {
     controllerIP.dispose();
   }
 
-
   bool isSyncing = false;
   bool isSyncingKnownWords = false;
   bool isSyncFileInfos = false;
-
-
 
   Widget textFieldCode() {
     return TextField(
@@ -85,7 +76,7 @@ class _RestoreDataState extends State<RestoreData> {
       decoration: const InputDecoration(
         // labelText: "Code码",
         labelText: "Auth Code",
-          isDense: true,
+        isDense: true,
       ),
       inputFormatters: [
         LengthLimitingTextInputFormatter(6),
@@ -141,10 +132,11 @@ class _RestoreDataState extends State<RestoreData> {
 
     children.addAll([
       ListTile(
-        title: const Text("Known Words"),
+        title: const Text("Sync My Words Library"),
         leading: const Tooltip(
           // message: "我的单词库同步后, 学习统计也将同步与本地数据合并",
-          message: "After syncing my word library, the learning statistics will also be synchronized and merged with the local data",
+          message:
+              "After syncing my word library, the learning statistics will also be synchronized and merged with the local data",
           triggerMode: TooltipTriggerMode.tap,
           showDuration: Duration(seconds: 15),
           child: Icon(Icons.info_outline),
@@ -153,6 +145,15 @@ class _RestoreDataState extends State<RestoreData> {
             onPressed: isSyncingKnownWords
                 ? null
                 : () async {
+                    if (controllerIP.text.trim() == "") {
+                      myToast(context, "Please enter IP/domain name");
+                      return;
+                    }
+                    if (controllerPort.text.trim() == "") {
+                      myToast(context, "Please enter port");
+                      return;
+                    }
+
                     prefs.syncIpPortCode = [
                       controllerIP.text.trim(),
                       controllerPort.text.trim(),
@@ -195,7 +196,8 @@ class _RestoreDataState extends State<RestoreData> {
         title: const Text("Sync Articles"),
         leading: const Tooltip(
           // message: "同步数据后，本地数据将与远程数据进行合并",
-          message: "After syncing data, local data will be merged with remote data",
+          message:
+              "After syncing data, local data will be merged with remote data",
           triggerMode: TooltipTriggerMode.tap,
           child: Icon(Icons.info_outline),
         ),
@@ -205,6 +207,15 @@ class _RestoreDataState extends State<RestoreData> {
             onPressed: isSyncFileInfos
                 ? null
                 : () async {
+                    if (controllerIP.text.trim() == "") {
+                      myToast(context, "Please enter IP/domain name");
+                      return;
+                    }
+                    if (controllerPort.text.trim() == "") {
+                      myToast(context, "Please enter port");
+                      return;
+                    }
+
                     prefs.syncIpPortCode = [
                       controllerIP.text.trim(),
                       controllerPort.text.trim(),
@@ -254,4 +265,3 @@ class _RestoreDataState extends State<RestoreData> {
     );
   }
 }
-

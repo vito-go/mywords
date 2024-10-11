@@ -14,14 +14,21 @@ var exportedFuncMap = map[string]any{}
 
 // 使用init函数对exportedFuncMap进行初始化，否则直接对变量复制可能造成循环
 
+var sensitiveFunMap = map[string]bool{
+	"DeleteGobFile": true,
+	"DelDict":       true,
+}
+
 func init() {
 	exportedFuncMap = map[string]any{
 		"AddDict":                        AddDict,
 		"WebOnlinePort":                  WebOnlinePort,
+		"QuickAddDictFromTemp":           QuickAddDictFromTemp,
 		"SetWebOnlineClose":              SetWebOnlineClose,
 		"AllWordsByCreateDayAndOrder":    AllWordsByCreateDayAndOrder,
 		"UpdateFileInfo":                 UpdateFileInfo,
 		"SyncData":                       SyncData,
+		"DelProxy":                       DelProxy,
 		"DbSize":                         DBSize,
 		"GoBuildInfoString":              GoBuildInfoString,
 		"WebDictRunPort":                 WebDictRunPort,

@@ -96,3 +96,12 @@ func TestClient_SyncDataFileInfos(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// clientGlobal.NewArticleFileInfoBySourceURL()
+func TestClient_NewArticleFileInfoBySourceURL(t *testing.T) {
+	art, err := clientGlobal.NewArticleFileInfoBySourceURL("https://www.economist.com/china/2024/08/18/chinas-rulers-are-surprised-by-kamala-harris-and-tim-walz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", art)
+}

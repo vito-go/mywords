@@ -77,7 +77,7 @@ Please choose the correct compilation command according to your platform for com
             - Make for Windows
                   - https://gnuwin32.sourceforge.net/packages/make.htm
                 - Complete package, except sources
-- **Build-Web"**: execute `make build-web` to compile the integrated and Web version static resource files.
+- **Build-Web**: execute `make build-web` to compile the integrated and Web version static resource files.
 
 ### 1. Compilation Guide for Android, Linux, Windows Versions
 
@@ -87,7 +87,7 @@ Please choose the correct compilation command according to your platform for com
     - For `Windows` users: Execute `make build-windows` in the terminal.
 
 - **Package Location**：
-  After compilation, the corresponding installation package files will be located in the "bin" folder of the project. Follow the standard installation process on your device to start using.
+  After compilation, the corresponding installation package files will be located in the `bin` folder of the project. Follow the standard installation process on your device to start using.
 
 
 
@@ -105,7 +105,7 @@ Please choose the correct compilation command according to your platform for com
     - Execute `./bin/mywords-web-linux` on Linux.
     - Execute `./bin/mywords-web-windows.exe` on Windows.
     - Execute `./bin/mywords-web-macos` on MacOS.
-- After execution, the browser will automatically open and access http://127.0.0.1:18960 or the specified port number.
+- After execution, the browser will automatically open and access http://127.0.0.1:18960/web/ or the specified port number.
 - Already integrated the web version in the mobile version, seamless learning between multiple devices.
 
 ## Project Structure
@@ -130,8 +130,8 @@ Please choose the correct compilation command according to your platform for com
 - [x] Web version support, supporting local deployment and cloud deployment. Support for running in Termux on Android devices.
 - [x] On mobile versions, integrate the web version for seamless learning between multiple devices. 
 - [x] README.md of English version
-- [ ] Net Proxy support configuration of username and password 
-- [ ] Web version supports configuring usernames and passwords
+- [x] Net Proxy support configuration of username and password 
+- [x] On web version, sensitive functions like `DelDict` are only allowed to be called in the local environment.
 ---
 
 ## Acknowledgements

@@ -394,6 +394,15 @@ class WebHandler implements Handler {
     final result = await call("GetWebOnlineClose", []);
     return bool.parse(result);
   }
+
+  @override
+  FutureOr<RespData<void>> delProxy() async{
+    final result = await call("DelProxy", []);
+
+    final RespData respData =
+    RespData.fromJson(jsonDecode(result) ?? {}, (json) => null);
+    return respData;
+  }
 }
 
 Future<String> call(String funcName, List<dynamic> args) async {

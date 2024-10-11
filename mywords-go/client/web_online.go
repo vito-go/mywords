@@ -27,10 +27,10 @@ func (c *Client) StartWebOnline(webPort int64, fileSystem http.FileSystem, serve
 			return err
 		}
 	}
-	log.Println("online web dict running: %s", lis.Addr().String())
+	log.Printf("online web dict running: %s", lis.Addr().String())
 	rootDir := c.rootDataDir
 	if checkRunning(rootDir) {
-		log.Println("WARNING: the process %d already exists, please kill it first and running one instance at the same time")
+		log.Println("WARNING: the process already exists, please kill it first and running one instance at the same time")
 	}
 	//initGlobal(*rootDir, *dictPort)
 	mux := http.NewServeMux()
