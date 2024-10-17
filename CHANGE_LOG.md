@@ -1,3 +1,6 @@
+# v3.0.2
+- Fix the bug of syncing word between devices when there are many words(maybe > 5000) in MyWords library.
+  - error: no such savepoint disk I/O error: read-only file system.
 # v3.0.1
 - **Real-Time synchronization (Beta)**:  Add a source parameter to the Go API functions to discriminate between web and client versions. So it can keep real-time synchronization between the two versions when one version updated the data.
 - Due to the time difference between the underlying library and flutter, todayInt in flutter may be inaccurate, use the time of the underlying library, pass 1 to represent today

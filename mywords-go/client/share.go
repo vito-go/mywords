@@ -257,13 +257,13 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 	}
 
 	var allWords []string
-	var allInster []model.KnownWords
+	var allInsert []model.KnownWords
 	for i := range result {
 		// reset ID
 		item := result[i]
 		result[i].ID = 0
 		allWords = append(allWords, item.Word)
-		allInster = append(allInster, item)
+		allInsert = append(allInsert, item)
 		if len(allWords) >= 1000 {
 			TX := c.allDao.GDB().WithContext(ctx).Begin()
 			err = c.allDao.KnownWordsDao.DeleteByWordsTX(TX, allWords...)
@@ -271,7 +271,7 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 				TX.Rollback()
 				return err
 			}
-			err = c.allDao.KnownWordsDao.CreateBatchTX(TX, allInster...)
+			err = c.allDao.KnownWordsDao.CreateBatchTX(TX, allInsert...)
 			if err != nil {
 				TX.Rollback()
 				return err
@@ -281,7 +281,7 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 				return
 			}
 			allWords = allWords[:0]
-			allInster = allInster[:0]
+			allInsert = allInsert[:0]
 		}
 
 	}
@@ -293,7 +293,7 @@ func (c *Client) SyncDataKnownWords(host string, port int, code int64) (err erro
 		TX.Rollback()
 		return err
 	}
-	err = c.allDao.KnownWordsDao.CreateBatchTX(TX, result...)
+	err = c.allDao.KnownWordsDao.CreateBatchTX(TX, allInsert...)
 	if err != nil {
 		TX.Rollback()
 		return err
