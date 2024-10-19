@@ -13,7 +13,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	rootDataDir := filepath.ToSlash(filepath.Join(homeDir, ".local/share/com.example.mywords"))
+	rootDataDir := filepath.ToSlash(filepath.Join(homeDir, ".local/share/com.mywords.android"))
 	dictRunPort := 18961
 	clientGlobal, err = NewClient(rootDataDir, dictRunPort)
 	if err != nil {

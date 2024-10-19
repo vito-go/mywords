@@ -34,14 +34,14 @@ func getApplicationDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defaultRootDir := filepath.Join(homeDir, ".local/share/com.example.mywords")
+	defaultRootDir := filepath.Join(homeDir, ".local/share/com.mywords.android")
 	switch runtime.GOOS {
 	case "windows":
 		defaultRootDir = filepath.Join(homeDir, "AppData/Roaming/com.example/mywords")
 	case "darwin":
-		defaultRootDir = filepath.Join(homeDir, "Library/Application Support/com.example.mywords")
+		defaultRootDir = filepath.Join(homeDir, "Library/Application Support/com.mywords.android")
 	case "linux":
-		defaultRootDir = filepath.Join(homeDir, ".local/share/com.example.mywords")
+		defaultRootDir = filepath.Join(homeDir, ".local/share/com.mywords.android")
 	}
 	// 请注意，如果同时打开多个应用，可能会导致目录冲突，数据造成不一致或丢失
 	defaultRootDir = filepath.ToSlash(defaultRootDir)

@@ -14,6 +14,12 @@ build-apk:
 	- mkdir bin
 	flutter build apk  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)" --target-platform android-arm64
 	mv build/app/outputs/flutter-apk/app-release.apk ./bin/mywords-arm64-v8a-release.apk
+build-aab:
+	- mkdir bin
+	flutter build appbundle  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)" --target-platform android-arm64
+	mv build/app/outputs/bundle/release/app-release.aab ./bin/mywords.aab
+
+
 build-linux:
 	flutter build linux -v  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)"
 	- mkdir -p linux-deb/opt/mywords/libs

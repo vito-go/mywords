@@ -8,7 +8,7 @@
 PRODUCT_NAME = mywords
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.mywords
+PRODUCT_BUNDLE_IDENTIFIER = com.mywords.android
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2024 com.example. All rights reserved.

@@ -3,6 +3,7 @@ import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/widgets/tool.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../common/global.dart';
 import '../libso/handler.dart';
 import '../util/util.dart';
@@ -96,6 +97,18 @@ class _State extends State<Home> {
           ],
         ),
         const Text("address: California, USA"),
+        Row(
+          children: [
+            const Text("github: "),
+            Flexible(
+                child: InkWell(
+                    child: const Text("https://github.com/vito-go/mywords",
+                        style: TextStyle(color: Colors.blue)),
+                    onTap: () {
+                      launchUrlString("https://github.com/vito-go/mywords");
+                    })),
+          ],
+        ),
         const SizedBox(height: 10),
         InkWell(
           child: Text(buildInfo),

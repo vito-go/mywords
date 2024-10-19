@@ -15,8 +15,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initGlobalPrefs();
   await handler.initLib();
-  if (!kIsWeb){
-    isolateLoopReadMessage(); // 开启后无法热重载,为什么? 可能是因为热重载会重新加载所有的代码，而isolateLoopReadMessage()是一个无限循环的函数
+  if (!kIsWeb) {
+    isolateLoopReadMessage();
   }
   await Global.init();
   runApp(const MyApp());

@@ -438,6 +438,17 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     if (defaultDictId > 0) {
       children.add(buildListTileWebDictPort());
     }
+    // add privacy policy
+    children.add(ListTile(
+      title: Text("Privacy Policy"),
+      leading: Icon(Icons.privacy_tip),
+      trailing: const Icon(Icons.navigate_next),
+      onTap: () {
+        const String privacyPolicyURL =
+            "https://raw.githubusercontent.com/vito-go/assets/refs/heads/master/mywords/privacy_policy.md";
+        launchUrlString(privacyPolicyURL);
+      },
+    ));
     return ListView(children: children);
   }
 
