@@ -6,19 +6,14 @@ This project provides a tool for learning English vocabulary, designed specifica
 - Vocabulary Learning Tool! Enter the URL of an English or bilingual article, and this tool will automatically extract all words and their corresponding sentences from the article, deduplicate and summarize the words in the article. You can filter to display only the words you don't know.
 - This tool supports custom dictionary libraries, allowing users to add their own dictionary libraries for referencing word meanings during the learning process.
 
+## Download and Installation
+- Please jump to the [GitHub Release](https://github.com/vito-go/mywords/releases) page to download the appropriate version for your platform.
+- `Google Play Store`: Still in the pre-release testing phase, if you would like to join the test,please send your gmail to `liushihao888@gmail.com`
+  - Closed beta testing: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
+  - Internal testing: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
 
-## Changelog
-- 20240324: Important: v2.0.0 adds the web version, supporting local deployment or cloud deployment.
-
-### v3.0.0
-- The underlying code has been refactored totally to make it clearer. Using `sqlite` to store data, making the project more stable and easier to maintain.
-- Mobile/desktop client version directly integrates Web, seamless learning between multiple devices. It called `Web Online` in the client version.
-- Totally new design and user experience; Using English as the default language.
-- Support for dark mode and light mode.
-- Web support uploading super large (>2GB) dictionary files. Client version also supports uploading large files.
-- Support for edit the name of the dictionary.
-- Sharing  and Syncing data between devices is easier and faster.
-- **Important**: Starting from version v3.0.0, we plan to no longer provide separately compiled Linux, Windows, and MacOS client versions. Please use the desktop Web version or the mobile integrated Web version for learning. This makes installation and usage simpler and more convenient.
+## CHANGE_LOG.md
+- [CHANGE_LOG.md](CHANGE_LOG.md)
 
 ## Key Features
 - **Word Extraction and Recording**: Enter a URL, and the tool automatically retrieves and extracts all words and their contextual sentences from the web article. Additionally, it calculates and displays the vocabulary size of the article.
@@ -61,62 +56,8 @@ covering politics, economics, technology, and more. It's very beneficial for lea
 
 By utilizing these resources, you can not only expand your vocabulary in a targeted manner but also gain insights into 
 different topics and background knowledge, comprehensively enhancing your English proficiency.
-
-## Getting Started Guide
-
-Please choose the correct compilation command according to your platform for compiling operations. You can select the `Android`, `Linux`, `Windows`, or `Web` version for installation.
-
-- **Prerequisites**：
-    - Ensure that you have installed the `go` language environment and `flutter` development environment on your device.
-    - Make sure that tools such as `make` and `zip` are installed on your device.
-    - For `Windows` environment, support for `CGO` is required
-        - If the corresponding CGO runtime environment is not installed, you will encounter the following error when running:
-          > exec: “gcc”: executable file not found in %PATH%
-            - Windows Go Language CGO Runtime Environment Configuration
-                  - https://www.expoli.tech/articles/2022/10/18/1666087321618
-            - Make for Windows
-                  - https://gnuwin32.sourceforge.net/packages/make.htm
-                - Complete package, except sources
-- **Build-Web**: execute `make build-web` to compile the integrated and Web version static resource files.
-
-### 1. Compilation Guide for Android, Linux, Windows Versions
-
-- **Installation Guide**：
-    - For `Android` users: Execute `make build-android`in the terminal.
-    - For `Linux` users: Execute `make build-linux` in the terminal. 
-    - For `Windows` users: Execute `make build-windows` in the terminal.
-
-- **Package Location**：
-  After compilation, the corresponding installation package files will be located in the `bin` folder of the project. Follow the standard installation process on your device to start using.
-
-
-
-### 2. Web Version Usage Guide (Supports Linux, Windows, MacOS)
-
-
-- **Web Version**：
-
-> The web desktop version is a standalone web application that can be run in a browser without installation. Simply execute the binary file in the command line to open the web application in your browser.
->
-> It supports usage on platforms such as Linux, Windows, and macOS. You can deploy the web version to your local computer device or deploy it on a cloud server for use on any device.
-
-- Execute `make build-web-platform` in the terminal.
-- Execute the compiled binary file in the command line, for example:
-    - Execute `./bin/mywords-web-linux` on Linux.
-    - Execute `./bin/mywords-web-windows.exe` on Windows.
-    - Execute `./bin/mywords-web-macos` on MacOS.
-- After execution, the browser will automatically open and access http://127.0.0.1:18960/web/ or the specified port number.
-- Already integrated the web version in the mobile version, seamless learning between multiple devices.
-
-## Project Structure
-
-```
-├── bin                   # Directory for compiled project files, .apk for Android, .deb for Linux, .zip for Windows, binary files for Web version (e.g., mywords-web-linux, mywords-web-windows.exe, mywords-web-macos)
-├── mywords-go            # Directory for Go core logic source code used to compile .so library
-├── mywords-flutter       # Directory for Flutter source code used to compile installation packages
-├── Makefile              # Makefile for the project
-├── README.md             # Project documentation
-```
+## Build Guide
+- [Build Guide](BUILD_GUIDE.md)
 
 ## Screenshots
 <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/mywords.jpg">
