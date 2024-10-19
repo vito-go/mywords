@@ -5,6 +5,19 @@
 本项目提供一个英语单词学习工具，专为英语学习者设计，通过阅读英文或双语文章来扩充词汇库。用户能够自动提取学习文章中的单词、统计词频、筛选过滤，同时跟踪和记录单词掌握程度。
 - 背单词神器! 输入一个英语或双语文章的网址，本工具将自动提取文章中所有单词及其所在句子，对文章单词进行去重、统计汇总。你可以过滤筛选只显示出你不认识的单词。
 - 本工具支持自定义词典库，用户可以添加自己的词典库，以便在学习过程中查阅单词释义。
+## Download and Installation
+- `Android`: Still in the testing phase, if you would like to join the test, please send your gmail to `liushihao888@gmail.com`
+  - Closed testing: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
+  - Internal testing: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
+- Other platforms: [GitHub Release](https://github.com/vito-go/mywords/releases/)
+  - `Android`, `Linux`, and `Desktop Web` versions are available for download. Please select the appropriate version for your platform.
+  - I don't have `macOS` and `Windows` devices, so the Web version does not currently compile on `macOS` and `Windows`. Please compile it yourself according to the build guide.
+
+## 下载和安装
+- 请前往[GitHub Release](https://github.com/vito-go/mywords/releases) 页面下载适合你平台的版本。
+- `Google Play Store`: 仍处于上架前测试阶段，如果您想参与测试，请将您的gmail发送至 `liushihao888@gmail.com`
+  - 封闭测试: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
+  - 内部测试: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
 
 ## 日志更新
 
@@ -57,63 +70,8 @@
 - **The Economist China 经济学人-中国**: [The Economist China](https://www.economist.com/topics/china): 贴近中国读者的英语内容，覆盖政治、经济、科技等领域，对于希望深入了解全球话题的学习者来说非常有益。
   ![img.png](https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/the-economist-china.png)
 利用这些资源，你不仅能够有针对性地扩充你的词汇，也可以深入了解不同的话题和背景知识，全方位提升英语能力。
-
-## 开始使用指南
-
-请根据你的使用平台选择正确的编译指令进行编译操作，可以选择 `Android`、`Linux`、`Windows` 或 `Web` 版本进行安装。
-
-- **编译前提**：
-    - 请确保你的设备上已经安装了`go`语言环境和`flutter`开发环境。
-    - 请确保你的设备上已经安装了`make`、`zip`等工具。
-    - Windows 环境下，需要对CGO进行支持
-        - 如果没有安装对应的 `CGO` 运行时环境、则在运行的时候会引发如下错误。
-          > exec: “gcc”: executable file not found in %PATH%
-            - Windows GO 语言 CGO 运行时环境配置
-                - https://www.expoli.tech/articles/2022/10/18/1666087321618
-            - Make for Windows
-                - https://gnuwin32.sourceforge.net/packages/make.htm
-                - Complete package, except sources
-- **编译Web静态资源文件**: 执行 `make build-web` 编译集成以及Web版本的静态资源文件。
-
-### 1. 安卓、Linux、Windows版本编译指南
-
-- **安装指南**：
-    - 对于**安卓用户**：在终端执行 `make build-android`。
-    - 对于**Linux用户**：在终端执行 `make build-linux`。
-    - 对于**Windows用户**：在终端执行 `make build-windows`。
-
-
-- **安装包位置**：
-  编译完成后，相应的安装包文件将会位于项目的"bin"文件夹内。按照标准流程安装到你的设备上后即可开始使用。
-
-
-### 2. web版本使用指南 (支持Linux、Windows、MacOS)
-
-- **web版本**：
-
-> web桌面版本是一个独立的web应用，可以在浏览器中运行，无需安装，只需在命令行中执行二进制文件，即可在浏览器中打开web应用。
->
-> 支持在Linux、Windows、MacOS等平台上使用。你可以将web版本部署到你的本地计算机设备中使用，或者部署在云服务器上以便在任何设备上使用。
-
-- 在终端执行 `make build-web-platform`。
-- 在命令行中执行编译后的二进制文件，例如
-    - 在Linux下执行`./bin/mywords-web-linux`
-    - 在Windows下执行`./bin/mywords-web-windows.exe`
-    - 在MacOS下执行`./bin/mywords-web-macos`
-- 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960/web/`或者你指定的其他端口号。
-
-- 已在移动版本中集成web版本，多设备间无缝学习。
-
-## 项目结构
-
-```
-├── bin                   # 编译后的项目文件目录，安卓为.apk，Linux为.deb，Windows为.zip，Web版本为二进制文件，例如mywords-web-linux, mywords-web-windows.exe, mywords-web-macos
-├── mywords-go            # 用于编译.so库的go核心逻辑源代码目录
-├── mywords-flutter       # Flutter源代码目录，用于编译安装包
-├── makefile              # 项目的Makefile文件
-├── readme.md             # 项目的说明文档
-
-```
+## 构建指南
+- [Build Guide](BUILD_GUIDE_zh-hans.md)
 
 ## 预览
 <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/mywords.jpg">

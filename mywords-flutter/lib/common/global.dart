@@ -1,4 +1,7 @@
+import 'package:flutter/services.dart';
 import 'package:mywords/libso/handler.dart';
+import 'package:mywords/util/util.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class Global {
   // 需要在main函数中初始化，且在handler.initLib()之后。 如果有更新。本地缓存也需要更新。
@@ -6,9 +9,9 @@ class Global {
   static String parseVersion = '';
   static int webDictRunPort = 0;
   static int webOnlinePort = 0;
-  static const version = "3.0.1";
+  static String _version = "";
   static String goBuildInfoString = "";
-
+  static  String get version => _version;
   static Map<int, int> levelDistribute(List<String> words) {
     final Map<int, int> resultMap = {};
     for (final word in words) {
@@ -29,5 +32,7 @@ class Global {
     allKnownWordsMap = respData.data ?? {};
     webDictRunPort = await handler.webDictRunPort();
     webOnlinePort = await handler.webOnlinePort();
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    _version= packageInfo.version;
   }
 }
