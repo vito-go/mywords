@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:flutter/foundation.dart';
 import 'package:mywords/common/global.dart';
 import 'package:mywords/common/queue.dart';
 
@@ -18,21 +19,11 @@ void isolateEntry(SendPort sendPort) async {
   }
 }
 
-/*
-* const (
-	CodeError           = 0
-	CodeMessage         = 1
-	CodeWsConnectStatus = 2   // data is int , 0 ready, 1 connecting, 2 connected, 3 failed , 4 closed
-	CodeReadFromDB      = 3   // data is int , 0 ready, 1 connecting, 2 connected, 3 failed , 4 closed
-	// debug for more than 1000
-
-	CodeLog      = 999
-	CodeSetState = 1000
-)
-
-*
-* */
 void isolateLoopReadMessage() async {
+  // If we're running in debug mode, don't start the isolate, as it will prevent hot reload from working.
+  // if (kDebugMode){
+  //   return;
+  // }
   // Clean up
   final receivePort = ReceivePort();
   final isolate = await Isolate.spawn(isolateEntry, receivePort.sendPort);
@@ -75,18 +66,13 @@ void isolateLoopReadMessage() async {
         case 3:
           break;
         case 20:
-          final int data = int.parse(content);
-
           break;
         case 30:
           // readFromDB
-
           break;
         case 100:
-          // CodeNotifyNotifyOnly
           break;
         case 101:
-          // CodeNotifyNotifyOnly
           break;
         case 1000:
           myPrint(content);
