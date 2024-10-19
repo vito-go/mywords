@@ -21,9 +21,8 @@ void isolateEntry(SendPort sendPort) async {
 
 void isolateLoopReadMessage() async {
   // If we're running in debug mode, don't start the isolate, as it will prevent hot reload from working.
-  // if (kDebugMode){
-  //   return;
-  // }
+  // if You want to debug this function, please comment out the following line.
+  if (kDebugMode) return;
   // Clean up
   final receivePort = ReceivePort();
   final isolate = await Isolate.spawn(isolateEntry, receivePort.sendPort);
