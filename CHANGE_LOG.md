@@ -1,4 +1,5 @@
 # v0.1.0
+- Rename package name from `com.example.mywords` to `com.mywords.android`.
 - Initial version, ready to be launched on Google Play Store. Toady is a good day, 2024-10-19.
 - Add GitHub link to the `About` dialog.
 
