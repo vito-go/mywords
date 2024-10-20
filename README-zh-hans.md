@@ -5,21 +5,7 @@
 本项目提供一个英语单词学习工具，专为英语学习者设计，通过阅读英文或双语文章来扩充词汇库。用户能够自动提取学习文章中的单词、统计词频、筛选过滤，同时跟踪和记录单词掌握程度。
 - 背单词神器! 输入一个英语或双语文章的网址，本工具将自动提取文章中所有单词及其所在句子，对文章单词进行去重、统计汇总。你可以过滤筛选只显示出你不认识的单词。
 - 本工具支持自定义词典库，用户可以添加自己的词典库，以便在学习过程中查阅单词释义。
-## Download and Installation
-- `Android`: Still in the testing phase, if you would like to join the test, please send your gmail to `liushihao888@gmail.com`
-  - Closed testing: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
-  - Internal testing: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
-- Other platforms: [GitHub Release](https://github.com/vito-go/mywords/releases/)
-  - `Android`, `Linux`, and `Desktop Web` versions are available for download. Please select the appropriate version for your platform.
-  - I don't have `macOS` and `Windows` devices, so the Web version does not currently compile on `macOS` and `Windows`. Please compile it yourself according to the build guide.
-## Download and Installation
-- Please jump to the [GitHub Release](https://github.com/vito-go/mywords/releases) page to download the appropriate version for your platform.
-- Google Play Store:
-  > Still in the pre-release testing phase, if you would like to join the test, please send your gmail to `liushihao888@gmail.com` or join the Google Group directly to take part in the test.
-  - Google Group: https://groups.google.com/g/vitogo-mywords
-  - Closed Testing: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
-  - Internal Testing: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
-- Apple App Store: TODO
+
 ## 下载和安装
 - 请跳转到 [GitHub Release](https://github.com/vito-go/mywords/releases) 页面下载适合您平台的版本。
 - Google Play Store:
@@ -28,18 +14,10 @@
   > - 封闭测试: https://play.google.com/apps/testing/com.mywords.android
 - 苹果App Store: 等待中
 
-## 日志更新
 
-- 20040324: **重要**: v2.0.0 增加web版本，支持本地部署或云端部署。
-### v3.0.0
-  - 对底层代码进行了完全重构，使其更加清晰。使用`sqlite`存储数据，使项目更加稳定和易于维护。
-  - 移动/桌面客户端版本直接集成Web，多设备之间的无缝学习。在客户端版本中称为`Web Online`。
-  - 全新的设计和用户体验；默认使用英语。
-  - 支持暗黑模式和亮色模式。
-  - Web支持上传超大（>2GB）词典文件。客户端版本也支持上传大文件。
-  - 支持编辑词典的名称。
-  - 设备之间的数据共享和同步更加简单和快速。
-  - **重要提示**: 从v3.0.0版本开始，计划不再提供单独编译Linux、Windows、MacOS客户端版本，请使用桌面Web版本或者移动集成Web版本进行学习。使得安装和使用更加简单和方便。
+## 更新日志
+- [CHANGE_LOG.md](CHANGE_LOG.md)
+
 ## 功能特点
 
 - **单词提取与记录**：输入一个网址，工具自动检索网页文章并提取里面的**所有单词**和它们的语境**句子**。同时，会计算并展示文章的**词汇量**。
