@@ -12,12 +12,21 @@
 - Other platforms: [GitHub Release](https://github.com/vito-go/mywords/releases/)
   - `Android`, `Linux`, and `Desktop Web` versions are available for download. Please select the appropriate version for your platform.
   - I don't have `macOS` and `Windows` devices, so the Web version does not currently compile on `macOS` and `Windows`. Please compile it yourself according to the build guide.
-
+## Download and Installation
+- Please jump to the [GitHub Release](https://github.com/vito-go/mywords/releases) page to download the appropriate version for your platform.
+- Google Play Store:
+  > Still in the pre-release testing phase, if you would like to join the test, please send your gmail to `liushihao888@gmail.com` or join the Google Group directly to take part in the test.
+  - Google Group: https://groups.google.com/g/vitogo-mywords
+  - Closed Testing: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
+  - Internal Testing: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
+- Apple App Store: TODO
 ## 下载和安装
-- 请前往[GitHub Release](https://github.com/vito-go/mywords/releases) 页面下载适合你平台的版本。
-- `Google Play Store`: 仍处于上架前测试阶段，如果您想参与测试，请将您的gmail发送至 `liushihao888@gmail.com`
-  - 封闭测试: [Google Play Store](https://play.google.com/apps/testing/com.mywords.android)
-  - 内部测试: [Google Play Store](https://play.google.com/apps/internaltest/4701611138397829657)
+- 请跳转到 [GitHub Release](https://github.com/vito-go/mywords/releases) 页面下载适合您平台的版本。
+- Google Play Store:
+  > 仍处于预发布测试阶段，如果您想参与测试，请将您的gmail发送至`liushihao888@gmail.com`或直接加入Google Group参与测试。
+  > - Google Group: https://groups.google.com/g/vitogo-mywords
+  > - 封闭测试: https://play.google.com/apps/testing/com.mywords.android
+- 苹果App Store: 等待中
 
 ## 日志更新
 
