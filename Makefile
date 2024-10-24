@@ -19,8 +19,8 @@ else
  endif
 endif
 
-FLUTTER_DIR='mywords-flutter'
-GO_DIR='mywords-go'
+FLUTTER_DIR=mywords-flutter
+GO_DIR=mywords-go
 
 bin:
 	@mkdir -p bin
@@ -29,11 +29,8 @@ clean:
 	cd $(GO_DIR) && make clean
 	rm -rf bin/*
 	@echo "clean done"
-build-web:
-#- build-web is a must of all build
-	cd $(GO_DIR) && make build-web
 
-build-linux:bin
+build-linux:
 	cd $(GO_DIR) && make build-so-linux
 	cd $(FLUTTER_DIR) && make build-linux
 	mv $(FLUTTER_DIR)/bin/* ./bin/
@@ -55,12 +52,12 @@ build-android:bin
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-termux-cli:
+build-termux-cli: bin
 	cd $(GO_DIR) && make build-termux-cli
 	@mv $(GO_DIR)/bin/* ./bin/
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-all: build-web build-android build-linux build-web-platform build-termux-cli
+build-all: build-android build-linux build-web-platform build-termux-cli
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
