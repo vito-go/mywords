@@ -31,7 +31,7 @@ CC=aarch64-linux-android33-clang
 	#compilation terminated.
 ldflags="-s -w  -X 'main.buildTime=$$(date '+%Y-%m-%d %H:%M:%S')'  -X 'main.gitCommit=$$(git rev-parse --short HEAD)'"
 
-FLUTTER_DIR="../mywords-flutter"
+FLUTTER_DIR=../mywords-flutter
 
 build-web:
 # this is a must of all build
@@ -39,26 +39,27 @@ build-web:
 	cd $(FLUTTER_DIR) && make build-web
 	rm -rf cmd/web/
 	mv $(FLUTTER_DIR)/build/web ./cmd/
-
-build-so: build-web build-so-linux build-so-android
+if-build-web:
+	[ -d ./cmd/web ] || make build-web
+build-so: if-build-web build-so-linux build-so-android
 	@echo "build .so for all platform successfully"
-build-so-linux:
+build-so-linux:if-build-web
 	@echo "build so for linux platform"
 	@go build -tags=flutter -buildmode=c-shared -ldflags $(ldflags) -o $(FLUTTER_DIR)/libs/libgo_linux.so ./cmd/
 	@echo "build .so for linux platform successfully!"
-build-so-windows:
+build-so-windows:if-build-web
 	@echo "build so for windows platform"
 	@go build -tags=flutter -buildmode=c-shared -ldflags $(ldflags) -o $(FLUTTER_DIR)/libs/libgo_windows.so ./cmd/
 	@echo "build .so for windows platform successfully!"
-build-so-android:
+build-so-android:if-build-web
 	@echo "build .so for android platform"
 	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build  -tags=flutter -buildmode=c-shared -ldflags $(ldflags) -o $(FLUTTER_DIR)/android/app/jniLibs/arm64-v8a/libgo.so ./cmd/
 	@echo "build .so for android platform successfully!"
-go-build:
+go-build:if-build-web
 	@echo "build web for $(PLATFORM) platform"
 	- mkdir bin
 	CGO_ENABLED=1 go build -ldflags $(ldflags) -o ./bin/$(WEB_BIN_NAME) ./cmd/
-build-web-platform: build-web
+build-web-platform: if-build-web
 	make go-build
 	@echo "build web for $(PLATFORM) platform successfully!"
 #    now you can run the binary file to start the web client
@@ -66,9 +67,10 @@ build-web-platform: build-web
 	@echo "$$ cd bin && ./$(WEB_BIN_NAME)"
 	@echo "Open your browser and visit 'http://localhost:18960/web/', or use the port that you have specified."
 
-build-termux-cli:
+build-termux-cli:if-build-web
 	@echo "build cli for android termux platform"
 	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build -ldflags $(ldflags) -o ./bin/mywords-termux-cli ./cmd/
 	@echo "build cli for android termux platform successfully!"
 clean:
-	rm -rf bin
+	rm -rf bin/
+	rm -rf cmd/web/
