@@ -403,6 +403,13 @@ class WebHandler implements Handler {
     RespData.fromJson(jsonDecode(result) ?? {}, (json) => null);
     return respData;
   }
+
+  @override
+  FutureOr<Translation> translate(String sentence) {
+    // TODO: implement translate
+    // throw UnimplementedError();
+    return Translation(errCode: 500, errMsg: "implement me", poweredBy: "github.com/vito-go/mywords", result: "result");
+  }
 }
 
 Future<String> call(String funcName, List<dynamic> args) async {

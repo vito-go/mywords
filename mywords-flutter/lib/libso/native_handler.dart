@@ -735,4 +735,12 @@ class NativeHandler implements Handler {
           RespData.fromJson(jsonDecode(result), (json) {});
       return respData;
   }
+
+  @override
+  FutureOr<Translation> translate(String sentence) {
+    // TODO: implement translate
+    // throw UnimplementedError();
+    return Translation(errCode: 500, errMsg: "implement me", poweredBy: "github.com/vito-go/mywords", result: "");
+
+  }
 }
