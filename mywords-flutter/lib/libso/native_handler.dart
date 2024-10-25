@@ -150,9 +150,15 @@ class NativeHandler implements Handler {
   final _setProxyUrl = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(Pointer<Utf8>),
       Pointer<Utf8> Function(Pointer<Utf8>)>('SetProxyUrl');
+
   // DelProxy
   final _delProxy = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
       Pointer<Utf8> Function()>('DelProxy');
+
+// Translate
+  final _translate = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('Translate');
 
   @override
   RespData<void> setProxyUrl(String netProxy) {
@@ -310,7 +316,7 @@ class NativeHandler implements Handler {
   RespData<void> updateKnownWordLevel(String word, int level) {
     final wordC = word.toNativeUtf8();
     // 0 for client version, 1 for web version
-    final resultC = UpdateKnownWordLevel(0,wordC, level);
+    final resultC = UpdateKnownWordLevel(0, wordC, level);
     final respData =
         RespData.fromJson(jsonDecode(resultC.toDartString()), (json) => null);
     malloc.free(wordC);
@@ -728,19 +734,22 @@ class NativeHandler implements Handler {
 
   @override
   FutureOr<RespData<void>> delProxy() {
-     final resultC = _delProxy();
-      final result = resultC.toDartString();
-      malloc.free(resultC);
-      final RespData<void> respData =
-          RespData.fromJson(jsonDecode(result), (json) {});
-      return respData;
+    final resultC = _delProxy();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
   }
 
   @override
   FutureOr<Translation> translate(String sentence) {
-    // TODO: implement translate
-    // throw UnimplementedError();
-    return Translation(errCode: 500, errMsg: "implement me", poweredBy: "github.com/vito-go/mywords", result: "");
-
+    final sentenceC = sentence.toNativeUtf8();
+    final resultC = _translate(sentenceC);
+    final result = resultC.toDartString();
+    malloc.free(sentenceC);
+    malloc.free(resultC);
+    final Translation translation = Translation.fromJson(jsonDecode(result));
+    return translation;
   }
 }

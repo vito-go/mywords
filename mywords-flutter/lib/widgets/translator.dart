@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/util/util_native.dart'
     if (dart.library.html) 'package:mywords/util/util_web.dart';
@@ -8,7 +9,7 @@ import '../libso/handler.dart';
 import '../libso/types.dart';
 
 void showTranslation(BuildContext context, String text) async {
-  final original= Row(
+  final original = Row(
     children: [
       Expanded(child: SelectableText(text)),
       IconButton(
@@ -49,8 +50,7 @@ void showTranslation(BuildContext context, String text) async {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-              original,
-
+                        original,
                         const Divider(),
                         Row(
                           children: [
@@ -58,7 +58,7 @@ void showTranslation(BuildContext context, String text) async {
                               Icons.error,
                               color: Colors.red,
                             ),
-                            SelectableText(translation.errMsg),
+                            Flexible(child: SelectableText(translation.errMsg)),
                           ],
                         ),
                         Divider(),
@@ -110,7 +110,7 @@ void showTranslation(BuildContext context, String text) async {
 WidgetSpan buildTranslateWidgetSpan(BuildContext context, String text) {
   final trans = WidgetSpan(
       child: InkWell(
-    child: Icon(Icons.translate, color: Theme.of(context).primaryColor),
+    child: Icon(Icons.g_translate, color: prefs.isDark?null:Theme.of(context).primaryColor),
     onTap: () {
       showTranslation(context, text);
     },

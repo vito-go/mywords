@@ -145,10 +145,10 @@ Widget highlightTextSplitBySpace(
   const fontSize = 14.0;
   final normalColor = Theme.of(context).textTheme.bodyMedium?.color;
   List<InlineSpan>? children = [];
-  // translator
-  // children.add(buildTranslateWidgetSpan(context, text));
-  // children.add(TextSpan(text: " "));
-// Translator
+  // translator TODO
+  children.add(buildTranslateWidgetSpan(context, text));
+  children.add(TextSpan(text: " "));
+
   List<String> infos = text.split(" ");
   for (var i = 0; i < infos.length; i++) {
     Color? color = normalColor;
