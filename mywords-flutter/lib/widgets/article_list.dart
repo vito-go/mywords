@@ -139,36 +139,38 @@ class _State extends State<ArticleListView> {
     ));
   }
 
+  Widget buildListTileArticle(int index, FileInfo item) {
+    Widget? trailing;
+    final uri = Uri.tryParse(item.sourceUrl);
+    if (uri != null) {
+      final assetPath = assetPathByHost(uri.host);
+      if (assetPath != "") {
+        trailing =
+            ClipOval(child: Image.asset(assetPath, width: 28, height: 28));
+      }
+    }
+    return ListTile(
+        title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+        trailing: trailing,
+        onTap: () {
+          pushTo(context, ArticlePage(fileInfo: item));
+        },
+        minLeadingWidth: 0,
+        leading: Text("[${index + 1}]",
+            style: TextStyle(
+                fontSize: 14, color: Theme.of(context).colorScheme.primary)),
+        subtitle: Text(
+            "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.createAt))}  total:${item.totalCount} net:${item.netCount}",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis));
+  }
+
   Widget buildFileInfo(List<FileInfo> fileInfosFilter) {
     final listView = ListView.separated(
         controller: controller,
         itemBuilder: (BuildContext context, int index) {
           final item = fileInfosFilter[index];
-          Widget? trailing;
-          final uri = Uri.tryParse(item.sourceUrl);
-          if (uri != null) {
-            final assetPath = assetPathByHost(uri.host);
-            if (assetPath != "") {
-              trailing = ClipOval(
-                  child: Image.asset(assetPath, width: 28, height: 28));
-            }
-          }
-          final listTile = ListTile(
-              title: Text(item.title,
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-              trailing: trailing,
-              onTap: () {
-                pushTo(context, ArticlePage(fileInfo: item));
-              },
-              minLeadingWidth: 0,
-              leading: Text("[${index + 1}]",
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).colorScheme.primary)),
-              subtitle: Text(
-                  "${formatTime(DateTime.fromMillisecondsSinceEpoch(item.createAt))}  total:${item.totalCount} net:${item.netCount}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis));
+          final listTile = buildListTileArticle(index, item);
           return Dismissible(
             key: UniqueKey(),
             background: getBackgroundWidget(
@@ -314,10 +316,7 @@ class _State extends State<ArticleListView> {
 
   Widget searchEditBuild(int length) {
     return ListTile(
-      leading: Text(
-        "$length",
-        style: const TextStyle(fontSize: 14),
-      ),
+      leading: Text("$length", style: const TextStyle(fontSize: 14)),
       title: CupertinoSearchTextField(
         // placeholder: "请输入文章标题关键词",
         placeholder: "keyword of the title",
