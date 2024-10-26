@@ -68,6 +68,7 @@ abstract class Handler {
   FutureOr<FileInfo?> getFileInfoBySourceURL(String sourceURL);
 
   FutureOr<RespData<void>> setProxyUrl(String netProxy);
+
   FutureOr<RespData<void>> delProxy();
 
   FutureOr<String> parseVersion();
@@ -92,7 +93,6 @@ abstract class Handler {
 
   FutureOr<RespData<Map<String, int>>> allKnownWordsMap();
 
-
 //  1: id desc, 2: id asc ,3 words desc, 4 words asc  ,createDay 0 mean all
   FutureOr<List<String>> allWordsByCreateDayAndOrder(int createDay, int order);
 
@@ -107,4 +107,6 @@ abstract class Handler {
   String getHostName();
 
   FutureOr<String> goBuildInfoString();
+
+  FutureOr<Translation> translate(String sentence);
 }

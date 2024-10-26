@@ -1,3 +1,5 @@
+# v4.1.0
+- Add translation button at the beginning of the sentence, which can translate the sentence. TODO: Add more languages.
 # v4.0.0
 - Rename package name from `com.example.mywords` to `com.mywords.android`.
 - Initial version, ready to be launched on Google Play Store. Toady is a good day, 2024-10-19.

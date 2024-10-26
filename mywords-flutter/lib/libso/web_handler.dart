@@ -396,12 +396,19 @@ class WebHandler implements Handler {
   }
 
   @override
-  FutureOr<RespData<void>> delProxy() async{
+  FutureOr<RespData<void>> delProxy() async {
     final result = await call("DelProxy", []);
 
     final RespData respData =
-    RespData.fromJson(jsonDecode(result) ?? {}, (json) => null);
+        RespData.fromJson(jsonDecode(result) ?? {}, (json) => null);
     return respData;
+  }
+
+  @override
+  FutureOr<Translation> translate(String sentence) async {
+    final result = await call("Translate", [sentence]);
+     final Translation translation = Translation.fromJson(jsonDecode(result));
+    return translation;
   }
 }
 

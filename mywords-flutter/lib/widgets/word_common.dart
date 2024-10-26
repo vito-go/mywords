@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
+import 'package:mywords/widgets/translator.dart';
 
 import 'package:mywords/widgets/word_default_meaning.dart';
 
@@ -144,6 +145,10 @@ Widget highlightTextSplitBySpace(
   const fontSize = 14.0;
   final normalColor = Theme.of(context).textTheme.bodyMedium?.color;
   List<InlineSpan>? children = [];
+  // translator TODO
+  children.add(buildTranslateWidgetSpan(context, text));
+  children.add(TextSpan(text: " "));
+
   List<String> infos = text.split(" ");
   for (var i = 0; i < infos.length; i++) {
     Color? color = normalColor;
