@@ -256,3 +256,25 @@ class DictInfo {
         "size": size,
       };
 }
+
+
+class Translation {
+  String result;
+  String poweredBy;
+  int errCode;
+  String errMsg;
+
+  Translation({
+    required this.errCode,
+    required this.errMsg,
+    required this.poweredBy,
+    required this.result,
+  });
+
+  factory Translation.fromJson(Map<String, dynamic> json) => Translation(
+    poweredBy: json["poweredBy"] ?? '',
+    result: json["result"] ?? '',
+    errMsg: json["errMsg"] ?? '',
+    errCode: json["errCode"] ?? 0,
+  );
+}
