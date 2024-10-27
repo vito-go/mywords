@@ -40,6 +40,10 @@
     - 在Linux下执行`./bin/mywords-web-linux`
     - 在Windows下执行`./bin/mywords-web-windows.exe`
     - 在MacOS下执行`./bin/mywords-web-macos`
+- Execute `make build-web-termux` in the terminal to compile the web version for Termux on Android.
+    - Execute `./bin/mywords-web-termux` in the terminal to run the web version on Termux on Android.
+- 执行 `make build-web-termux` 在终端编译安卓上的Termux的web版本。
+    - 执行 `./bin/mywords-web-termux` 在终端运行安卓上的Termux的web版本。
 - 执行后会在自动打开浏览器，访问`http://127.0.0.1:18960/web/`或者你指定的其他端口号。
 
 - 已在移动版本中集成web版本，多设备间无缝学习。
@@ -50,7 +54,6 @@
 ├── bin                   # 编译后的项目文件目录，安卓为.apk，Linux为.deb，Windows为.zip，Web版本为二进制文件，例如mywords-web-linux, mywords-web-windows.exe, mywords-web-macos
 ├── mywords-go            # 用于编译.so库的go核心逻辑源代码目录
 ├── mywords-flutter       # Flutter源代码目录，用于编译安装包
-├── makefile              # 项目的Makefile文件
-├── readme.md             # 项目的说明文档
-
+├── Makefile              # 项目的Makefile文件
+├── README.md             # 项目的说明文档
 ```

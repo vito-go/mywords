@@ -36,12 +36,15 @@ Please choose the correct compilation command according to your platform for com
 > The web desktop version is a standalone web application that can be run in a browser without installation. Simply execute the binary file in the command line to open the web application in your browser.
 >
 > It supports usage on platforms such as Linux, Windows, and macOS. You can deploy the web version to your local computer device or deploy it on a cloud server for use on any device.
+> 
 
 - Execute `make build-web-platform` in the terminal.
-- Execute the compiled binary file in the command line, for example:
-    - Execute `./bin/mywords-web-linux` on Linux.
-    - Execute `./bin/mywords-web-windows.exe` on Windows.
-    - Execute `./bin/mywords-web-macos` on MacOS.
+  - Execute the compiled binary file in the command line, for example:
+      - Execute `./bin/mywords-web-linux` on Linux.
+      - Execute `./bin/mywords-web-windows.exe` on Windows.
+      - Execute `./bin/mywords-web-macos` on MacOS.
+- Execute `make build-web-termux` in the terminal to compile the web version for Termux on Android.
+  - Execute `./bin/mywords-web-termux` in the terminal to run the web version on Termux on Android.
 - After execution, the browser will automatically open and access http://127.0.0.1:18960/web/ or the specified port number.
 - Already integrated the web version in the mobile version, seamless learning between multiple devices.
 
@@ -53,4 +56,8 @@ Please choose the correct compilation command according to your platform for com
 ├── mywords-flutter       # Directory for Flutter source code used to compile installation packages
 ├── Makefile              # Makefile for the project
 ├── README.md             # Project documentation
+├── CHANGE_LOG.md         # Project change log
+├── BUILD_GUIDE.md        # Project compilation guide
+├── ADD_DICTIONARY_GUIDE.md # Guide for adding dictionaries
+├── LICENSE               # Project license
 ```
