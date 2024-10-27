@@ -67,9 +67,9 @@ build-web-platform: if-build-web
 	@echo "$$ cd bin && ./$(WEB_BIN_NAME)"
 	@echo "Open your browser and visit 'http://localhost:18960/web/', or use the port that you have specified."
 
-build-termux-cli:if-build-web
+build-web-termux:if-build-web
 	@echo "build cli for android termux platform"
-	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build -ldflags $(ldflags) -o ./bin/mywords-termux-cli ./cmd/
+	@CC=${CC} GOOS=android CGO_ENABLED=1 GOARCH=arm64 go build -ldflags $(ldflags) -o ./bin/mywords-web-termux ./cmd/
 	@echo "build cli for android termux platform successfully!"
 clean:
 	rm -rf bin/

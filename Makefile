@@ -52,12 +52,12 @@ build-android:bin
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-termux-cli: bin
-	cd $(GO_DIR) && make build-termux-cli
+build-web-termux: bin
+	cd $(GO_DIR) && make build-web-termux
 	@mv $(GO_DIR)/bin/* ./bin/
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
-build-all: build-android build-linux build-web-platform build-termux-cli
+build-all: build-android build-linux build-web-platform build-web-termux
 	@echo "PLATFORM: $(PLATFORM) all done, look at the directory bin/"
 	@echo "--------$$ ls -lha bin --------"
 	@ls -lha bin
