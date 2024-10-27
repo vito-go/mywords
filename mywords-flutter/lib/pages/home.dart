@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
 import 'package:mywords/util/get_scaffold.dart';
+import 'package:mywords/util/util_native.dart'
+    if (dart.library.html) 'package:mywords/util/util_web.dart';
 import 'package:mywords/widgets/tool.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../common/global.dart';
@@ -73,6 +75,7 @@ class _State extends State<Home> {
     final buildInfo =
         '${Global.goBuildInfoString}\n${const String.fromEnvironment("FLUTTER_VERSION", defaultValue: "")}';
     if (!context.mounted) return;
+    final width = getPlatformWebWidth(context);
     showAboutDialog(
       context: context,
       applicationName: applicationName,
@@ -111,7 +114,7 @@ class _State extends State<Home> {
         ),
         const SizedBox(height: 10),
         InkWell(
-          child: Text(buildInfo),
+          child: SizedBox(width: width, child: Text(buildInfo)),
           onTap: () {
             copyToClipBoard(context, buildInfo);
           },

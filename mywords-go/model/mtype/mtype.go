@@ -13,3 +13,8 @@ type KeyValueInfo struct {
 	ShareInfo ShareInfo
 	Proxy     string
 }
+
+type HostCount struct {
+	Host  string `json:"host"`
+	Count int    `json:"count"`
+}

@@ -13,6 +13,8 @@ import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
 import 'package:mywords/common/queue.dart';
+import 'package:mywords/util/util_native.dart'
+    if (dart.library.html) 'package:mywords/util/util_web.dart';
 
 enum ToEndSlide { archive, unarchive }
 
@@ -41,11 +43,14 @@ class _State extends State<ArticleListView> {
   late final archived = widget.archived;
 
   List<FileInfo> get fileInfosFilter {
-    if (kw == "") return fileInfos;
     final kwTrimLower = kw.trim().toLowerCase();
     final List<FileInfo> items = [];
+    final selected = prefs.hostFilterByArchived(archived);
     for (final info in fileInfos) {
-      if (info.title.toLowerCase().contains(kwTrimLower)) {
+      final contained = selected.contains("-") || selected.contains(info.host);
+      if ((kwTrimLower == "" ||
+              info.title.toLowerCase().contains(kwTrimLower)) &&
+          contained) {
         items.add(info);
       }
     }
@@ -313,6 +318,147 @@ class _State extends State<ArticleListView> {
   ScrollController controller = ScrollController();
   TextEditingController controllerSearch = TextEditingController();
   String kw = "";
+  static const all = '-';
+
+  Widget get hostFilterButton {
+    final selected = prefs.hostFilterByArchived(archived);
+    final desktopWeb = platFormIsDesktopWeb();
+
+    return IconButton(
+        onPressed: () async {
+          final allSourceHosts = await handler.allSourceHosts(archived);
+          final int total = allSourceHosts.fold(
+              0, (previousValue, element) => previousValue + element.count);
+          if (!context.mounted) return;
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                final statefulBuilder = StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setState1) {
+                  final hostFilterByArchived =
+                      prefs.hostFilterByArchived(archived);
+
+                  onChange(String host, bool v) {
+                    if (v == true) {
+                      hostFilterByArchived.remove(host);
+                      hostFilterByArchived.add(host);
+                      if (hostFilterByArchived.length >=
+                          allSourceHosts.length) {
+                        hostFilterByArchived.clear();
+                        hostFilterByArchived.add(all);
+                      }
+                      prefs.setHostFilterByArchived(
+                          archived, hostFilterByArchived);
+                    } else if (v == false) {
+                      if (hostFilterByArchived.contains(all)) {
+                        hostFilterByArchived.clear();
+                        for (var element in allSourceHosts) {
+                          if (element.host == host) continue;
+                          hostFilterByArchived.add(element.host);
+                        }
+                        prefs.setHostFilterByArchived(
+                            archived, hostFilterByArchived);
+                      } else {
+                        hostFilterByArchived.remove(host);
+                        prefs.setHostFilterByArchived(
+                            archived, hostFilterByArchived);
+                      }
+                    }
+                    myPrint(hostFilterByArchived.length);
+                    setState1(() {});
+                    setState(() {});
+                  }
+
+                  Widget buildHost(HostCount h) {
+                    return ListTile(
+                      title: Text(h.host),
+                      minLeadingWidth: 0,
+                      subtitle: !desktopWeb ? Text("count: ${h.count}") : null,
+                      trailing: desktopWeb ? Text("count: ${h.count}") : null,
+                      leading: Checkbox(
+                          value: hostFilterByArchived.contains(h.host) ||
+                              hostFilterByArchived.contains(all),
+                          onChanged: (v) {
+                            if (v == null) return;
+                            onChange(h.host, v);
+                          }),
+                      onTap: () {
+                        final v = hostFilterByArchived.contains(h.host) ||
+                            hostFilterByArchived.contains(all);
+                        onChange(h.host, !v);
+                      },
+                    );
+                  }
+
+                  final listView = ListView.builder(
+                      itemCount: allSourceHosts.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return buildHost(allSourceHosts[index]);
+                      });
+                  selectAll(bool v) {
+                    if (v == true) {
+                      hostFilterByArchived.clear();
+                      hostFilterByArchived.add(all);
+                      prefs.setHostFilterByArchived(
+                          archived, hostFilterByArchived);
+                    } else if (v == false) {
+                      hostFilterByArchived.clear();
+                      prefs.setHostFilterByArchived(
+                          archived, hostFilterByArchived);
+                    }
+                    setState1(() {});
+                    setState(() {});
+                  }
+
+                  final col = Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.close)),
+                      ),
+                      ListTile(
+                          title: Text("All"),
+                          subtitle:
+                              !desktopWeb ? Text("total count: $total") : null,
+                          trailing:
+                              desktopWeb ? Text("total count: $total") : null,
+                          leading: Checkbox(
+                              value: hostFilterByArchived.contains(all),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                selectAll(v);
+                              }),
+                          onTap: () {
+                            final v = hostFilterByArchived.contains(all);
+                            selectAll(!v);
+                          }),
+                      Divider(),
+                      Expanded(child: listView)
+                    ],
+                  );
+
+                  return col;
+                });
+
+                if (platFormIsDesktopWeb()) {
+                  final width = getPlatformWebWidth(context);
+                  return UnconstrainedBox(
+                    constrainedAxis: Axis.vertical,
+                    child: SizedBox(
+                        width: width, child: Dialog(child: statefulBuilder)),
+                  );
+                }
+                return Dialog(child: statefulBuilder);
+              });
+        },
+        icon: Icon(
+            selected.contains(all) ? Icons.filter_alt_off : Icons.filter_alt));
+  }
 
   Widget searchEditBuild(int length) {
     return ListTile(
@@ -327,6 +473,7 @@ class _State extends State<ArticleListView> {
           setState(() {});
         },
       ),
+      trailing: hostFilterButton,
     );
   }
 

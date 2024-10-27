@@ -73,5 +73,6 @@ func init() {
 		"GetIPv4s":                       GetIPv4s,
 		"GetFileInfoListByArchived":      GetFileInfoListByArchived,
 		"Translate":                      Translate,
+		"AllSourceHosts":                 AllSourceHosts,
 	}
 }

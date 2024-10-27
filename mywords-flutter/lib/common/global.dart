@@ -1,6 +1,4 @@
-import 'package:flutter/services.dart';
 import 'package:mywords/libso/handler.dart';
-import 'package:mywords/util/util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class Global {
