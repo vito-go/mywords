@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:mywords/libso/handler.dart';
-import 'package:mywords/util/util.dart';
 import 'package:path/path.dart' as path;
 
 String? getHomeDir() {

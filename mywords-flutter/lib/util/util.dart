@@ -1,9 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
-
-import 'get_scaffold.dart';
 
 String formatTime(DateTime now) {
   String month = now.month < 10 ? "0${now.month}" : "${now.month}";
@@ -70,10 +70,19 @@ myPrint(dynamic msg,
     print("[$level] ${DateTime.now()} $traceString $msg $arg");
   }
 }
+bool _platFormIsMobileClient() {
+  if (kIsWeb) {
+    return false;
+  }
+  if (Platform.isAndroid || Platform.isIOS) {
+    return true;
+  }
+  return false;
+}
 
 copyToClipBoard(BuildContext context, String content) {
   Clipboard.setData(ClipboardData(text: content));
-  if (!platFormIsMobile()) {
+  if (!_platFormIsMobileClient()) {
     myPrint(content);
     // myToast(context, "复制成功");
     myToast(context, "Copy successfully");

@@ -278,3 +278,15 @@ class Translation {
     errCode: json["errCode"] ?? 0,
   );
 }
+class HostCount{
+  String host;
+  int count;
+  HostCount({
+    required this.host,
+    required this.count,
+  });
+  factory HostCount.fromJson(Map<String, dynamic> json) => HostCount(
+    host: json["host"] ?? '',
+    count: json["count"] ?? 0,
+  );
+}

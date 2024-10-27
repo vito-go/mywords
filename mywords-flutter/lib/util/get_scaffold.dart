@@ -1,18 +1,7 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
- import 'package:mywords/util/util_native.dart' if (dart.library.html) 'package:mywords/util/util_web.dart';
+import 'package:mywords/util/util_native.dart'
+    if (dart.library.html) 'package:mywords/util/util_web.dart';
 
-bool platFormIsMobile() {
-  if (kIsWeb) {
-    return false;
-  }
-  if (Platform.isAndroid || Platform.isIOS) {
-    return true;
-  }
-  return false;
-}
 
 Widget getScaffold(
   BuildContext context, {
@@ -25,14 +14,10 @@ Widget getScaffold(
 }) {
   final Widget adjustedBody;
 
-  if (kIsWeb) {
-    if (platFormWebIsMobile()) {
-      adjustedBody = body;
-    } else {
-      // desktop web
-      double width = getPlatformWebWidth(context);
-      adjustedBody = Center(child: SizedBox(width: width, child: body));
-    }
+  if (platFormIsDesktopWeb()) {
+    // desktop web
+    double width = getPlatformWebWidth(context);
+    adjustedBody = Center(child: SizedBox(width: width, child: body));
   } else {
     adjustedBody = body;
   }

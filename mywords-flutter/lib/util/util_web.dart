@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../environment.dart';
 
 // 判断是否手机浏览器
-bool platFormWebIsMobile() {
+bool _platFormWebIsMobile() {
   if (!kIsWeb) {
     return false;
   }
@@ -20,8 +20,16 @@ bool platFormWebIsMobile() {
   return false;
 }
 
+// platFormIsDesktopWeb
+bool platFormIsDesktopWeb() {
+  if (!kIsWeb) {
+    return false;
+  }
+  return !_platFormWebIsMobile();
+}
+
 double getPlatformWebWidth(BuildContext context) {
-  if (!kIsWeb || platFormWebIsMobile()) return double.infinity;
+  if (!platFormIsDesktopWeb()) return double.infinity;
   // desktop web
   const noMobileWidthRate = 0.35;
   final webBodyWidthDouble = webBodyWidth.toDouble();

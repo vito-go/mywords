@@ -1,3 +1,5 @@
+# v4.2.0
+- Add feature to filter and display articles by source URL host
 # v4.1.0
 - Add translation button at the beginning of the sentence, which can translate the sentence. TODO: Add more languages.
 # v4.0.0

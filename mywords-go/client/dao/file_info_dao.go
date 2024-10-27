@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"mywords/model"
+	"mywords/model/mtype"
 	"mywords/pkg/db"
 )
 
@@ -102,4 +103,12 @@ func (m *fileInfoDao) ItemBySourceUrl(ctx context.Context, sourceUrl string) (*m
 func (m *fileInfoDao) DeleteById(ctx context.Context, id int64) (int64, error) {
 	tx := m.Gdb.WithContext(ctx).Table(m.Table()).Where("id = ?", id).Delete(&model.FileInfo{})
 	return tx.RowsAffected, tx.Error
+}
+
+// AllSourceHosts . distinct host 按照 host 分组, 按照数量count(*) as count 排序
+func (m *fileInfoDao) AllSourceHosts(ctx context.Context, archived bool) ([]mtype.HostCount, error) {
+	var result []mtype.HostCount
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("host, count(*) as count").Where("archived = ?", archived).Group("host").Order("count DESC,host DESC").Find(&result).Error
+
+	return result, err
 }

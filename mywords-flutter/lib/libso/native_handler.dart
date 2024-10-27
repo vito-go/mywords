@@ -592,6 +592,11 @@ class NativeHandler implements Handler {
   final GoBuildInfoString = nativeAddLib.lookupFunction<
       Pointer<Utf8> Function(), Pointer<Utf8> Function()>('GoBuildInfoString');
 
+// allSourceHosts
+  final AllSourceHosts = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Bool archived),
+      Pointer<Utf8> Function(bool archived)>('AllSourceHosts');
+
   // getWebOnlineClose
   final GetWebOnlineClose = nativeAddLib
       .lookupFunction<Bool Function(), bool Function()>('GetWebOnlineClose');
@@ -751,5 +756,16 @@ class NativeHandler implements Handler {
     malloc.free(resultC);
     final Translation translation = Translation.fromJson(jsonDecode(result));
     return translation;
+  }
+
+  @override
+  FutureOr<List<HostCount>> allSourceHosts(bool archived) {
+    final resultC = AllSourceHosts(archived);
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    // 判断result是否为空或者为null
+    final items = List<HostCount>.from(
+        (jsonDecode(result) ?? []).map((e) => HostCount.fromJson(e)));
+    return items;
   }
 }

@@ -24,6 +24,8 @@ class _Prefs {
 
   String get _showWordLevel => "mywords:_showWordLevel";
 
+  String get _hostFilterByArchived => "mywords:_hostFilterByArchived";
+
   String get _syncIpPortCode => "mywords:_syncIpPortCode";
 
   String get _toastSlideToDelete => "mywords:_toastSlideToDelete";
@@ -99,6 +101,16 @@ class _Prefs {
   }
 
   int get showWordLevel => _globalPrefs.getInt(_showWordLevel) ?? 0;
+
+// empty contain - means all
+  List<String>  hostFilterByArchived(bool archived) {
+    return _globalPrefs.getStringList("$_hostFilterByArchived:$archived") ?? ['-'];
+  }
+
+  // set
+  void setHostFilterByArchived(bool archived, List<String> hosts) {
+    _globalPrefs.setStringList("$_hostFilterByArchived:$archived", hosts);
+  }
 
   set showWordLevel(int value) {
     _globalPrefs.setInt(_showWordLevel, value);
