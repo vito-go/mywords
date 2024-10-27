@@ -11,7 +11,7 @@ import '../libso/types.dart';
 void showTranslation(BuildContext context, String text) async {
   final original = Row(
     children: [
-      Expanded(child: SelectableText(text)),
+      Flexible(child: SingleChildScrollView(child: SelectableText(text))),
       IconButton(
           onPressed: () {
             copyToClipBoard(context, text);
@@ -26,7 +26,7 @@ void showTranslation(BuildContext context, String text) async {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            original,
+            Flexible(child: original),
             const Divider(),
             const Center(child: CircularProgressIndicator()),
             const Divider(),
@@ -50,17 +50,19 @@ void showTranslation(BuildContext context, String text) async {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        original,
+                        Flexible(child: original),
                         const Divider(),
-                        Row(
+                        Flexible(child: Row(
                           children: [
                             Icon(
                               Icons.error,
                               color: Colors.red,
                             ),
-                            Flexible(child: SelectableText(translation.errMsg)),
+                            Flexible(
+                                child: SingleChildScrollView(
+                                    child: SelectableText(translation.errMsg))),
                           ],
-                        ),
+                        )),
                         Divider(),
                         Text(
                           "Powered by ${translation.poweredBy}",
@@ -76,16 +78,16 @@ void showTranslation(BuildContext context, String text) async {
                     children: [
                       original,
                       const Divider(),
-                      Row(
+                      Flexible(child: Row(
                         children: [
-                          Expanded(child: SelectableText(translation.result)),
+                          Flexible(child: SingleChildScrollView(child: SelectableText(translation.result))),
                           IconButton(
                               onPressed: () {
-                                copyToClipBoard(context, text);
+                                copyToClipBoard(context, translation.result);
                               },
                               icon: Icon(Icons.copy)),
                         ],
-                      ),
+                      )),
                       const Divider(),
                       Text(
                         "Powered by ${translation.poweredBy}",
@@ -110,7 +112,8 @@ void showTranslation(BuildContext context, String text) async {
 WidgetSpan buildTranslateWidgetSpan(BuildContext context, String text) {
   final trans = WidgetSpan(
       child: InkWell(
-    child: Icon(Icons.g_translate, color: prefs.isDark?null:Theme.of(context).primaryColor),
+    child: Icon(Icons.g_translate,
+        color: prefs.isDark ? null : Theme.of(context).primaryColor),
     onTap: () {
       showTranslation(context, text);
     },
