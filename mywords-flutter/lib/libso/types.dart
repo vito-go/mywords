@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 class FileInfo {
   final String title;
   final String filePath;
@@ -257,7 +256,6 @@ class DictInfo {
       };
 }
 
-
 class Translation {
   String result;
   String poweredBy;
@@ -272,21 +270,24 @@ class Translation {
   });
 
   factory Translation.fromJson(Map<String, dynamic> json) => Translation(
-    poweredBy: json["poweredBy"] ?? '',
-    result: json["result"] ?? '',
-    errMsg: json["errMsg"] ?? '',
-    errCode: json["errCode"] ?? 0,
-  );
+        poweredBy: json["poweredBy"] ?? '',
+        result: json["result"] ?? '',
+        errMsg: json["errMsg"] ?? '',
+        errCode: json["errCode"] ?? 0,
+      );
 }
-class HostCount{
+
+class HostCount {
   String host;
   int count;
+
   HostCount({
     required this.host,
     required this.count,
   });
+
   factory HostCount.fromJson(Map<String, dynamic> json) => HostCount(
-    host: json["host"] ?? '',
-    count: json["count"] ?? 0,
-  );
+        host: json["host"] ?? '',
+        count: json["count"] ?? 0,
+      );
 }
