@@ -174,10 +174,11 @@ class _RestoreDataState extends State<RestoreData> {
                       'code': int.parse(controllerCode.text.trim()),
                       'syncKind': 1
                     });
-
-                    setState(() {
-                      isSyncingKnownWords = false;
-                    });
+                    if (context.mounted) {
+                      setState(() {
+                        isSyncingKnownWords = false;
+                      });
+                    }
                     if (respData.code != 0) {
                       myToast(context, respData.message);
                       return;
@@ -237,9 +238,11 @@ class _RestoreDataState extends State<RestoreData> {
                       'code': int.parse(controllerCode.text.trim()),
                       'syncKind': 2
                     });
-                    setState(() {
-                      isSyncFileInfos = false;
-                    });
+                    if (context.mounted) {
+                      setState(() {
+                        isSyncFileInfos = false;
+                      });
+                    }
                     if (respData.code != 0) {
                       myToast(context, respData.message);
                       return;

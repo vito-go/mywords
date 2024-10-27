@@ -152,6 +152,13 @@ func KnownWordsCountMap() *C.char {
 	return CharOk(m)
 }
 
+//export AllSourceHosts
+func AllSourceHosts(archived bool) *C.char {
+	hosts, _ := serverGlobal.AllDao().FileInfoDao.AllSourceHosts(ctx, archived)
+	b, _ := json.Marshal(hosts)
+	return C.CString(string(b))
+}
+
 //export ParseVersion
 func ParseVersion() *C.char {
 	return CharOk(artical.ParseVersion)

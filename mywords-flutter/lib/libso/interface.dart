@@ -109,4 +109,6 @@ abstract class Handler {
   FutureOr<String> goBuildInfoString();
 
   FutureOr<Translation> translate(String sentence);
+  // AllSourceHosts
+  FutureOr<List<HostCount>> allSourceHosts(bool archived);
 }

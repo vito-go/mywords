@@ -407,8 +407,16 @@ class WebHandler implements Handler {
   @override
   FutureOr<Translation> translate(String sentence) async {
     final result = await call("Translate", [sentence]);
-     final Translation translation = Translation.fromJson(jsonDecode(result));
+    final Translation translation = Translation.fromJson(jsonDecode(result));
     return translation;
+  }
+
+  @override
+  FutureOr<List<HostCount>> allSourceHosts(bool archived) async {
+    final result = await call("AllSourceHosts", [archived]);
+    final items = List<HostCount>.from((jsonDecode(result) ?? [])
+        .map((e) => HostCount.fromJson(e as Map<String, dynamic>)));
+    return items;
   }
 }
 
