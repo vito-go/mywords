@@ -3,7 +3,6 @@ import 'dart:async';
 StreamController<Event> _globalEventBroadcast = StreamController.broadcast();
 
 enum EventType {
-  syncData,
   updateKnownWord,
   updateArticleList,
   articleListScrollToTop,
@@ -11,7 +10,6 @@ enum EventType {
   updateTheme,
   updateDict,
 }
-
 
 void produceEvent(EventType eventType, [dynamic param]) {
   final event = Event(eventType: eventType, param: param);

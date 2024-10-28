@@ -239,8 +239,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     switch (event.eventType) {
       case EventType.updateArticleList:
         break;
-      case EventType.syncData:
-        break;
+
       case EventType.updateKnownWord:
         levelCountMap = await handler.knownWordsCountMap();
         setState(() {});

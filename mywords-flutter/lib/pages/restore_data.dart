@@ -9,6 +9,8 @@ import 'package:mywords/util/path.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/widgets/private_ip.dart';
 
+import '../common/global.dart';
+
 class RestoreData extends StatefulWidget {
   const RestoreData({super.key});
 
@@ -183,8 +185,9 @@ class _RestoreDataState extends State<RestoreData> {
                       myToast(context, respData.message);
                       return;
                     }
-                    // myToast(context, "同步我的单词库成功");
                     myToast(context, "Sync my word library successfully");
+                    Global.allKnownWordsMap =
+                        (await handler.allKnownWordsMap()).data ?? {};
                     produceEvent(EventType.updateKnownWord);
                   },
             icon: const Icon(Icons.sync)),
@@ -247,7 +250,6 @@ class _RestoreDataState extends State<RestoreData> {
                       myToast(context, respData.message);
                       return;
                     }
-                    // myToast(context, "同步文章成功");
                     myToast(context, "Sync articles successfully");
                     produceEvent(EventType.updateArticleList);
                   },
@@ -257,10 +259,7 @@ class _RestoreDataState extends State<RestoreData> {
 
     final col = ListView(children: children);
 
-    final appBar = AppBar(
-      // title: const Text("同步数据"),
-      title: const Text("Sync Data"),
-    );
+    final appBar = AppBar(title: const Text("Sync Data"));
     return getScaffold(
       context,
       appBar: appBar,

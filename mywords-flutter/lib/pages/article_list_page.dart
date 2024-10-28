@@ -37,9 +37,6 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
   }
 
   void eventHandler(Event event) {
-    if (event.eventType == EventType.syncData && event.param == true) {
-      updateTodayCountMap();
-    }
     if (event.eventType == EventType.updateKnownWord) {
       updateTodayCountMap();
     }

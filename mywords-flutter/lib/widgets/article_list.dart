@@ -261,9 +261,6 @@ class _State extends State<ArticleListView> {
       case EventType.updateArticleList:
         initFileInfos();
         break;
-      case EventType.syncData:
-        initFileInfos();
-        break;
       case EventType.updateKnownWord:
         break;
       case EventType.articleListScrollToTop:
