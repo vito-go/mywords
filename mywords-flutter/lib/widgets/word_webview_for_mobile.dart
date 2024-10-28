@@ -84,7 +84,6 @@ class _State extends State<WordWebView> {
 
   void initControllerSet() {
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
-    controller.setBackgroundColor(const Color(0x00000000));
     controller.setNavigationDelegate(
       NavigationDelegate(
         onProgress: (int progress) {
@@ -121,11 +120,11 @@ class _State extends State<WordWebView> {
     var htmlContent =
         (await handler.getHTMLRenderContentByWord(word)).data ?? '';
     if (htmlContent == "") return;
-    final isDark = prefs.isDark;
-    if (isDark) {
-      htmlContent =
-          "<style>body{background-color: #FFE0B2FF;}</style>$htmlContent";
-    }
+    // final isDark = prefs.isDark;
+    // if (isDark) {
+    //   htmlContent =
+    //       "<style>body{background-color: #FFE0B2FF;}</style>$htmlContent";
+    // }
     controller.loadHtmlString(htmlContent, baseUrl: word);
   }
 
