@@ -70,7 +70,7 @@ myPrint(dynamic msg,
     print("[$level] ${DateTime.now()} $traceString $msg $arg");
   }
 }
-bool _platFormIsMobileClient() {
+bool platformIsMobileClient() {
   if (kIsWeb) {
     return false;
   }
@@ -82,7 +82,7 @@ bool _platFormIsMobileClient() {
 
 copyToClipBoard(BuildContext context, String content) {
   Clipboard.setData(ClipboardData(text: content));
-  if (!_platFormIsMobileClient()) {
+  if (!platformIsMobileClient()) {
     myPrint(content);
     // myToast(context, "复制成功");
     myToast(context, "Copy successfully");
