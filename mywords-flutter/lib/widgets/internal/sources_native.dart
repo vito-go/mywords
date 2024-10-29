@@ -91,7 +91,7 @@ class _State extends State<WordWebView1> {
     final List<Widget> actions = [
       //  返回主页
       IconButton(
-        icon: const Icon(Icons.home),
+        icon: const Icon(Icons.web),
         onPressed: () {
           Navigator.of(context).pop();
           pushTo(context, Sources());
@@ -143,7 +143,7 @@ class _State extends State<WordWebView1> {
           final FileInfo? fInfo = await handler.getFileInfoBySourceURL(url);
           if (fInfo != null) {
             myToast(context,
-                "Warn: You have already parsed this URL\n$url\n${fInfo.title}");
+                "You have already parsed this URL\n$url\n${fInfo.title}");
             return;
           }
           //   newArticleFileInfoBySourceURL

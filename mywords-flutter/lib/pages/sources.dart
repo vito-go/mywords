@@ -16,24 +16,6 @@ class Sources extends StatefulWidget {
 }
 
 class _State extends State<Sources> {
-  //   "cn.nytimes.com": "$_iconPrefix/nytimes.png",
-  //   "www.nytimes.com": "$_iconPrefix/nytimes.png",
-  //   "www.economist.com": "$_iconPrefix/theeconomist.png",
-  //   "www.cnbc.com": "$_iconPrefix/cnbc.png",
-  //   "www.nbcnews.com": "$_iconPrefix/cnbc.png",
-  //   "www.bbc.com": "$_iconPrefix/bbc.png",
-  //   "www.bbc.co.uk": "$_iconPrefix/bbc.png",
-  //   "www.thetimes.co.uk": "$_iconPrefix/thetimes.png",
-  //   "edition.cnn.com": "$_iconPrefix/cnn.png",
-  //   "www.9news.com.au": "$_iconPrefix/9news.png",
-  //   "www.washingtonpost.com": "$_iconPrefix/wp.png",
-  //   "www.foxnews.com": "$_iconPrefix/foxnews.png",
-  //   "apnews.com": "$_iconPrefix/ap.png",
-  //   "www.npr.org": "$_iconPrefix/ap.png",
-  //   "www.theguardian.com": "$_iconPrefix/theguardian.png",
-  //   "www.voanews.com": "$_iconPrefix/voanews.png",
-  //   "time.com": "$_iconPrefix/time.png",
-  //   "nypost.com": "$_iconPrefix/nypost.png",
   List<String> sourceURLs = [
     "https://cn.nytimes.com",
     "https://www.nytimes.com",
@@ -53,12 +35,13 @@ class _State extends State<Sources> {
     "https://www.voanews.com",
     "https://time.com",
     "https://nypost.com",
-
   ];
+  bool editing = false;
+  Map<String, bool> hostSelectedMap = {};
 
-  Widget buildSourceListTile(String sourceUrl) {
+  Widget buildSourceListTile(String rootURL) {
     Widget leading = const Icon(Icons.link);
-    final uri = Uri.tryParse(sourceUrl);
+    final uri = Uri.tryParse(rootURL);
     if (uri != null) {
       final assetPath = assetPathByHost(uri.host);
       if (assetPath != "") {
@@ -67,12 +50,20 @@ class _State extends State<Sources> {
       }
     }
     return ListTile(
-      title: Text(sourceUrl),
+      title: Text(rootURL),
       leading: leading,
-      trailing: const Icon(Icons.navigate_next),
-      onTap: () {
+      trailing: editing
+          ? Checkbox(
+              value: hostSelectedMap[rootURL] ?? false,
+              onChanged: (v) {
+                if (v == null) return;
+                hostSelectedMap[rootURL] = v;
+                setState(() {});
+              })
+          : const Icon(Icons.navigate_next),
+      onTap: editing?null:() {
         // 点击后跳转到对应的页面
-        pushTo(context, WordWebView1(rootURL: sourceUrl));
+        pushTo(context, WordWebView1(rootURL: rootURL));
       },
     );
   }
@@ -84,8 +75,27 @@ class _State extends State<Sources> {
       appBar: AppBar(
         title: const Text("Sources"),
         actions: [
-          IconButton(onPressed: (){}, icon: Icon(Icons.add)),
-          IconButton(onPressed: (){}, icon: Icon(Icons.edit_note)),
+          IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+          editing
+              ? IconButton(
+                  onPressed: () {
+                    hostSelectedMap.clear();
+                    // todo
+                    setState(() {
+                      editing = !editing;
+                    });
+                  },
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  ))
+              : IconButton(
+                  onPressed: () {
+                    setState(() {
+                      editing = !editing;
+                    });
+                  },
+                  icon: Icon(Icons.edit_note)),
         ],
       ),
       body: ListView(
