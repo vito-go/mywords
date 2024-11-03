@@ -9,6 +9,7 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/libso/types.dart';
+import 'package:mywords/pages/get_icon.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
@@ -145,15 +146,7 @@ class _State extends State<ArticleListView> {
   }
 
   Widget buildListTileArticle(int index, FileInfo item) {
-    Widget? trailing;
-    final uri = Uri.tryParse(item.sourceUrl);
-    if (uri != null) {
-      final assetPath = assetPathByHost(uri.host);
-      if (assetPath != "") {
-        trailing =
-            ClipOval(child: Image.asset(assetPath, width: 28, height: 28));
-      }
-    }
+    Widget? trailing=getIconBySourceURL(item.sourceUrl);
     return ListTile(
         title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
         trailing: trailing,

@@ -8,6 +8,7 @@ type AllDao struct {
 	KeyValueDao   *keyValueDao
 	DictInfoDao   *dictInfoDao
 	KnownWordsDao *knownWordsDao
+	Sources       *sources
 }
 
 func NewAllDao(gdb *gorm.DB) *AllDao {
@@ -17,6 +18,7 @@ func NewAllDao(gdb *gorm.DB) *AllDao {
 		KeyValueDao:   &keyValueDao{Gdb: gdb},
 		DictInfoDao:   &dictInfoDao{Gdb: gdb},
 		KnownWordsDao: &knownWordsDao{Gdb: gdb},
+		Sources:       &sources{Gdb: gdb},
 	}
 }
 

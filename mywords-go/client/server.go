@@ -43,10 +43,7 @@ func (c *config) Clone() *config {
 	}
 }
 
-const (
-	dataDir    = `data`         // 存放背单词的目录
-	gobFileDir = "gob_gz_files" // a.txt.gob, b.txt.gob, c.txt.gob ...
-)
+const ()
 
 // RootDataDir . root data dir
 func (c *Client) RootDataDir() string {

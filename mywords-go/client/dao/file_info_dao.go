@@ -105,10 +105,17 @@ func (m *fileInfoDao) DeleteById(ctx context.Context, id int64) (int64, error) {
 	return tx.RowsAffected, tx.Error
 }
 
-// AllSourceHosts . distinct host 按照 host 分组, 按照数量count(*) as count 排序
-func (m *fileInfoDao) AllSourceHosts(ctx context.Context, archived bool) ([]mtype.HostCount, error) {
+// AllSourceHostsByArchived . distinct host 按照 host 分组, 按照数量count(*) as count 排序
+func (m *fileInfoDao) AllSourceHostsByArchived(ctx context.Context, archived bool) ([]mtype.HostCount, error) {
 	var result []mtype.HostCount
 	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("host, count(*) as count").Where("archived = ?", archived).Group("host").Order("count DESC,host DESC").Find(&result).Error
 
+	return result, err
+}
+
+// AllSourceHosts . distinct host 按照 host 分组, 按照数量count(*) as count 排序
+func (m *fileInfoDao) AllSourceHosts(ctx context.Context) ([]mtype.HostCount, error) {
+	var result []mtype.HostCount
+	err := m.Gdb.WithContext(ctx).Table(m.Table()).Select("host, count(*) as count").Group("host").Order("count DESC,host DESC").Find(&result).Error
 	return result, err
 }

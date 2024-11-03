@@ -6,7 +6,7 @@ import (
 
 func TestParseSourceUrl(t *testing.T) {
 	sourceURL := "https://cn.nytimes.com/china/20240911/china-us-woman-imprisoned/zh-hant/dual/"
-	art, err := ParseSourceUrl(sourceURL, DefaultXpathExpr, nil)
+	art, err := ParseSourceUrl(sourceURL, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
