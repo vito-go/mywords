@@ -22,6 +22,11 @@ class _State extends State<Sources> {
   List<String> allSourcesFromDB = [];
 
   Future<void> refreshSources() async {
+   final respData= await handler.refreshPublicSources();
+    if (!respData.success) {
+      myToast(context, "refresh sources failed");
+      return;
+    }
     sourceURLs = await handler.getAllSources();
     allSourcesFromDB = await handler.allSourcesFromDB();
     setState(() {});
