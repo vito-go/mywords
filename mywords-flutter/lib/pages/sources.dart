@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/get_icon.dart';
@@ -6,8 +5,7 @@ import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
-import '../config/config.dart';
-import '../widgets/sources.dart';
+import '../widgets/sources_native.dart';
 
 class Sources extends StatefulWidget {
   const Sources({super.key});
@@ -21,7 +19,6 @@ class Sources extends StatefulWidget {
 class _State extends State<Sources> {
   List<String> sourceURLs = [];
 
-// AllSourcesFromDB
   List<String> allSourcesFromDB = [];
 
   Future<void> refreshSources() async {
@@ -59,8 +56,7 @@ class _State extends State<Sources> {
       onTap: editing
           ? null
           : () {
-              // 点击后跳转到对应的页面
-              pushTo(context, WordWebView1(rootURL: rootURL));
+              pushTo(context, SourcesWebView(rootURL: rootURL));
             },
     );
   }

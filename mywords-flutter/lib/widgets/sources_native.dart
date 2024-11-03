@@ -5,17 +5,17 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:mywords/common/queue.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-import '../../pages/sources.dart';
+import '../libso/types.dart';
+import '../pages/sources.dart';
 
+Map<String, String> lastViewedURLMap = {}; // host -> last viewed url
 
-Map<String, String> lastViewedURLMap = {};
-
-class WordWebView1 extends StatefulWidget {
-  const WordWebView1({super.key, required this.rootURL});
+class SourcesWebView extends StatefulWidget {
+  const SourcesWebView({super.key, required this.rootURL});
 
   final String rootURL;
 
@@ -25,8 +25,9 @@ class WordWebView1 extends StatefulWidget {
   }
 }
 
-class _State extends State<WordWebView1> {
+class _State extends State<SourcesWebView> {
   late final String rootURL = widget.rootURL;
+  bool loading = true;
 
   @override
   void dispose() {
@@ -43,8 +44,33 @@ class _State extends State<WordWebView1> {
   StreamSubscription<Event>? eventConsumer;
 
   void initControllerSet() {
-    // controller.setJavaScriptMode(JavaScriptMode.unrestricted);
-    controller.loadRequest(LoadRequestParams(uri: Uri.parse(lastViewedURLMap[rootURL] ?? rootURL)));
+    controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+    controller.setNavigationDelegate(
+      NavigationDelegate(
+        onProgress: (int progress) {
+          myPrint("progress ---->  $progress");
+        },
+        onPageStarted: (String url) {
+          setState(() {
+            loading = false;
+          });
+        },
+        onPageFinished: (String url) {},
+        onUrlChange: (v) {},
+        onWebResourceError: (WebResourceError error) {},
+        onNavigationRequest: (NavigationRequest request) {
+          setState(() {
+            loading = true;
+          });
+          final uri = Uri.parse(request.url);
+          myPrint(uri.scheme);
+          myPrint(request.url);
+          lastViewedURLMap[rootURL] = request.url;
+          return NavigationDecision.navigate;
+        },
+      ),
+    );
+    controller.loadRequest(Uri.parse(lastViewedURLMap[rootURL] ?? rootURL));
   }
 
   @override
@@ -54,14 +80,11 @@ class _State extends State<WordWebView1> {
     eventConsumer = consume(eventHandler);
   }
 
+  final controller = WebViewController();
 
-  final controller = PlatformWebViewController(
-    const PlatformWebViewControllerCreationParams(),
-  );
-
-  // Widget get content => loading
-  //     ? const Center(child: CircularProgressIndicator())
-  //     : WebViewWidget(controller: controller);
+  Widget get content => loading
+      ? const Center(child: CircularProgressIndicator())
+      : WebViewWidget(controller: controller);
 
   @override
   Widget build(BuildContext context) {
@@ -71,14 +94,14 @@ class _State extends State<WordWebView1> {
         icon: const Icon(Icons.web),
         onPressed: () {
           Navigator.of(context).pop();
-          pushTo(context, const Sources());
+          pushTo(context, Sources());
         },
       ),
       // 返回根网址
       IconButton(
         icon: const Icon(Icons.home_outlined),
         onPressed: () async {
-          controller.loadRequest(LoadRequestParams(uri: Uri.parse(rootURL)));
+          controller.loadRequest(Uri.parse(rootURL));
         },
       ),
       // 后退
@@ -90,12 +113,6 @@ class _State extends State<WordWebView1> {
           }
         },
       ),
-      IconButton(
-        icon: const Icon(Icons.refresh),
-        onPressed: () async {
-          controller.reload();
-        },
-      ),
       // 前进
       IconButton(
         icon: const Icon(Icons.arrow_forward),
@@ -103,6 +120,14 @@ class _State extends State<WordWebView1> {
           if (await controller.canGoForward()) {
             controller.goForward();
           }
+        },
+      ),
+      IconButton(
+        icon: const Icon(Icons.link),
+        onPressed: () async {
+          final url = await controller.currentUrl();
+          if (url == null) return;
+          copyToClipBoard(context, url);
         },
       ),
       // 提取解析当前网址
@@ -115,6 +140,12 @@ class _State extends State<WordWebView1> {
             myToast(context, "url is null");
             return;
           }
+          final FileInfo? fInfo = await handler.getFileInfoBySourceURL(url);
+          if (fInfo != null) {
+            myToast(context,
+                "You have already parsed this URL\n$url\n${fInfo.title}");
+            return;
+          }
           //   newArticleFileInfoBySourceURL
           final respData = await handler.newArticleFileInfoBySourceURL(url);
           if (respData.code != 0) {
@@ -122,13 +153,11 @@ class _State extends State<WordWebView1> {
             return;
           }
           myToast(context, "success");
+          produceEvent(EventType.updateArticleList);
         },
       ),
     ];
     return getScaffold(context,
-        body:PlatformWebViewWidget(
-          PlatformWebViewWidgetCreationParams(controller: controller),
-        ).build(context),
-        appBar: AppBar(actions: actions));
+        body: content, appBar: AppBar(actions: actions));
   }
 }
