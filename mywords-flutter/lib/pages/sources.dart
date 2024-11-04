@@ -18,24 +18,21 @@ class Sources extends StatefulWidget {
 
 class _State extends State<Sources> {
   List<String> sourceURLs = [];
+  bool init = false;
 
   List<String> allSourcesFromDB = [];
 
-  Future<void> refreshSources() async {
-   final respData= await handler.refreshPublicSources();
-    if (!respData.success) {
-      myToast(context, "refresh sources failed");
-      return;
-    }
+  Future<void> updateSources() async {
     sourceURLs = await handler.getAllSources();
     allSourcesFromDB = await handler.allSourcesFromDB();
+    init = true;
     setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    refreshSources();
+    updateSources();
   }
 
   bool editing = false;
@@ -77,14 +74,15 @@ class _State extends State<Sources> {
           maxLines: 10,
           textInputAction: TextInputAction.newline,
           decoration: InputDecoration(
-            hintText: "Please input source url.\nIf multiple, separate by newline",
+            hintText:
+                "Please input source url. One url per line. Example: \n\nhttps://www.nytimes.com/\nhttps://www.bbc.com/",
           )),
       actions: [
         TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text("cancel")),
+            child: const Text("Cancel")),
         TextButton(
             onPressed: () async {
               String text = controllerAdd.text;
@@ -99,10 +97,10 @@ class _State extends State<Sources> {
                 return;
               }
               myToast(context, "add source success");
-              await refreshSources();
+              await updateSources();
               Navigator.pop(context);
             },
-            child: const Text("ok"))
+            child: const Text("OK"))
       ],
     );
   }
@@ -113,71 +111,111 @@ class _State extends State<Sources> {
     controllerAdd.dispose();
   }
 
+  Widget get addButton => IconButton(
+      onPressed: () {
+        showDialog(context: context, builder: showAddSourceDialog)
+            .then((value) {
+          controllerAdd.clear();
+        });
+      },
+      icon: Icon(Icons.add));
+
+  Widget get deleteButton => IconButton(
+      onPressed: () async {
+        final selectSourceURLs = hostSelectedMap.keys.toList();
+        if (selectSourceURLs.isEmpty) {
+          setState(() {
+            editing = !editing;
+          });
+          return;
+        }
+        hostSelectedMap.clear();
+        final resp = await handler.deleteSourcesFromDB(selectSourceURLs);
+        setState(() {
+          editing = !editing;
+        });
+        if (!resp.success) {
+          myToast(context, "delete sources from db failed");
+          return;
+        }
+        await updateSources();
+
+        myToast(context, "delete success");
+      },
+      icon: Icon(Icons.delete, color: Colors.red));
+
+  Widget get editingButton => IconButton(
+      onPressed: () async {
+        setState(() {
+          editing = !editing;
+        });
+      },
+      icon: Icon(Icons.edit_note));
+
+  Widget get refreshButton => IconButton(
+      onPressed: () async {
+        final respRefresh = await handler.refreshPublicSources();
+        if (!respRefresh.success) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('refresh sources failed',
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+          ));
+          return;
+        }
+        await updateSources();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('refresh sources success',
+                maxLines: 1, overflow: TextOverflow.ellipsis)));
+      },
+      icon: Icon(Icons.refresh));
+
+  Widget get copySourceSelectedButton => IconButton(
+      onPressed: () async {
+        copyToClipBoard(context, sourceURLs.join("\n"));
+      },
+      icon: Icon(Icons.copy_all));
+
   @override
   Widget build(BuildContext context) {
-    return getScaffold(
-      context,
-      appBar: AppBar(
-        title: const Text("Sources"),
-        actions: [
-          // refresh
-          IconButton(
-              onPressed: () async {
-                final respRefresh = await handler.refreshPublicSources();
-                if (!respRefresh.success) {
-                  myToast(context, "refresh sources failed");
-                  return;
-                }
-                await refreshSources();
-                myToast(context, "refreshed sources");
-              },
-              icon: Icon(Icons.refresh)),
-          IconButton(
-              onPressed: () {
-                showDialog(context: context, builder: showAddSourceDialog)
-                    .then((value) {
-                  controllerAdd.clear();
-                });
-              },
-              icon: Icon(Icons.add)),
-          editing
-              ? IconButton(
-                  onPressed: () async {
-                    final selectSourceURLs = hostSelectedMap.keys.toList();
-                    if (selectSourceURLs.isEmpty) {
-                      setState(() {
-                        editing = !editing;
-                      });
-                      return;
-                    }
-                    hostSelectedMap.clear();
-                    final resp =
-                        await handler.deleteSourcesFromDB(selectSourceURLs);
-                    setState(() {
-                      editing = !editing;
-                    });
-                    if (!resp.success) {
-                      myToast(context, "delete sources from db failed");
-                      return;
-                    }
-                    await refreshSources();
-
-                    myToast(context, "delete success");
-                  },
-                  icon: Icon(Icons.delete, color: Colors.red))
-              : IconButton(
-                  onPressed: () async {
-                    setState(() {
-                      editing = !editing;
-                    });
-
-                  },
-                  icon: Icon(Icons.edit_note)),
-        ],
-      ),
-      body: ListView(
-        children: [...sourceURLs.map((e) => buildSourceListTile(e))],
-      ),
+    final Widget body;
+    if (!init) {
+      body = const Center(child: CircularProgressIndicator());
+    } else {
+      final listView = ListView.builder(
+        itemBuilder: (context, index) {
+          final rootURL = sourceURLs[index];
+          return buildSourceListTile(rootURL);
+        },
+        itemCount: sourceURLs.length,
+      );
+      body = listView;
+    }
+    final List<Widget> actions = [];
+    if (editing) {
+      actions.addAll([
+        refreshButton,
+        copySourceSelectedButton,
+        deleteButton,
+      ]);
+    } else {
+      actions.addAll([
+        refreshButton,
+        addButton,
+        editingButton,
+      ]);
+    }
+    final Widget cancelButton = IconButton(
+        onPressed: () {
+          setState(() {
+            editing = false;
+          });
+        },
+        icon: Icon(Icons.cancel_outlined));
+    final appBar = AppBar(
+      leading: editing ? cancelButton : null,
+      title: const Text("Sources"),
+      actions: actions,
     );
+    return getScaffold(context, appBar: appBar, body: body);
   }
 }
