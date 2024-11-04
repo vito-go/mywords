@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
@@ -73,8 +74,8 @@ class _State extends State<Sources> {
   Widget buildGridView() {
     myPrint(MediaQuery.of(context).size.width);
     return GridView.builder(
-      gridDelegate:
-          SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 150,childAspectRatio: 1.15),
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 150, childAspectRatio: 1.15),
       itemBuilder: (context, index) {
         final rootURL = sourceURLs[index];
         final icon = getIconBySourceURL(rootURL);
@@ -150,28 +151,31 @@ class _State extends State<Sources> {
       icon: Icon(Icons.add));
 
   Widget get deleteButton => IconButton(
-      onPressed: hostSelectedMap.isEmpty?null:() async {
-        final selectSourceURLs = hostSelectedMap.keys.toList();
-        if (selectSourceURLs.isEmpty) {
-          setState(() {
-            editing = !editing;
-          });
-          return;
-        }
-        hostSelectedMap.clear();
-        final resp = await handler.deleteSourcesFromDB(selectSourceURLs);
-        setState(() {
-          editing = !editing;
-        });
-        if (!resp.success) {
-          myToast(context, "delete sources from db failed");
-          return;
-        }
-        await updateSources();
+      onPressed: hostSelectedMap.isEmpty
+          ? null
+          : () async {
+              final selectSourceURLs = hostSelectedMap.keys.toList();
+              if (selectSourceURLs.isEmpty) {
+                setState(() {
+                  editing = !editing;
+                });
+                return;
+              }
+              hostSelectedMap.clear();
+              final resp = await handler.deleteSourcesFromDB(selectSourceURLs);
+              setState(() {
+                editing = !editing;
+              });
+              if (!resp.success) {
+                myToast(context, "delete sources from db failed");
+                return;
+              }
+              await updateSources();
 
-        myToast(context, "delete success");
-      },
-      icon: Icon(Icons.delete, color:hostSelectedMap.isEmpty?null: Colors.red));
+              myToast(context, "delete success");
+            },
+      icon: Icon(Icons.delete,
+          color: hostSelectedMap.isEmpty ? null : Colors.red));
 
   Widget get editingButton => IconButton(
       onPressed: () async {
@@ -183,7 +187,9 @@ class _State extends State<Sources> {
 
   Widget get refreshButton => IconButton(
       onPressed: () async {
-        final resp = await handler.refreshPublicSources();
+        final resp = await compute((_) async {
+          return await handler.refreshPublicSources();
+        }, null);
         if (!resp.success) {
           myToast(context, 'refresh sources failed${resp.message}');
           return;
