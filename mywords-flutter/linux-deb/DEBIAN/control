@@ -1,9 +1,8 @@
 Package: mywords
-Version: 4.0.0
-Section: NetWork
+Version: 4.3.0
+Section: Education
 Priority: optional
 Architecture: amd64
-Installed-Size: 20240316
 Maintainer: liushihao888@gmail.com
 Provides: liushihao
 Description: mywords
