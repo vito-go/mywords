@@ -814,6 +814,7 @@ class NativeHandler implements Handler {
     final result = resultC.toDartString();
     malloc.free(sourcesC);
     malloc.free(resultC);
+    myPrint("addSourcesToDB result: $result");
     final RespData<void> respData =
         RespData.fromJson(jsonDecode(result), (json) {});
     return respData;

@@ -70,8 +70,10 @@ class ArticlePageState extends State<ArticlePage> {
       produceEvent( EventType.updateArticleList);
       article = respData.data!;
       if (!mounted) return;
+      // ScaffoldMessenger.of(context)
+      //     .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('重新从本地文件解析成功！')));
+          .showSnackBar(const SnackBar(content: Text('Reparse from local file successfully!')));
       setState(() {});
     });
   }

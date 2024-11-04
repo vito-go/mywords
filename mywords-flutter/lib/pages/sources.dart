@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/libso/handler.dart';
 import 'package:mywords/pages/get_icon.dart';
 import 'package:mywords/util/get_scaffold.dart';
@@ -38,28 +39,55 @@ class _State extends State<Sources> {
   bool editing = false;
   Map<String, bool> hostSelectedMap = {};
 
-  Widget buildSourceListTile(String rootURL) {
-    Widget leading = getIconBySourceURL(rootURL);
+  Widget buildEditCheckBox(String rootURL) {
     final fromSourceDB = allSourcesFromDB.contains(rootURL);
+    return Checkbox(
+        value: fromSourceDB ? (hostSelectedMap[rootURL] ?? false) : false,
+        onChanged: !fromSourceDB
+            ? null
+            : (v) {
+                if (v == null) return;
+                hostSelectedMap[rootURL] = v;
+                setState(() {});
+              });
+  }
+
+  Widget buildSourceListTile(String rootURL) {
+    final Widget leading = getIconBySourceURL(rootURL);
     return ListTile(
       title: Text(rootURL),
       leading: leading,
       trailing: editing
-          ? Checkbox(
-              value: fromSourceDB ? (hostSelectedMap[rootURL] ?? false) : false,
-              onChanged: !fromSourceDB
-                  ? null
-                  : (v) {
-                      if (v == null) return;
-                      hostSelectedMap[rootURL] = v;
-                      setState(() {});
-                    })
+          ? buildEditCheckBox(rootURL)
           : const Icon(Icons.navigate_next),
       onTap: editing
           ? null
           : () {
               pushTo(context, SourcesWebView(rootURL: rootURL));
             },
+    );
+  }
+
+  // SliverGridDelegateWithMaxCrossAxisExtent
+  // SliverGridDelegateWithFixedCrossAxisCount
+  Widget buildGridView() {
+    myPrint(MediaQuery.of(context).size.width);
+    return GridView.builder(
+      gridDelegate:
+          SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 150,childAspectRatio: 1.15),
+      itemBuilder: (context, index) {
+        final rootURL = sourceURLs[index];
+        final icon = getIconBySourceURL(rootURL);
+        return TextButton.icon(
+            onPressed: editing
+                ? null
+                : () {
+                    pushTo(context, SourcesWebView(rootURL: rootURL));
+                  },
+            label: Text(rootURL),
+            icon: editing ? buildEditCheckBox(rootURL) : icon);
+      },
+      itemCount: sourceURLs.length,
     );
   }
 
@@ -76,6 +104,7 @@ class _State extends State<Sources> {
           decoration: InputDecoration(
             hintText:
                 "Please input source url. One url per line. Example: \n\nhttps://www.nytimes.com/\nhttps://www.bbc.com/",
+            border: OutlineInputBorder(),
           )),
       actions: [
         TextButton(
@@ -93,7 +122,7 @@ class _State extends State<Sources> {
               }
               final resp = await handler.addSourcesToDB(text);
               if (!resp.success) {
-                myToast(context, "add source failed");
+                myToast(context, "add source failed${resp.message}");
                 return;
               }
               myToast(context, "add source success");
@@ -121,7 +150,7 @@ class _State extends State<Sources> {
       icon: Icon(Icons.add));
 
   Widget get deleteButton => IconButton(
-      onPressed: () async {
+      onPressed: hostSelectedMap.isEmpty?null:() async {
         final selectSourceURLs = hostSelectedMap.keys.toList();
         if (selectSourceURLs.isEmpty) {
           setState(() {
@@ -142,7 +171,7 @@ class _State extends State<Sources> {
 
         myToast(context, "delete success");
       },
-      icon: Icon(Icons.delete, color: Colors.red));
+      icon: Icon(Icons.delete, color:hostSelectedMap.isEmpty?null: Colors.red));
 
   Widget get editingButton => IconButton(
       onPressed: () async {
@@ -154,12 +183,9 @@ class _State extends State<Sources> {
 
   Widget get refreshButton => IconButton(
       onPressed: () async {
-        final respRefresh = await handler.refreshPublicSources();
-        if (!respRefresh.success) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('refresh sources failed',
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-          ));
+        final resp = await handler.refreshPublicSources();
+        if (!resp.success) {
+          myToast(context, 'refresh sources failed${resp.message}');
           return;
         }
         await updateSources();
@@ -175,30 +201,48 @@ class _State extends State<Sources> {
       },
       icon: Icon(Icons.copy_all));
 
-  @override
-  Widget build(BuildContext context) {
-    final Widget body;
-    if (!init) {
-      body = const Center(child: CircularProgressIndicator());
-    } else {
-      final listView = ListView.builder(
+  Widget get listView => ListView.builder(
         itemBuilder: (context, index) {
           final rootURL = sourceURLs[index];
           return buildSourceListTile(rootURL);
         },
         itemCount: sourceURLs.length,
       );
-      body = listView;
+
+  Widget buildBody() {
+    if (editing) {
+      return listView;
     }
+    if (prefs.sourcesShowGrid) {
+      return buildGridView();
+    } else {
+      return listView;
+    }
+  }
+
+  Widget get changeShowGridButton => IconButton(
+      onPressed: () async {
+        prefs.sourcesShowGrid = !prefs.sourcesShowGrid;
+        myPrint(prefs.sourcesShowGrid);
+        setState(() {});
+      },
+      icon: !prefs.sourcesShowGrid ? Icon(Icons.grid_on) : Icon(Icons.list));
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget body =
+        init ? buildBody() : const Center(child: CircularProgressIndicator());
     final List<Widget> actions = [];
     if (editing) {
       actions.addAll([
+        changeShowGridButton,
         refreshButton,
         copySourceSelectedButton,
         deleteButton,
       ]);
     } else {
       actions.addAll([
+        changeShowGridButton,
         refreshButton,
         addButton,
         editingButton,
