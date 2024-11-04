@@ -81,7 +81,7 @@ class _State extends State<ArticleListView> {
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Article has been unarchived: ${item.title}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+          maxLines: 2, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
           onPressed: () {
@@ -109,7 +109,7 @@ class _State extends State<ArticleListView> {
     // Then show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Article has been archived: ${item.title}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+          maxLines: 2, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
           onPressed: () {
@@ -134,7 +134,7 @@ class _State extends State<ArticleListView> {
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Article has been deleted: ${item.title}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+          maxLines: 2, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
           onPressed: () {

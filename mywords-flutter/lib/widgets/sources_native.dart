@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
+import 'package:mywords/util/block_show.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
@@ -146,14 +148,17 @@ class _State extends State<SourcesWebView> {
                 "You have already parsed this URL\n$url\n${fInfo.title}");
             return;
           }
-          //   newArticleFileInfoBySourceURL
-          final respData = await handler.newArticleFileInfoBySourceURL(url);
-          if (respData.code != 0) {
-            myToast(context, respData.message);
-            return;
-          }
-          myToast(context, "success");
-          produceEvent(EventType.updateArticleList);
+          blockShowDialog(context, ()async{
+            //   newArticleFileInfoBySourceURL
+            final respData = await compute(handler.newArticleFileInfoBySourceURL, url);
+            if (respData.code != 0) {
+              myToast(context, respData.message);
+              return;
+            }
+            myToast(context, "success");
+            produceEvent(EventType.updateArticleList);
+          }());
+
         },
       ),
     ];
