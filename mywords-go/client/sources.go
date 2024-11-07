@@ -62,8 +62,9 @@ func (c *Client) saveSourcesToLocal(sources []string) (err error) {
 var localFixedSourcesMap = []string{
 	"https://cn.nytimes.com",
 	"https://www.bbc.co.uk",
+	"https://edition.cnn.com",
 	"https://apnews.com",
-	"https://www.npr.org",
+	"https://www.cbsnews.com",
 	"https://www.theguardian.com",
 	"https://www.voanews.com",
 	"https://time.com",
@@ -161,8 +162,9 @@ func (c *Client) getAllSources(ctx context.Context) []string {
 		hostsCountMap[host.Host] = host.Count
 	}
 
-	// 排序: 优先级: 公共源 > 按照host出现次数排序 > 私有源 > 按照source排序
+	// 排序: 优先级: 按照host出现次数排序 > 公共源 > 私有源 > 按照source排序
 	// host  通过getHostFromURL获取
+	// order: host count  > public > private > source
 	sort.Slice(allSources, func(i, j int) bool {
 		sourceI := allSources[i]
 		sourceJ := allSources[j]
@@ -173,21 +175,15 @@ func (c *Client) getAllSources(ctx context.Context) []string {
 		countJ := hostsCountMap[hostJ]
 		_, isPublicI := publicSourcesMap[sourceI]
 		_, isPublicJ := publicSourcesMap[sourceJ]
+		if countI != countJ {
+			return countI > countJ
+		}
+		// countI == countJ
 		if isPublicI && !isPublicJ {
 			return true
 		}
 		if !isPublicI && isPublicJ {
 			return false
-		}
-		if isPublicI && isPublicJ {
-			if countI != countJ {
-				return countI > countJ
-			}
-			return sourceI < sourceJ
-		}
-		// all are private sources
-		if countI != countJ {
-			return countI > countJ
 		}
 		return sourceI < sourceJ
 	})
@@ -218,7 +214,7 @@ func (c *Client) GetSourcesPublic(ctx context.Context) ([]string, error) {
 	return sources, nil
 }
 func (c *Client) getSourcesFromPublic(ctx context.Context) ([]string, error) {
-	const sourceURL = "https://raw.githubusercontent.com/vito-go/assets/refs/heads/dev-sources/mywords/sources.list"
+	const sourceURL = "https://raw.githubusercontent.com/vito-go/assets/refs/heads/master/mywords/sources.list"
 	req, err := http.NewRequest("GET", sourceURL, nil)
 	if err != nil {
 		return nil, err
