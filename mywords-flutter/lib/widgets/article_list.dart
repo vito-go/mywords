@@ -9,6 +9,7 @@ import 'package:mywords/libso/handler.dart';
 import 'package:mywords/libso/resp_data.dart';
 import 'package:mywords/pages/article_page.dart';
 import 'package:mywords/libso/types.dart';
+import 'package:mywords/pages/get_icon.dart';
 import 'package:mywords/util/navigator.dart';
 import 'package:mywords/util/util.dart';
 
@@ -80,7 +81,7 @@ class _State extends State<ArticleListView> {
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Article has been unarchived: ${item.title}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+          maxLines: 2, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
           onPressed: () {
@@ -108,7 +109,7 @@ class _State extends State<ArticleListView> {
     // Then show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Article has been archived: ${item.title}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+          maxLines: 2, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
           onPressed: () {
@@ -133,7 +134,7 @@ class _State extends State<ArticleListView> {
     // Then show a snackbar.
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Article has been deleted: ${item.title}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+          maxLines: 2, overflow: TextOverflow.ellipsis),
       action: SnackBarAction(
           label: "Revoke",
           onPressed: () {
@@ -145,15 +146,7 @@ class _State extends State<ArticleListView> {
   }
 
   Widget buildListTileArticle(int index, FileInfo item) {
-    Widget? trailing;
-    final uri = Uri.tryParse(item.sourceUrl);
-    if (uri != null) {
-      final assetPath = assetPathByHost(uri.host);
-      if (assetPath != "") {
-        trailing =
-            ClipOval(child: Image.asset(assetPath, width: 28, height: 28));
-      }
-    }
+    Widget? trailing=getIconBySourceURL(item.sourceUrl);
     return ListTile(
         title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
         trailing: trailing,

@@ -57,3 +57,9 @@ type KeyValue struct {
 	CreateAt int64  `json:"createAt"`
 	UpdateAt int64  `json:"updateAt"`
 }
+
+type Sources struct {
+	ID       int64  `json:"id"`
+	Source   string `json:"source"` // unique
+	CreateAt int64  `json:"createAt"`
+}

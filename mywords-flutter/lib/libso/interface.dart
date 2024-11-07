@@ -101,9 +101,16 @@ abstract class Handler {
   FutureOr<List<String>?> getIPv4s(); // null mean error
 
   FutureOr<ShareInfo> getShareInfo();
-
+  FutureOr<List<String>> getAllSources();
+  // AllSourcesFromDB
+  FutureOr<List<String>> allSourcesFromDB();
+// RefreshPublicSources
+  FutureOr<RespData<void>> refreshPublicSources();
   RespData<void> restoreFromOldVersionData();
-
+  // func (c *Client) AddSourcesToDB(ctx context.Context, sources string) error {
+  FutureOr<RespData<void>> addSourcesToDB(String sources);
+  // DeleteSourcesFromDB
+  FutureOr<RespData<void>> deleteSourcesFromDB(List<String> sources);
   String getHostName();
 
   FutureOr<String> goBuildInfoString();

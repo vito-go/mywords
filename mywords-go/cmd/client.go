@@ -154,7 +154,7 @@ func KnownWordsCountMap() *C.char {
 
 //export AllSourceHosts
 func AllSourceHosts(archived bool) *C.char {
-	hosts, _ := serverGlobal.AllDao().FileInfoDao.AllSourceHosts(ctx, archived)
+	hosts, _ := serverGlobal.AllDao().FileInfoDao.AllSourceHostsByArchived(ctx, archived)
 	b, _ := json.Marshal(hosts)
 	return C.CString(string(b))
 }

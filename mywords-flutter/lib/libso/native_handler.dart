@@ -597,6 +597,25 @@ class NativeHandler implements Handler {
       Pointer<Utf8> Function(Bool archived),
       Pointer<Utf8> Function(bool archived)>('AllSourceHosts');
 
+// GetAllSources
+  final GetAllSources = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('GetAllSources');
+
+// RefreshPublicSources
+  final RefreshPublicSources = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('RefreshPublicSources');
+  //   // func (c *Client) AddSourcesToDB(ctx context.Context, sources []string) error {
+  final AddSourcesToDB = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('AddSourcesToDB');
+  // AllSourcesFromDB
+  final AllSourcesFromDB = nativeAddLib.lookupFunction<Pointer<Utf8> Function(),
+      Pointer<Utf8> Function()>('AllSourcesFromDB');
+  // DeleteSourcesFromDB(ctx context.Context, sources []string) error
+  final DeleteSourcesFromDB = nativeAddLib.lookupFunction<
+      Pointer<Utf8> Function(Pointer<Utf8>),
+      Pointer<Utf8> Function(Pointer<Utf8>)>('DeleteSourcesFromDB');
   // getWebOnlineClose
   final GetWebOnlineClose = nativeAddLib
       .lookupFunction<Bool Function(), bool Function()>('GetWebOnlineClose');
@@ -766,6 +785,59 @@ class NativeHandler implements Handler {
     // 判断result是否为空或者为null
     final items = List<HostCount>.from(
         (jsonDecode(result) ?? []).map((e) => HostCount.fromJson(e)));
+    return items;
+  }
+
+  @override
+  FutureOr<List<String>> getAllSources() {
+    final resultC = GetAllSources();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final items = List<String>.from(jsonDecode(result) ?? []);
+    return items;
+  }
+
+  @override
+  FutureOr<RespData<void>> refreshPublicSources() {
+    final resultC = RefreshPublicSources();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<void>> addSourcesToDB(String sources) {
+    final sourcesC = sources.toNativeUtf8();
+    final resultC = AddSourcesToDB(sourcesC);
+    final result = resultC.toDartString();
+    malloc.free(sourcesC);
+    malloc.free(resultC);
+    myPrint("addSourcesToDB result: $result");
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
+  }
+
+  @override
+  FutureOr<RespData<void>> deleteSourcesFromDB(List<String> sources) {
+    final sourcesC = jsonEncode(sources).toNativeUtf8();
+    final resultC = DeleteSourcesFromDB(sourcesC);
+    final result = resultC.toDartString();
+    malloc.free(sourcesC);
+    malloc.free(resultC);
+    final RespData<void> respData =
+        RespData.fromJson(jsonDecode(result), (json) {});
+    return respData;
+  }
+
+  @override
+  FutureOr<List<String>> allSourcesFromDB() {
+    final resultC = AllSourcesFromDB();
+    final result = resultC.toDartString();
+    malloc.free(resultC);
+    final items = List<String>.from(jsonDecode(result) ?? []);
     return items;
   }
 }

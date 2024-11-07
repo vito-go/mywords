@@ -28,10 +28,15 @@ import (
 )
 
 const (
-	dbDir   = "db"
-	dictDir = "dict" // zip 文件格式
-
-	dbName = "mywords.db"
+	dbDir      = "db"
+	dictDir    = "dict"         // zip 文件格式
+	dataDir    = `data`         // 存放背单词的目录
+	gobFileDir = "gob_gz_files" // data/gob_gz_files a.txt.gob, b.txt.gob, c.txt.gob ...
+	dbName     = "mywords.db"
+)
+const (
+	cacheDir         = "cache"
+	sourcesCacheFile = "sources.list"
 )
 
 type Client struct {
@@ -145,6 +150,9 @@ func NewClient(rootDataDir string, dictPort int) (*Client, error) {
 
 	allDao := dao.NewAllDao(gdb)
 	if err := os.MkdirAll(filepath.Join(rootDataDir, dataDir, gobFileDir), 0755); err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(filepath.Join(rootDataDir, cacheDir), 0755); err != nil {
 		return nil, err
 	}
 	onDict := dict.NewOneDict()

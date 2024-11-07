@@ -105,3 +105,12 @@ func TestClient_NewArticleFileInfoBySourceURL(t *testing.T) {
 	}
 	t.Logf("%+v", art)
 }
+
+// clientGlobal.NewArticleFileInfoBySourceURL()
+func TestClient_SourcesAllItems(t *testing.T) {
+	art, err := clientGlobal.allDao.Sources.AllItems(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", art)
+}

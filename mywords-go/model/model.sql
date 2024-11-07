@@ -58,3 +58,20 @@ CREATE TABLE IF NOT EXISTS known_words (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_word ON known_words ("word");
 CREATE INDEX IF NOT EXISTS idx_create_day ON known_words ("create_day");
 CREATE INDEX IF NOT EXISTS idx_update_at ON known_words ("update_at");
+
+/*
+type Sources struct {
+	ID       int64  `json:"id"`
+	Source   string `json:"source"` // unique
+	Desc     string `json:"desc"`
+	CreateAt int64  `json:"createAt"`
+}
+
+*/
+CREATE TABLE IF NOT EXISTS sources (
+                                   "id"        INTEGER PRIMARY KEY AUTOINCREMENT,
+                                   "source"     TEXT,
+                                   "create_at" INTEGER
+);
+-- source is unique
+CREATE UNIQUE INDEX IF NOT EXISTS idx_source ON sources ("source");
