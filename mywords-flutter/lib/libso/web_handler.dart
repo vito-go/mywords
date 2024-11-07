@@ -418,6 +418,42 @@ class WebHandler implements Handler {
         .map((e) => HostCount.fromJson(e as Map<String, dynamic>)));
     return items;
   }
+
+  @override
+  FutureOr<List<String>> getAllSources() {
+    final result = call("GetAllSources", []);
+    return result.then((value) => List<String>.from(jsonDecode(value) ?? []));
+  }
+
+  @override
+  FutureOr<RespData<void>> refreshPublicSources() {
+    final result = call("RefreshPublicSources", []);
+    return result.then((value) => RespData.fromJson(jsonDecode(value), (json) {
+          return null;
+        }));
+  }
+
+  @override
+  FutureOr<RespData<void>> addSourcesToDB(String sources) {
+    final result = call("AddSourcesToDB", [sources]);
+    return result.then((value) => RespData.fromJson(jsonDecode(value), (json) {
+          return null;
+        }));
+  }
+
+  @override
+  FutureOr<RespData<void>> deleteSourcesFromDB(List<String> sources) {
+    final result = call("DeleteSourcesFromDB", [sources]);
+    return result.then((value) => RespData.fromJson(jsonDecode(value), (json) {
+          return;
+        }));
+  }
+
+  @override
+  FutureOr<List<String>> allSourcesFromDB() {
+    final result = call("AllSourcesFromDB", []);
+    return result.then((value) => List<String>.from(jsonDecode(value) ?? []));
+  }
 }
 
 Future<String> call(String funcName, List<dynamic> args) async {

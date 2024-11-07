@@ -10,7 +10,6 @@ import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/common/queue.dart';
 
-import '../common/prefs/prefs.dart';
 
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});

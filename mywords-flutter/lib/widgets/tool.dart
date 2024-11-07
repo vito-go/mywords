@@ -12,12 +12,14 @@ import 'package:mywords/pages/known_words.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
+import 'package:mywords/util/util_native.dart';
 import 'package:mywords/widgets/private_ip.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../pages/dict_database.dart';
 import '../pages/restore_data.dart';
 import '../pages/share_data.dart';
+import '../pages/sources.dart';
 import '../util/util.dart';
 
 class MyTool extends StatefulWidget {
@@ -427,6 +429,17 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       ),
       // buildListTileVacuumDB(),
     ]);
+    if (platformIsMobileClient()){
+      children.add(ListTile(
+        title: const Text("Sources"),
+        leading: const Icon(Icons.web),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const Sources());
+        },
+      ));
+    }
+
     if (!kIsWeb) {
       children.add(webOnlineListTile);
     }
@@ -434,6 +447,7 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
     if (false) {
       children.add(buildListTileRestoreFromOld());
     }
+
     if (defaultDictId > 0) {
       children.add(buildListTileWebDictPort());
     }
@@ -448,6 +462,8 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         launchUrlString(privacyPolicyURL);
       },
     ));
+
+
     return ListView(children: children);
   }
 

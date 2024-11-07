@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/pages/article_page.dart';
+import 'package:mywords/pages/sources.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
@@ -81,7 +82,8 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
               title: const Text("Tips"),
 
               // content: const Text('您已经解析过该网址，是否重新解析？'),
-              content: const Text('You have already parsed this URL, do you want to reparse it?'),
+              content: const Text(
+                  'You have already parsed this URL, do you want to reparse it?'),
               actions: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -129,6 +131,16 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
 
   FocusNode focus = FocusNode();
 
+  Widget get searchIcon => ValueListenableBuilder(
+      valueListenable: valueNotifier,
+      builder: (BuildContext context, bool value, Widget? child) {
+        return IconButton(
+            onPressed: value ? null : search,
+            icon: value
+                ? const Icon(Icons.access_time)
+                : const Icon(Icons.content_paste_search));
+      });
+
   Widget textField() {
     //   "https://www.nytimes.com/2024/01/13/world/asia/china-taiwan-election-result-analysis.html"
     return TextField(
@@ -145,15 +157,18 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                 Icons.clear,
                 color: Colors.red,
               )),
-          suffixIcon: ValueListenableBuilder(
-              valueListenable: valueNotifier,
-              builder: (BuildContext context, bool value, Widget? child) {
-                return IconButton(
-                    onPressed: value ? null : search,
-                    icon: value
-                        ? const Icon(Icons.access_time)
-                        : const Icon(Icons.search));
-              })),
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              searchIcon,
+              IconButton(
+                icon: const Icon(Icons.web),
+                onPressed: () {
+                  pushTo(context, Sources());
+                },
+              ),
+            ],
+          )),
     );
   }
 

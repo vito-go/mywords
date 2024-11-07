@@ -16,7 +16,7 @@ build-apk:if-build-so-android
 	- mkdir bin
 	flutter build apk  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)" --target-platform android-arm64
 	mv build/app/outputs/flutter-apk/app-release.apk ./bin/mywords-arm64-v8a-release.apk
-build-aab:
+build-aab:if-build-so-android
 	- mkdir bin
 	flutter build appbundle  --dart-define=FLUTTER_VERSION="$(FLUTTER_VERSION)" --target-platform android-arm64
 	mv build/app/outputs/bundle/release/app-release.aab ./bin/mywords.aab

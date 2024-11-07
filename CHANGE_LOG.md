@@ -1,3 +1,5 @@
+# v4.3.0
+- Add feature sources, including the ability to add and delete. Parse articles directly from webview when reading the article.
 # v4.2.0
 - Add feature to filter and display articles by source URL host
 # v4.1.0

@@ -29,6 +29,7 @@ class _Prefs {
   String get _syncIpPortCode => "mywords:_syncIpPortCode";
 
   String get _toastSlideToDelete => "mywords:_toastSlideToDelete";
+  String get _sourcesShowGrid => "mywords:_sourcesShowGrid";
 
   String get _keyThemeMode => "mywords:themeMode";
 
@@ -78,6 +79,12 @@ class _Prefs {
 
   set toastSlideToDelete(bool _) {
     _globalPrefs.setBool(_toastSlideToDelete, true);
+  }
+  bool get sourcesShowGrid =>
+      _globalPrefs.getBool(_sourcesShowGrid) ?? false;
+
+  set sourcesShowGrid(bool v) {
+    _globalPrefs.setBool(_sourcesShowGrid, v);
   }
 
   bool get syncToadyWordCount =>
