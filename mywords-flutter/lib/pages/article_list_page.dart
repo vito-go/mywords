@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/pages/article_page.dart';
-import 'package:mywords/pages/sources.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/pages/today_known_words.dart';
 import 'package:mywords/util/navigator.dart';
