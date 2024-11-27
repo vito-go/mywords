@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/common/queue.dart';
+import 'package:mywords/pages/sources.dart';
 import 'package:mywords/util/get_scaffold.dart';
 import 'package:mywords/util/util_native.dart'
     if (dart.library.html) 'package:mywords/util/util_web.dart';
@@ -8,6 +10,7 @@ import 'package:mywords/widgets/tool.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../common/global.dart';
 import '../libso/handler.dart';
+import '../util/navigator.dart';
 import '../util/util.dart';
 import 'article_list_page.dart';
 import 'lookup_word.dart';
@@ -53,7 +56,7 @@ class _State extends State<Home> {
     const BottomNavigationBarItem(label: ("Tool"), icon: Icon(Icons.settings)),
   ];
 
-  Widget themeIconButton() {
+  Widget get themeIconButton {
     return IconButton(
         onPressed: () {
           if (prefs.themeMode == ThemeMode.light) {
@@ -139,11 +142,20 @@ class _State extends State<Home> {
       icon: const Icon(Icons.refresh));
 
   List<Widget> get actions {
-    return [
-      refreshAllButton,
-      IconButton(onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)),
-      themeIconButton(),
-    ];
+    final List<Widget> result = [];
+    if (platformIsMobileClient()) {
+      result.add(IconButton(
+        icon: const Icon(Icons.web),
+        onPressed: () {
+          pushTo(context, Sources());
+        },
+      ));
+    }
+    result.add(refreshAllButton);
+    result.add(IconButton(
+        onPressed: aboutOnTap, icon: const Icon(Icons.help_outline)));
+    result.add(themeIconButton);
+    return result;
   }
 
   BottomNavigationBar get bottomBar => BottomNavigationBar(

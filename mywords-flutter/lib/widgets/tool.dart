@@ -12,7 +12,6 @@ import 'package:mywords/pages/known_words.dart';
 import 'package:mywords/pages/proxy.dart';
 import 'package:mywords/pages/statistic_chart.dart';
 import 'package:mywords/util/navigator.dart';
-import 'package:mywords/util/util_native.dart';
 import 'package:mywords/widgets/private_ip.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -370,12 +369,22 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     myPrint("build MyTool");
-    final List<Widget> children = [];
-    // children.add(buildInfo());
-    children.addAll([
+    final List<Widget> children = [
       header,
       const Divider(),
+    ];
+    if (platformIsMobileClient()) {
+      children.add(ListTile(
+        title: const Text("Sources"),
+        leading: const Icon(Icons.web),
+        trailing: const Icon(Icons.navigate_next),
+        onTap: () {
+          pushTo(context, const Sources());
+        },
+      ));
+    }
 
+    children.addAll([
       ListTile(
         // title: const Text("学习统计"),
         title: const Text("Learning Statistics"),
@@ -429,21 +438,11 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
       ),
       // buildListTileVacuumDB(),
     ]);
-    if (platformIsMobileClient()){
-      children.add(ListTile(
-        title: const Text("Sources"),
-        leading: const Icon(Icons.web),
-        trailing: const Icon(Icons.navigate_next),
-        onTap: () {
-          pushTo(context, const Sources());
-        },
-      ));
-    }
 
     if (!kIsWeb) {
       children.add(webOnlineListTile);
     }
-    children.add(const PrivateIP());
+    // children.add(const PrivateIP());
     if (false) {
       children.add(buildListTileRestoreFromOld());
     }
@@ -462,7 +461,6 @@ class MyToolState extends State<MyTool> with AutomaticKeepAliveClientMixin {
         launchUrlString(privacyPolicyURL);
       },
     ));
-
 
     return ListView(children: children);
   }

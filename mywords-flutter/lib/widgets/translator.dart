@@ -4,6 +4,7 @@ import 'package:mywords/common/prefs/prefs.dart';
 import 'package:mywords/util/util.dart';
 import 'package:mywords/util/util_native.dart'
     if (dart.library.html) 'package:mywords/util/util_web.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../libso/handler.dart';
 import '../libso/types.dart';
@@ -52,7 +53,8 @@ void showTranslation(BuildContext context, String text) async {
                       children: [
                         Flexible(child: original),
                         const Divider(),
-                        Flexible(child: Row(
+                        Flexible(
+                            child: Row(
                           children: [
                             Icon(
                               Icons.error,
@@ -78,9 +80,12 @@ void showTranslation(BuildContext context, String text) async {
                     children: [
                       original,
                       const Divider(),
-                      Flexible(child: Row(
+                      Flexible(
+                          child: Row(
                         children: [
-                          Flexible(child: SingleChildScrollView(child: SelectableText(translation.result))),
+                          Flexible(
+                              child: SingleChildScrollView(
+                                  child: SelectableText(translation.result))),
                           IconButton(
                               onPressed: () {
                                 copyToClipBoard(context, translation.result);
@@ -115,7 +120,10 @@ WidgetSpan buildTranslateWidgetSpan(BuildContext context, String text) {
     child: Icon(Icons.g_translate,
         color: prefs.isDark ? null : Theme.of(context).primaryColor),
     onTap: () {
-      showTranslation(context, text);
+      final url = Uri.encodeFull(
+          'https://translate.google.com/?sl=auto&tl=zh-CN&text=$text');
+      launchUrlString(url);
+      // showTranslation(context, text);
     },
   ));
   return trans;

@@ -148,9 +148,10 @@ class _State extends State<SourcesWebView> {
                 "You have already parsed this URL\n$url\n${fInfo.title}");
             return;
           }
-          blockShowDialog(context, ()async{
+          blockShowDialog(context, () async {
             //   newArticleFileInfoBySourceURL
-            final respData = await compute(handler.newArticleFileInfoBySourceURL, url);
+            final respData =
+                await compute(handler.newArticleFileInfoBySourceURL, url);
             if (respData.code != 0) {
               myToast(context, respData.message);
               return;
@@ -158,7 +159,6 @@ class _State extends State<SourcesWebView> {
             myToast(context, "success");
             produceEvent(EventType.updateArticleList);
           }());
-
         },
       ),
     ];
