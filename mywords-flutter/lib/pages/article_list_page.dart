@@ -147,28 +147,18 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
       controller: controller,
       focusNode: focus,
       decoration: InputDecoration(
-          // hintText: "请输入一个英语文章页面网址",
-          hintText: "Please enter a web page URL",
-          prefixIcon: IconButton(
-              onPressed: () {
-                controller.text = '';
-              },
-              icon: const Icon(
-                Icons.clear,
-                color: Colors.red,
-              )),
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              searchIcon,
-              IconButton(
-                icon: const Icon(Icons.web),
-                onPressed: () {
-                  pushTo(context, Sources());
-                },
-              ),
-            ],
-          )),
+        // hintText: "请输入一个英语文章页面网址",
+        hintText: "Please enter a web page URL",
+        prefixIcon: IconButton(
+            onPressed: () {
+              controller.text = '';
+            },
+            icon: const Icon(
+              Icons.clear,
+              color: Colors.red,
+            )),
+        suffixIcon: searchIcon,
+      ),
     );
   }
 
@@ -209,7 +199,7 @@ class _State extends State<ArticleListPage> with AutomaticKeepAliveClientMixin {
                   onPressed: () {
                     pushTo(context, const ToadyKnownWords());
                   },
-                  icon: const Icon(Icons.wordpress)),
+                  icon: const Icon(Icons.local_library)),
               title: RichText(
                 text: TextSpan(
                     // text: "今日学习单词总数: ",

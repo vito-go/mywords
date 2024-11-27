@@ -25,8 +25,13 @@ class _State extends State<Sources> {
   List<String> allSourcesFromDB = [];
 
   Future<void> updateSources() async {
-    sourceURLs = await handler.getAllSources();
+    // sourceURLs = await handler.getAllSources();
     allSourcesFromDB = await handler.allSourcesFromDB();
+    setState(() {});
+    sourceURLs = await compute((_) async {
+      return await handler.getAllSources();
+    }, null);
+    // allSourcesFromDB = await handler.allSourcesFromDB();
     init = true;
     setState(() {});
   }
@@ -72,7 +77,6 @@ class _State extends State<Sources> {
   // SliverGridDelegateWithMaxCrossAxisExtent
   // SliverGridDelegateWithFixedCrossAxisCount
   Widget buildGridView() {
-    myPrint(MediaQuery.of(context).size.width);
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 150, childAspectRatio: 1.15),
