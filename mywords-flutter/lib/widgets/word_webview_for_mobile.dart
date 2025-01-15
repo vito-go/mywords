@@ -10,7 +10,6 @@ import 'package:mywords/libso/handler.dart';
 
 import 'package:mywords/common/queue.dart';
 
-
 class WordWebView extends StatefulWidget {
   const WordWebView({super.key, required this.word});
 
@@ -36,13 +35,15 @@ class _State extends State<WordWebView> {
 
   void parseEntry(String url) async {
     // deal_1#deal_sng_2
-    url = url.replaceAll('entry://', '');
-    final ss = url.split("#");
-    if (ss.isEmpty) return;
-    final w = Uri.decodeComponent(ss[0]);
-    word = w;
-    setState(() {});
-    _loadHtmlStringByWord(word);
+    url = Uri.decodeFull(url);
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    String w = url.replaceAll("entry://", "");
+    if (w == "") return;
+    if (w.contains("=")) {
+      w = "@$w";
+    }
+    _loadHtmlStringByWord(w);
     return;
   }
 
@@ -115,16 +116,12 @@ class _State extends State<WordWebView> {
     );
   }
 
-  void _loadHtmlStringByWord(String word) async {
-    var htmlContent =
-        (await handler.getHTMLRenderContentByWord(word)).data ?? '';
+  void _loadHtmlStringByWord(String w) async {
+    var htmlContent = (await handler.getHTMLRenderContentByWord(w)).data ?? '';
     if (htmlContent == "") return;
-    // final isDark = prefs.isDark;
-    // if (isDark) {
-    //   htmlContent =
-    //       "<style>body{background-color: #FFE0B2FF;}</style>$htmlContent";
-    // }
-    controller.loadHtmlString(htmlContent, baseUrl: word);
+    await controller.loadHtmlString(htmlContent, baseUrl: w);
+    word = w;
+    setState(() {});
   }
 
   void initOpenWithHtmlFilePath() async {

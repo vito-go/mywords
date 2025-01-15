@@ -44,7 +44,7 @@ dependencies:
   shared_preferences: ^2.3.2
   file_picker: ^8.1.2
   fl_chart: ^0.69.0
-  webview_flutter: ^4.9.0
+  webview_flutter: ^4.10.0
   audioplayers: ^6.0.0
   dio: ^5.7.0
   path: ^1.9.0
