@@ -22,7 +22,7 @@ platform:
 # CC=~/Android/Sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
 # Or
 # export PATH="$HOME/Android/Sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
-CC=aarch64-linux-android33-clang
+CC=aarch64-linux-android35-clang
  	# if not set CC, will report error:
 	# runtime/cgo
 	#gcc_android.c:6:10: fatal error: android/log.h: No such file or directory

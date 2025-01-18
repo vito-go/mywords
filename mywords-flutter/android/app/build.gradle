@@ -26,8 +26,8 @@ def storeFilePath = localProperties['storeFile']
 android {
     namespace "com.mywords.android"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
-
+//    ndkVersion flutter.ndkVersion
+    ndkVersion  "27.2.12479018"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
