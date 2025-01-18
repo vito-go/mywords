@@ -381,7 +381,7 @@ func completeHtml(word, htmlOriginalContent string) (string, bool) {
 	var needReplace = true
 	if strings.HasPrefix(htmlOriginalContent, linkPrefix) {
 		word = strings.TrimSpace(strings.TrimPrefix(htmlOriginalContent, linkPrefix))
-		htmlOriginalContent = fmt.Sprintf(entryDiv, word, word)
+		htmlOriginalContent = fmt.Sprintf(entryDiv, url.PathEscape(word), word)
 		needReplace = false
 	}
 	// webview必须有完整的html标签
