@@ -9,7 +9,7 @@ clean:
 	rm -rf android/app/jniLibs/*
 
 build-la:build-apk build-linux
-FLUTTER_VERSION=$(shell flutter --version)
+FLUTTER_VERSION=$(shell flutter --version|awk 'NR==1 {print $$1,$$2 } NR==4 {print $$3,$$4}')
 GO_DIR=../mywords-go
 
 build-apk:if-build-so-android

@@ -21,7 +21,7 @@ class SyncData extends StatefulWidget {
 }
 
 class _SyncDataState extends State<SyncData> {
-  ShareInfo shareInfo = ShareInfo(port: 18964, code: 890604, open: false);
+  ShareInfo shareInfo = ShareInfo(port: 8964, code: 890604, open: false);
   TextEditingController controllerPort = TextEditingController(text: " ");
   TextEditingController controllerCode = TextEditingController(text: " ");
   TextEditingController controllerBackUpZipName =
