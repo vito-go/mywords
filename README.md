@@ -74,7 +74,7 @@ different topics and background knowledge, comprehensively enhancing your Englis
 - [x] On web version, sensitive functions like `DelDict` are only allowed to be called in the local environment.
 ---
 
-## Contact and Support**：
+## Contact and Support：
 - If you encounter any issues while using this tool or adding dictionaries, or if you want to share your learning experiences and progress with us, please contact us via:
     - Email：`vitogo2024@gmail.com`
     - Join Our Telegram Group： https://t.me/+O6mfB2ElB_ViYmM1
