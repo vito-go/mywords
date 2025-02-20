@@ -9,9 +9,7 @@
 ## 下载和安装
 - 请跳转到 [GitHub Release](https://github.com/vito-go/mywords/releases) 页面下载适合您平台的版本。
 - Google Play Store:
-  > 仍处于预发布测试阶段，如果您想参与测试，请将您的gmail发送至`liushihao888@gmail.com`或直接加入Google Group参与测试。
-  > - Google Group: https://groups.google.com/g/vitogo-mywords
-  > - 封闭测试: https://play.google.com/apps/testing/com.mywords.android
+  > https://play.google.com/store/apps/details?id=com.mywords.android
 - 苹果App Store: 等待中
 
 
@@ -76,6 +74,12 @@
 
 ---
 
+## 联系和支持**：
+- 如果你在使用本工具或添加词典时遇到了问题，或者想要与我们分享你的学习经验和进度，请通过以下方式联系我们：
+  - Email：`vitogo2024@gmail.com`
+  - 加入我们的 Telegram 群组： https://t.me/+O6mfB2ElB_ViYmM1
+
+
 ## 鸣谢
 
 我们衷心感谢以下个人和组织对本项目的支持和贡献：
@@ -84,7 +88,7 @@
 - 感谢 [The Economist China](https://www.economist.com/topics/china) 为我们提供的高质量英文阅读材料，为我们的学习提供了丰富的内容。
 - 我们对 [Bitbucket.org/xwang](https://bitbucket.org/xwang/mdict-analysis/src/master/)提供的 Python 词典解析工具表示特别鸣谢，这对我们构建词汇数据库至关重要。
 - 特别感谢[louischeung.top](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/) 提供的牛津高阶英汉双解词典，这资源对于英语学习者们非常有价值。
-- 我们对所有通过 WeChat或Email主动提供反馈和建议的用户表示深深的谢意。
+- 我们对所有通过 Telegram 或 Email 主动提供反馈和建议的用户表示深深的谢意。
 - 感谢所有贡献者、测试者和使用我们工具的用户，是你们的支持让这个项目不断进步。
 
 此外，我们还要感谢所有在幕后默默支持这个项目的朋友们。你们的鼓励和意见是项目不断发展的源泉。

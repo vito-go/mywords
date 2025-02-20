@@ -95,10 +95,10 @@ class _State extends State<Home> {
             const Text("author: "),
             Flexible(
                 child: InkWell(
-                    child: const Text("liushihao888@gmail.com",
+                    child: const Text(Global.email,
                         style: TextStyle(color: Colors.blue)),
                     onTap: () {
-                      copyToClipBoard(context, "liushihao888@gmail.com");
+                      copyToClipBoard(context,Global.email);
                     })),
           ],
         ),

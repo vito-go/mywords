@@ -10,6 +10,8 @@ class Global {
   static String _version = "";
   static String goBuildInfoString = "";
   static  String get version => _version;
+  static const String email="vitogo2024@gmail.com";
+
   static Map<int, int> levelDistribute(List<String> words) {
     final Map<int, int> resultMap = {};
     for (final word in words) {

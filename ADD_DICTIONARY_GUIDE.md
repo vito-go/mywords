@@ -9,10 +9,8 @@ To fully utilize the word learning and lookup features of this tool, you may nee
 
 2. **Contact and Support**：
 - If you encounter any issues while using this tool or adding dictionaries, or if you want to share your learning experiences and progress with us, please contact us via:
-    - WeChat：`vitogo-chat`
-    - Email：`liushihao888@gmail.com`
-- You can also join our WeChat study and sharing group to exchange English learning experiences with other students and progress together. Scan the QR code below to join the WeChat group:
-    - <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/wechat-group.png" style="width: 256px">
+    - Email：`vitogo2024@gmail.com`
+    - 加入我们的 Telegram 群组： https://t.me/+O6mfB2ElB_ViYmM1
 
 3. **Dictionary Library Format Description**:
 - The dictionary library should be a zip compressed file containing the following contents:
