@@ -74,6 +74,11 @@ different topics and background knowledge, comprehensively enhancing your Englis
 - [x] On web version, sensitive functions like `DelDict` are only allowed to be called in the local environment.
 ---
 
+## Contact and Support**：
+- If you encounter any issues while using this tool or adding dictionaries, or if you want to share your learning experiences and progress with us, please contact us via:
+    - Email：`vitogo2024@gmail.com`
+    - Join Our Telegram Group： https://t.me/+O6mfB2ElB_ViYmM1
+
 ## Acknowledgements
 
 We sincerely thank the following individuals and organizations for their support and contributions to this project:
@@ -82,7 +87,7 @@ We sincerely thank the following individuals and organizations for their support
 - Thanks to  [The Economist China ](https://www.economist.com/topics/china) for providing us with high-quality English reading materials, enriching our learning with abundant content.
 - Special thanks to [Bitbucket.org/xwang](https://bitbucket.org/xwang/mdict-analysis/src/master/)for providing the Python dictionary parsing tool, which is crucial for us to build the vocabulary database.
 - Special thanks to [louischeung.top](http://louischeung.top:225/mdict%E8%AF%8D%E5%85%B8%E5%8C%85/)  for providing the Oxford Advanced English-Chinese bilingual dictionary, which is highly valuable for English learners.
-- We express our deep gratitude to all users who have actively provided feedback and suggestions through WeChat or Email.
+- We express our deep gratitude to all users who have actively provided feedback and suggestions through Telegram or Email.
 - Thanks to all contributors, testers, and users who have supported and used our tool. It is your support that drives the continuous improvement of this project.
 
 

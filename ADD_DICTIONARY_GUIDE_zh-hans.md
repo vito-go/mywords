@@ -5,14 +5,7 @@
 1. **下载词典数据库**：
 - 访问提供的非永久下载链接 `http://vitogo.tpddns.cn:19081/_download/dict-ox10-v3.zip` ，请复制该链接到浏览器中下载词典数据文件。
 
-2. **联系和支持**：
-- 如果你在使用本工具或添加词典时遇到了问题，或者想要与我们分享你的学习经验和进度，请通过以下方式联系我们：
-  - WeChat：`vitogo-chat`
-  - Email：`liushihao888@gmail.com`
-- 你还可以加入我们的微信学习分享交流群，与其他学员一起分享英语学习心得，共同学习进步。扫描下面的二维码即可加入微信群：
-  - <img src="https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/wechat-group.png" style="width: 256px">
-
-3. **词典库格式说明**：
+2. **词典库格式说明**：
 - 词典库应当是一个zip压缩文件，该文件包含以下内容：
 
   ![词典数据示例](https://raw.githubusercontent.com/vito-go/assets/master/mywords/images/zip-dict.png)
