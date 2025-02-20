@@ -9,9 +9,7 @@
 ## 下载和安装
 - 请跳转到 [GitHub Release](https://github.com/vito-go/mywords/releases) 页面下载适合您平台的版本。
 - Google Play Store:
-  > 仍处于预发布测试阶段，如果您想参与测试，请将您的gmail发送至`liushihao888@gmail.com`或直接加入Google Group参与测试。
-  > - Google Group: https://groups.google.com/g/vitogo-mywords
-  > - 封闭测试: https://play.google.com/apps/testing/com.mywords.android
+  > https://play.google.com/store/apps/details?id=com.mywords.android
 - 苹果App Store: 等待中
 
 

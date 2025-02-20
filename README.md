@@ -9,9 +9,7 @@ This project provides a tool for learning English vocabulary, designed specifica
 ## Download and Installation
 - Please jump to the [GitHub Release](https://github.com/vito-go/mywords/releases) page to download the appropriate version for your platform.
 - Google Play Store:
-  > Still in the pre-release testing phase, if you would like to join the test, please send your gmail to `liushihao888@gmail.com` or join the Google Group directly to take part in the test.
-  > - Google Group: https://groups.google.com/g/vitogo-mywords
-  > - Closed Testing: https://play.google.com/apps/testing/com.mywords.android
+  > https://play.google.com/store/apps/details?id=com.mywords.android
 - Apple App Store: Coming soon...
 ## CHANGE_LOG.md
 - [CHANGE_LOG.md](CHANGE_LOG.md)
