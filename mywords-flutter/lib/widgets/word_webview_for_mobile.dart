@@ -107,7 +107,13 @@ class _State extends State<WordWebView> {
 
           if (uri.scheme == "entry") {
             myPrint(uri.host);
-            parseEntry(request.url);
+            final u1=uri.host;
+            final u2=uri.path;
+            final u3=uri.fragment;
+            // parseEntry(request.url);
+            final host=uri.host;
+            final w=Uri.decodeFull(uri.host);
+            _loadHtmlStringByWord(w);
             return NavigationDecision.prevent;
           }
           return NavigationDecision.navigate;
