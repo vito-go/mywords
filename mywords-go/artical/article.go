@@ -7,8 +7,6 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/antchfx/xpath"
-	htmlquery "github.com/antchfx/xquery/html"
 	"io"
 	"mywords/dict"
 	"net/http"
@@ -20,6 +18,9 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/antchfx/xpath"
+	htmlquery "github.com/antchfx/xquery/html"
 )
 
 type Article struct {
@@ -161,10 +162,10 @@ func ParseLocalFile(path string) (*Article, error) {
 var shy = string([]byte{194, 173})
 
 // ParseVersion 如果article的文件的version不同，则进入文章页面会重新进行解析，但是不会更新解析时间。
-const ParseVersion = "0.3.0"
+const ParseVersion = "4.3.8"
 
 // var regSentenceSplit = regexp.MustCompile(`[^ ][^ ][^ ][^ ]\. [A-Z“]`)
-var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“]`)
+var regSentenceSplit = regexp.MustCompile(`[^A-Z ][^A-Z ][^A-Z ]\. [A-Z“<]`)
 
 const quote = "”"
 const minLen = 3
