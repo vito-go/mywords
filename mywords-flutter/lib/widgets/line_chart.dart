@@ -342,19 +342,19 @@ class _LineChart extends StatelessWidget {
               data.maxY! != valueDouble &&
               data.maxY! - valueDouble < meta.appliedInterval) {
             return SideTitleWidget(
-              axisSide: meta.axisSide,
+              meta: meta,
               child: const Text(""),
             );
           }
 
           if (valueDouble.toInt() != valueDouble) {
             return SideTitleWidget(
-              axisSide: meta.axisSide,
+              meta: meta,
               child: const Text(""),
             );
           }
           return SideTitleWidget(
-            axisSide: meta.axisSide,
+            meta: meta,
             // child: Text(meta.formattedValue, style: style),
             child: Text("${valueDouble.toInt()}", style: style),
           );
@@ -400,8 +400,8 @@ class _LineChart extends StatelessWidget {
     final t = data.xTitleMap[value.toInt().toString()] ?? "";
     text = Text(t, style: style, textAlign: TextAlign.start);
     return SideTitleWidget(
-      axisSide: meta.axisSide,
       angle: -0.75,
+      meta: meta,
       child: Padding(
         padding: const EdgeInsets.only(top: 16),
         child: text,
