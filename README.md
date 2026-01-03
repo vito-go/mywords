@@ -76,7 +76,6 @@ different topics and background knowledge, comprehensively enhancing your Englis
 
 ## Contact and Support：
 - If you encounter any issues while using this tool or adding dictionaries, or if you want to share your learning experiences and progress with us, please contact us via:
-    - Email：`vitogo2024@gmail.com`
     - Join Our Telegram Group： https://t.me/+O6mfB2ElB_ViYmM1
 
 ## Acknowledgements
