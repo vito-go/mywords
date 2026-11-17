@@ -15,7 +15,7 @@ func Translate(textC *C.char) *C.char {
 func translateNotImplemented(textC *C.char) *C.char {
 	result := translator.Translation{
 		ErrCode:   500,
-		ErrMsg:    "Error: the feature of translation is still under development. Please contact the developer 56462631+vito-go@users.noreply.github.com.",
+		ErrMsg:    "Error: the feature of translation is still under development. Please open an issue at https://github.com/vito-go/mywords/issues.",
 		Result:    "",
 		PoweredBy: "mywords",
 	}
